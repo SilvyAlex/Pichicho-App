@@ -1,0 +1,126 @@
+/* Fondo 100% blanco en toda la vista */
+.registro-content {
+  --background: #ffffff;
+  background: #ffffff;
+  --padding-top: 16px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-bottom: 24px;
+}
+
+.form-container {
+  max-width: 380px;
+  margin: 0 auto;
+}
+
+/* Títulos */
+.title {
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0 0 4px;
+  color: #111827;
+}
+.subtitle {
+  margin: 0 0 18px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Avatar + círculo verde con “+” */
+.avatar-wrap {
+  display: grid;
+  place-items: center;
+  margin: 8px 0 18px;
+}
+.avatar-box {
+  position: relative;
+  width: 112px;
+  height: 112px;
+}
+.avatar-xl {
+  width: 112px;
+  height: 112px;
+  --border-radius: 50%;
+  overflow: hidden;
+}
+.placeholder {
+  display: grid;
+  place-items: center;
+  background: #eef1f4;
+  ion-icon { font-size: 44px; color: #9aa3af; }
+}
+.add-badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 32px;
+  height: 32px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  background: #22c55e; /* verde */
+  color: #ffffff;
+  font-size: 22px; /* “+” grande */
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 6px 14px rgba(0,0,0,.18);
+  cursor: pointer;
+}
+
+/* Campos */
+.field { --background: transparent; margin: 12px 0; }
+
+/* Pregunta (label) y respuesta con mismo color/tamaño */
+.q-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #111827;      /* negro */
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Caja de respuesta: interior blanco + SOLO borde gris medio */
+.control-box {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #b8bdc6;  /* gris oscuro suave */
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: grid;
+  align-items: center;
+}
+
+/* Texto de respuesta y placeholders */
+.control-box ion-input,
+.control-box ion-select {
+  width: 100%;
+  color: #111827;             /* mismo color del label */
+  font-size: 16px;
+  --padding-top: 6px;
+  --padding-bottom: 6px;
+  --placeholder-color: #c9cdd4; /* gris más claro, visible pero suave */
+  --placeholder-opacity: 1;
+}
+
+/* Enfoque accesible */
+.control-box:focus-within { border-color: #9aa3af; }
+
+/* Espacio antes del botón */
+.spacer { height: 12px; }
+
+/* Botón CTA */
+.cta-wrap { display: grid; place-items: center; }
+.cta {
+  width: 100%;
+  max-width: 280px;
+  height: 48px;
+  border-radius: 999px;
+  --background: #ffd9a3;
+  --background-activated: #ffc786;
+  --background-hover: #ffd193;
+  --color: #6b4e1d;
+  --box-shadow: none;
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+.cta[disabled] { opacity: .85; filter: saturate(.8); }

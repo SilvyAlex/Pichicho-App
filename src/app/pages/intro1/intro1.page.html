@@ -1,0 +1,69 @@
+<ion-content fullscreen="true" class="onboard-content">
+  <div class="viewport">
+    <!-- Botón de audio redondo -->
+    <div class="audio-wrap">
+      <ion-button class="audio-btn" aria-label="Audio" (click)="speakCurrentSlide()">
+        <ion-icon name="volume-high-outline"></ion-icon>
+      </ion-button>
+    </div>
+
+    <!-- Swiper (Web Component) -->
+    <swiper-container
+      #swiper
+      class="slides"
+      slides-per-view="1"
+      speed="350"
+      allow-touch-move="true"
+      (slidechange)="onSlideChangeEvent()"
+    >
+      <swiper-slide class="slide">
+        <div class="center-wrap">
+          <img src="assets/images/Artboard 1.png" alt="Pichicho" class="dog-hero" />
+          <div class="text-block">
+            <h2 data-read="title">¡Bienvenido a PICHICHO!</h2>
+            <p data-read="desc">Aquí aprenderás a cuidar a tu mejor amigo peludo, ¡jugando!</p>
+          </div>
+        </div>
+      </swiper-slide>
+
+      <swiper-slide class="slide">
+        <div class="center-wrap">
+          <img src="assets/images/Artboard 2.png" alt="Pichicho" class="dog-hero" />
+          <div class="text-block">
+            <h2 data-read="title">Alimenta, pasea y entrena a tu perrito</h2>
+            <p data-read="desc">Gana puntos y desbloquea historias increíbles</p>
+          </div>
+        </div>
+      </swiper-slide>
+
+      <swiper-slide class="slide">
+        <div class="center-wrap">
+          <img src="assets/images/Artboard 3.png" alt="Pichicho" class="dog-hero" />
+          <div class="text-block">
+            <p data-read="title">Completa retos, responde preguntas y conviértete en</p>
+            <h2 data-read="desc">El mejor cuidador de mascotas del mundo!</h2>
+          </div>
+        </div>
+      </swiper-slide>
+    </swiper-container>
+
+    <!-- Footer: dots + botón -->
+    <div class="footer-wrap">
+      <div class="footer-inner">
+        <div class="dots" aria-label="Paginación">
+          <button
+            class="dot"
+            *ngFor="let i of dots"
+            [class.active]="i === active"
+            (click)="goTo(i)"
+            [attr.aria-current]="i === active ? 'true' : 'false'">
+          </button>
+        </div>
+
+        <ion-button class="cta" shape="round" (click)="continue()">
+          {{ active < total - 1 ? 'Continuar' : 'Empezar' }}
+        </ion-button>
+      </div>
+    </div>
+  </div>
+</ion-content>

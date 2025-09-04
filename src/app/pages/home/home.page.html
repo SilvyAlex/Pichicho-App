@@ -1,0 +1,119 @@
+<ion-content class="page white" [forceOverscroll]="false" fullscreen>
+  <div class="wrap">
+    <div class="hello">Hola Mary</div>
+    <h1 class="title">¿Cómo esta pelusa<br/>hoy?</h1>
+
+    <!-- Card de estado -->
+    <section class="status-card">
+      <div class="status-left">
+        <div class="row">
+          <span class="dot ok"></span><span class="label">Comida</span>
+          <span class="count">2/2</span>
+        </div>
+        <div class="row">
+          <span class="dot ok"></span><span class="label">Paseos</span>
+          <span class="count">2/2</span>
+        </div>
+        <div class="row">
+          <span class="dot warn"></span><span class="label">Entrenamiento</span>
+          <span class="count">1/2</span>
+        </div>
+        <div class="health">
+          <span class="heart">❤</span><span class="muted">Good</span>
+          <span class="muted">{{progreso.score}}%</span>
+        </div>
+      </div>
+      <div class="pet-circle">🐶</div>
+    </section>
+
+    <!-- Actividades -->
+    <div class="section-head">
+      <div class="section-title">Actividades</div>
+      <ion-icon name="chevron-forward-outline" class="chev"></ion-icon>
+    </div>
+
+    <div class="pill pill-blue" role="button" tabindex="0">
+      <div class="emoji">🦴</div>
+      <div class="bonus-text">Comida</div>
+      <div class="pill-count">2/2</div>
+      <div class="pill-caret">›</div>
+    </div>
+
+    <div class="pill pill-orange" role="button" tabindex="0">
+      <div class="emoji">🐾</div>
+      <div class="bonus-text">Paseos</div>
+      <div class="pill-count">1/2</div>
+      <div class="pill-caret">›</div>
+    </div>
+
+    <div class="pill pill-salmon" role="button" tabindex="0">
+      <div class="emoji">🐶</div>
+      <div class="bonus-text">Entrenamientos</div>
+      <div class="pill-count">1/2</div>
+      <div class="pill-caret">›</div>
+    </div>
+
+    <!-- Puntos extras -->
+    <div class="section-head top-gap">
+      <div class="section-title">Puntos extras</div>
+      <ion-icon name="chevron-forward-outline" class="chev"></ion-icon>
+    </div>
+
+    <div class="bonus bonus-green" role="button" tabindex="0">
+      <div class="left">
+        <div class="emoji">📚</div>
+        <div class="bonus-text">Historias</div>
+      </div>
+      <div class="bonus-right">
+        <span class="check-dot">
+          <ion-icon name="checkmark-outline"></ion-icon>
+        </span>
+        <span class="chev-white">›</span>
+      </div>
+    </div>
+
+    <div class="bonus bonus-blue" role="button" tabindex="0">
+      <div class="left">
+        <div class="emoji">🛁</div>
+        <div class="bonus-text">Limpieza</div>
+      </div>
+      <div class="bonus-right">
+        <span class="check-dot">
+          <ion-icon name="checkmark-outline"></ion-icon>
+        </span>
+        <span class="chev-white">›</span>
+      </div>
+    </div>
+
+    <div class="bonus bonus-red" role="button" tabindex="0">
+      <div class="left">
+        <div class="emoji">💉</div>
+        <div class="bonus-text">Vacunas</div>
+      </div>
+      <div class="bonus-right">
+        <span class="check-dot">
+          <ion-icon name="checkmark-outline"></ion-icon>
+        </span>
+        <span class="chev-white">›</span>
+      </div>
+    </div>
+
+    <div style="height:120px"></div>
+  </div>
+
+  <!-- Barra inferior fija personalizada -->
+  <nav class="bottom-bar">
+    <a class="tab active" href="#">
+      <ion-icon name="home-outline"></ion-icon>
+      <span>Inicio</span>
+    </a>
+    <a class="tab" href="#">
+      <ion-icon name="heart-outline"></ion-icon>
+      <span>Puntos</span>
+    </a>
+    <a class="tab" href="#">
+      <ion-icon name="person-outline"></ion-icon>
+      <span>Perfil</span>
+    </a>
+  </nav>
+</ion-content>

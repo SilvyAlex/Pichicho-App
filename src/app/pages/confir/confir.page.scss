@@ -1,0 +1,113 @@
+:host {
+  --bg: #ffffff;
+  --primary: #93c5fd;
+  --primary-pressed: #7bb3fb;
+  --text-main: #111827;
+  --text-sub: #6b7280;
+}
+
+.onboard-content {
+  --background: var(--bg);
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.viewport {
+  width: 100%;
+  max-width: 390px;
+  min-height: 100dvh;
+  padding: 16px 20px 24px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  align-items: center;
+  justify-items: center;
+  box-sizing: border-box;
+  margin-inline: auto;
+}
+
+/* Audio redondo estilo igual al onboarding */
+.audio-wrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 8px;
+  margin-bottom: 6px;
+}
+
+.audio-btn {
+  --background: #eaf2ff;
+  --box-shadow: none;
+  width: 56px;
+  height: 56px;
+  --border-radius: 50%;
+  border-radius: 50%;
+  border: 2px solid #dbeafe;
+  display: grid;
+  place-items: center;
+
+  ion-icon {
+    font-size: 22px;
+    color: #2b6cb0;
+  }
+}
+
+/* Centro */
+.center-wrap {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.text-block h2 {
+  margin: 0;
+  font-size: clamp(18px, 2.6vw, 20px);
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.text-block p {
+  margin: 6px 0 0;
+  font-size: clamp(11px, 2.3vw, 12px);
+  line-height: 1.35;
+  color: var(--text-sub);
+}
+
+.dog-hero {
+  width: clamp(170px, 52vw, 260px);
+  height: auto;
+}
+
+.helper {
+  margin: 0;
+  font-size: clamp(11px, 2.3vw, 12px);
+  line-height: 1.35;
+  color: var(--text-sub);
+}
+
+/* Footer */
+.footer-wrap {
+  width: 100%;
+}
+
+.footer-inner.center-only {
+  width: 100%;
+  max-width: 390px;
+  margin: 0 auto;
+  padding-inline: 20px;
+  display: grid;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  box-sizing: border-box;
+}
+
+/* Botón CTA */
+.cta {
+  min-width: 168px;
+  --background: var(--primary);
+  --background-activated: var(--primary-pressed);
+  --border-radius: 18px;
+  --box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
+}

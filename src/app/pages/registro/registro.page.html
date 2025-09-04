@@ -1,0 +1,93 @@
+<ion-content [fullscreen]="true" class="registro-content">
+  <div class="form-container">
+    <h1 class="title">Registro</h1>
+    <p class="subtitle">🎉 ¡Vamos a conocerte a ti y a tu perrito!</p>
+
+    <!-- Avatar con badge + -->
+    <div class="avatar-wrap">
+      <div class="avatar-box">
+        <ion-avatar class="avatar-xl" *ngIf="photoDataUrl; else emptyAvatar">
+          <img [src]="photoDataUrl" alt="Foto del peludito" />
+        </ion-avatar>
+
+        <ng-template #emptyAvatar>
+          <ion-avatar class="avatar-xl placeholder">
+            <ion-icon name="person-outline"></ion-icon>
+          </ion-avatar>
+        </ng-template>
+
+        <!-- Círculo verde con "+" -->
+        <button type="button" class="add-badge" (click)="triggerFilePicker(fileInput)">+</button>
+      </div>
+
+      <input type="file" accept="image/*" #fileInput hidden (change)="onFileSelected($event)" />
+    </div>
+
+    <!-- FORM -->
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <!-- Niño -->
+      <ion-item lines="none" class="field">
+        <ion-label position="stacked" class="q-label">¿Cómo te llamas, pequeño cuidador?</ion-label>
+        <div class="control-box">
+          <ion-input formControlName="nombreNino" type="text" placeholder="Escribe tu nombre"></ion-input>
+        </div>
+      </ion-item>
+
+      <!-- Perrito -->
+      <ion-item lines="none" class="field">
+        <ion-label position="stacked" class="q-label">¿Cómo se llama tu peludito? 🐕</ion-label>
+        <div class="control-box">
+          <ion-input formControlName="nombrePerro" type="text" placeholder="Nombre de tu perrito"></ion-input>
+        </div>
+      </ion-item>
+
+      <!-- Peso -->
+      <ion-item lines="none" class="field">
+        <ion-label position="stacked" class="q-label">¿Y cuánto pesa? 🐾</ion-label>
+        <div class="control-box">
+          <ion-select interface="popover" placeholder="Elige el peso" formControlName="peso">
+            <ion-select-option *ngFor="let p of pesos" [value]="p">{{ p }}</ion-select-option>
+          </ion-select>
+        </div>
+      </ion-item>
+
+      <!-- Raza -->
+      <ion-item lines="none" class="field">
+        <ion-label position="stacked" class="q-label">¿Qué raza es tu perrito? 🐶</ion-label>
+        <div class="control-box">
+          <ion-select interface="popover" placeholder="Elige la raza" formControlName="raza">
+            <ion-select-option *ngFor="let r of razas" [value]="r">{{ r }}</ion-select-option>
+          </ion-select>
+        </div>
+      </ion-item>
+
+      <!-- Edad -->
+      <ion-item lines="none" class="field">
+        <ion-label position="stacked" class="q-label">¿Qué edad tiene tu peludito? (En años humanos)</ion-label>
+        <div class="control-box">
+          <ion-select interface="popover" placeholder="Elige edad" formControlName="edad">
+            <ion-select-option *ngFor="let e of edades" [value]="e">{{ e }}</ion-select-option>
+          </ion-select>
+        </div>
+      </ion-item>
+
+      <!-- Correo -->
+      <ion-item lines="none" class="field">
+        <ion-label position="stacked" class="q-label">Correo de tu adulto responsable 📧</ion-label>
+        <div class="control-box">
+          <ion-input formControlName="correoAdulto" type="email" placeholder="Email"></ion-input>
+        </div>
+      </ion-item>
+
+      <!-- Espacio antes del botón -->
+      <div class="spacer"></div>
+
+      <!-- CTA -->
+      <div class="cta-wrap">
+        <ion-button type="submit" class="cta" [disabled]="form.invalid" (click)="goToIntro2()">
+          Registrarse
+        </ion-button>
+      </div>
+    </form>
+  </div>
+</ion-content>

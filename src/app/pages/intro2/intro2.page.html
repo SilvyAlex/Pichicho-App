@@ -1,0 +1,128 @@
+<ion-content fullscreen="true" class="onboard-content">
+  <div class="viewport">
+    <!-- Botón de audio redondo -->
+    <div class="audio-wrap">
+      <ion-button class="audio-btn" aria-label="Audio" (click)="speakCurrentSlide()">
+        <ion-icon name="volume-high-outline"></ion-icon>
+      </ion-button>
+    </div>
+
+    <!-- Swiper (Web Component) -->
+    <swiper-container
+      #swiper
+      class="slides"
+      slides-per-view="1"
+      speed="350"
+      allow-touch-move="true"
+      (slidechange)="onSlideChangeEvent()"
+    >
+      <!-- SLIDE 1: Comida / Entrenamiento / Paseos -->
+      <swiper-slide class="slide">
+        <div class="center-wrap">
+          <div class="text-block">
+            <h2 data-read="title">
+              Tienes que hacer esto para<br />
+              mantener a tu perrito contento:
+            </h2>
+          </div>
+
+          <div class="cards">
+            <div class="card">
+              <div class="emoji" aria-hidden="true">🥣</div>
+              <div class="label">Comida</div>
+            </div>
+            <div class="card">
+              <div class="emoji" aria-hidden="true">🧠</div>
+              <div class="label">Entrenamiento</div>
+            </div>
+            <div class="card">
+              <div class="emoji" aria-hidden="true">🚶‍♂️</div>
+              <div class="label">Paseos</div>
+            </div>
+          </div>
+
+          <p class="helper" data-read="desc">
+            También verás cuántas veces debes alimentarlo.
+          </p>
+        </div>
+      </swiper-slide>
+
+      <!-- SLIDE 2: Historias interactivas / Baños -->
+      <swiper-slide class="slide">
+        <div class="center-wrap">
+          <div class="text-block">
+            <h2 data-read="title">
+              Abajo verás 2 íconos importantes<br />
+              para ganar puntos:
+            </h2>
+          </div>
+
+          <div class="cards two">
+            <div class="card">
+              <div class="emoji" aria-hidden="true">📚</div>
+              <div class="label">Historias interactivas</div>
+            </div>
+            <div class="card">
+              <div class="emoji" aria-hidden="true">🛁</div>
+              <div class="label">Baños</div>
+            </div>
+          </div>
+
+          <p class="helper" data-read="desc">
+            Aprende cosas curiosas sobre tu perrito y gana PawPoints
+          </p>
+        </div>
+      </swiper-slide>
+
+      <!-- SLIDE 3: Inicio / Puntos / Perfil -->
+      <swiper-slide class="slide">
+        <div class="center-wrap">
+          <div class="text-block">
+            <h2 data-read="title">
+              Abajo verás 3 íconos importantes<br />
+              para explorar la app:
+            </h2>
+          </div>
+
+          <div class="cards">
+            <div class="card">
+              <div class="emoji" aria-hidden="true">🏠</div>
+              <div class="label">Inicio</div>
+            </div>
+            <div class="card">
+              <div class="emoji" aria-hidden="true">🧡</div>
+              <div class="label">Puntos</div>
+            </div>
+            <div class="card">
+              <div class="emoji" aria-hidden="true">👤</div>
+              <div class="label">Perfil</div>
+            </div>
+          </div>
+
+          <p class="helper" data-read="desc">
+            ¡Diviértete, aprende y conviértete en el mejor cuidador del mundo! ✨
+          </p>
+        </div>
+      </swiper-slide>
+    </swiper-container>
+
+    <!-- Footer: dots + botón -->
+    <div class="footer-wrap">
+      <div class="footer-inner">
+        <div class="dots" aria-label="Paginación">
+          <button
+            class="dot"
+            *ngFor="let i of dots"
+            [class.active]="i === active"
+            (click)="goTo(i)"
+            [attr.aria-current]="i === active ? 'true' : 'false'">
+          </button>
+        </div>
+
+        <ion-button class="cta" shape="round" (click)="continue()">
+          {{ active < total - 1 ? 'Continuar' : 'Empezar' }}
+        </ion-button>
+      </div>
+    </div>
+  </div>
+</ion-content>

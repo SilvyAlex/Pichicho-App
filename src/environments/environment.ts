@@ -3,9 +3,16 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  firebaseConfig: {
+    apiKey: "AIzaSyAxmojqxgsD4fR9pcBhMt2P6vDoAruJ740",
+    authDomain: "pichichioapp.firebaseapp.com",
+    projectId: "pichichioapp",
+    storageBucket: "pichichioapp.firebasestorage.app",
+    messagingSenderId: "438192714060",
+    appId: "1:438192714060:web:b74bd6fa34006a6cc71fe9"
+  }
 };
-
 /*
  * For easier debugging in development mode, you can import the following file
  * to ignore zone related error stack frames such as `zone.run`, `zoneDelegate.invokeTask`.

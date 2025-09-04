@@ -1,0 +1,38 @@
+<ion-content fullscreen="true" class="onboard-content">
+  <div class="viewport">
+
+    <!-- Botón de audio redondo -->
+    <div class="audio-wrap">
+      <ion-button class="audio-btn" aria-label="Audio" (click)="speak()">
+        <ion-icon name="volume-high-outline"></ion-icon>
+      </ion-button>
+    </div>
+
+    <!-- Contenido central -->
+    <div class="center-wrap">
+      <div class="text-block">
+        <h2 data-read="title">¡Todo listo, Maria!</h2>
+        <p data-read="desc">
+          Tu perrito Pelusa está feliz de comenzar esta aventura contigo. 🐾
+        </p>
+      </div>
+
+      <!-- Ilustración -->
+      <img src="assets/images/Artboard 3.png" alt="Perrito Pelusa" class="dog-hero" />
+
+      <p class="helper">
+        Pero antes de empezar... te vamos a mostrar cómo funciona la aplicación.
+      </p>
+    </div>
+
+    <!-- CTA -->
+    <div class="footer-wrap">
+      <div class="footer-inner center-only">
+        <ion-button class="cta" shape="round" (click)="goToInstructions()">
+          Instrucciones
+        </ion-button>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

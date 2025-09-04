@@ -1,0 +1,143 @@
+:host {
+  --bg: #ffffff;
+  --primary: #93c5fd;
+  --primary-pressed: #7bb3fb;
+  --text-main: #111827;
+  --text-sub: #6b7280;
+  --dot-inactive: #cfd8e3;
+  --dot-active: #f59e0b;
+}
+
+.onboard-content {
+  --background: var(--bg);
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.viewport {
+  width: 100%;
+  max-width: 390px;
+  min-height: 100dvh;
+  padding: 16px 20px 24px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  align-items: center;
+  justify-items: center;
+  box-sizing: border-box;
+  margin-inline: auto;
+}
+
+/* Audio centrado, círculo perfecto */
+.audio-wrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 8px;
+  margin-bottom: 6px;
+}
+
+.audio-btn {
+  --background: #eaf2ff;
+  --box-shadow: none;
+  width: 56px;
+  height: 56px;
+  --border-radius: 50%;
+  border-radius: 50%;
+  border: 2px solid #dbeafe;
+  display: grid;
+  place-items: center;
+
+  ion-icon { font-size: 22px; color: #2b6cb0; }
+}
+
+/* Slides centrados */
+swiper-container {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+
+.slide {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.center-wrap {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 16px;
+}
+
+.dog-hero {
+  width: clamp(170px, 52vw, 260px);
+  height: auto;
+}
+
+.text-block {
+  h2 {
+    margin: 0 0 6px;
+    font-size: clamp(18px, 2.6vw, 20px);
+    font-weight: 700;
+    color: var(--text-main);
+  }
+  p {
+    margin: 0;
+    font-size: clamp(11px, 2.3vw, 12px);
+    line-height: 1.35;
+    color: var(--text-sub);
+  }
+}
+
+/* Footer con aire lateral (dots no pegan al borde) */
+.footer-wrap { width: 100%; }
+
+.footer-inner {
+  width: 100%;
+  max-width: 390px;
+  margin: 0 auto;
+  padding-inline: 20px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+/* Dots: solo el activo se agranda */
+.dots {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dot {
+  appearance: none;
+  border: 0;
+  width: 8px;
+  height: 8px;
+  background: var(--dot-inactive);
+  border-radius: 50%;
+  transform: scale(1);
+  transition: transform 200ms ease, background 200ms ease;
+  cursor: pointer;
+}
+
+.dot.active {
+  background: var(--dot-active);
+  transform: scale(1.9);
+}
+
+/* Botón CTA */
+.cta {
+  min-width: 144px;
+  --background: var(--primary);
+  --background-activated: var(--primary-pressed);
+  --border-radius: 18px;
+  --box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
+}
