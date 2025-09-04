@@ -31,4 +31,12 @@ export const routes: Routes = [
     path: 'home',
     loadComponent: () => import('./pages/home/home.page').then( m => m.HomePage)
   },
+  {
+    path: 'perfil',
+    loadComponent: () => import('./pages/perfil/perfil.page').then( m => m.PerfilPage)
+  },
+  {
+    path: 'puntos',
+    loadComponent: () => import('./pages/puntos/puntos.page').then( m => m.PuntosPage)
+  },
 ];
