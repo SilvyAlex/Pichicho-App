@@ -1,0 +1,108 @@
+:host {
+  --bg: #ffffff;
+  --text-main: #111827;
+  --text-sub: #6b7280;
+  --dashed: #8bd0ff;
+
+  /* CTA azul (misma estética onboarding) */
+  --primary: #93c5fd;
+  --primary-pressed: #7bb3fb;
+}
+
+.onboard-content {
+  --background: var(--bg);
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.viewport {
+  width: 100%;
+  max-width: 390px;
+  min-height: 100dvh;
+  padding: 26px 18px 28px;
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto;
+  align-items: start;
+  justify-items: center;
+  box-sizing: border-box;
+  margin-inline: auto;
+}
+
+/* Header */
+.header-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.title { margin: 0; font-size: 18px; font-weight: 700; color: var(--text-main); }
+
+.audio-btn {
+  --background: #eaf2ff;
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 2px solid #dbeafe;
+  --box-shadow: none;
+  ion-icon { font-size: 20px; color: #2b6cb0; }
+}
+
+/* Imagen superior */
+.hero {
+  width: 100%;
+  display: grid;
+  place-items: center;
+  margin: 8px 0 14px;
+
+  ion-img { width: 180px; height: auto; }
+}
+
+.hero-video {
+  width: 180px;        /* igual que antes la imagen */
+  max-width: 100%;
+  border-radius: 14px;
+  background: #000;    /* por si no hay poster */
+  box-shadow: 0 8px 22px rgba(15,23,42,.06);
+}
+
+/* Tarjeta punteada */
+.dashed-card {
+  width: 100%;
+  border: 2px dashed var(--dashed);
+  border-radius: 18px;
+  padding: 16px 16px;
+  background: #fff;
+  text-align: center;
+  margin-bottom: 16px;
+
+  .line {
+    margin: 0 0 8px;
+    color: var(--text-sub);
+    font-size: 14px;
+    line-height: 1.35;
+  }
+
+  .strong {
+    margin: 6px 0 0;
+    color: var(--text-main);
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+}
+
+/* CTA */
+.cta {
+  --border-radius: 16px;
+  --background: var(--primary);
+  --background-activated: var(--primary-pressed);
+  font-weight: 700;
+  width: 100%;
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
+}
+
+/* Responsive */
+@media (max-width: 330px) {
+  .viewport { padding: 22px 16px 24px; }
+  .hero ion-img { width: 160px; }
+}

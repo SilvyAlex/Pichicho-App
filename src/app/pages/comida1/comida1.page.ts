@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule, Router } from '@angular/router';
 import {
   IonContent,
   IonButtons,
@@ -51,7 +52,7 @@ export class Comida1Page implements OnInit {
   // Segmento seleccionado
   time: FeedTime = 'noche'; // por defecto Noche
 
-  constructor() {
+  constructor(private router: Router) {
     // Registrar íconos que usamos
     addIcons({
       chevronBackOutline,
@@ -87,5 +88,9 @@ export class Comida1Page implements OnInit {
       weightKg: this.currentWeightKg,
       scoops: this.scoops
     });
+  }
+
+  continue(path: string) {
+    this.router.navigateByUrl(path);     // o this.router.navigate([path])
   }
 }

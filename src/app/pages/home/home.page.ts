@@ -24,7 +24,7 @@ export class HomePage {
   constructor(private router: Router) {
   addIcons({ checkmarkOutline, homeOutline, heartOutline, personOutline });
 }
-   go(url: string) {
-    this.router.navigateByUrl(url);
+   continue(path: string) {
+    this.router.navigateByUrl(path);     // o this.router.navigate([path])
   }
 }

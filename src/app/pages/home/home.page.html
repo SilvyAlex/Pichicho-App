@@ -32,21 +32,21 @@
       <ion-icon name="chevron-forward-outline" class="chev"></ion-icon>
     </div>
 
-    <div class="pill pill-blue" role="button" tabindex="0" >
+    <div class="pill pill-blue" role="button" tabindex="0" (click)="continue('/comida1')" >
       <div class="emoji">🦴</div>
       <div class="bonus-text">Comida</div>
       <div class="pill-count">2/2</div>
       <div class="pill-caret">›</div>
     </div>
 
-    <div class="pill pill-orange" role="button" tabindex="0">
+    <div class="pill pill-orange" role="button" tabindex="0"(click)="continue('/paseos1')">
       <div class="emoji">🐾</div>
       <div class="bonus-text">Paseos</div>
       <div class="pill-count">1/2</div>
       <div class="pill-caret">›</div>
     </div>
 
-    <div class="pill pill-salmon" role="button" tabindex="0">
+    <div class="pill pill-salmon" role="button" tabindex="0"(click)="continue('/entrena1')">
       <div class="emoji">🐶</div>
       <div class="bonus-text">Entrenamientos</div>
       <div class="pill-count">1/2</div>
@@ -72,7 +72,7 @@
       </div>
     </div>
 
-    <div class="bonus bonus-blue" role="button" tabindex="0">
+    <div class="bonus bonus-blue" role="button" tabindex="0" (click)="continue('/limpieza')">
       <div class="left">
         <div class="emoji">🛁</div>
         <div class="bonus-text">Limpieza</div>
@@ -85,7 +85,7 @@
       </div>
     </div>
 
-    <div class="bonus bonus-red" role="button" tabindex="0">
+    <div class="bonus bonus-red" role="button" tabindex="0" (click)="continue('/vacunas')">
       <div class="left">
         <div class="emoji">💉</div>
         <div class="bonus-text">Vacunas</div>
@@ -107,7 +107,7 @@
       <ion-icon name="home-outline"></ion-icon>
       <span>Inicio</span>
     </a>
-    <a class="tab" href="#">
+    <a class="tab" href="puntos">
       <ion-icon name="heart-outline"></ion-icon>
       <span>Puntos</span>
     </a>

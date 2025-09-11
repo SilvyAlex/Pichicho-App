@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule, Router } from '@angular/router';
 import {
   IonContent,
   IonButtons,
@@ -9,6 +10,7 @@ import {
   IonIcon,
   IonSegment,
   IonSegmentButton,
+  IonImg,
   IonLabel
 } from '@ionic/angular/standalone';
 
@@ -36,6 +38,7 @@ type WalkTime = 'dia' | 'tarde';
     IonSegmentButton,
     IonLabel,
     CommonModule,
+    IonImg,
     FormsModule
   ]
 })
@@ -47,7 +50,7 @@ export class Paseos1Page implements OnInit {
   // Segmento seleccionado
   time: WalkTime = 'tarde'; // como en tu mock
 
-  constructor() {
+  constructor(private router: Router) {
     addIcons({
       chevronBackOutline,
       volumeHighOutline,
@@ -78,5 +81,9 @@ export class Paseos1Page implements OnInit {
 
   startWalk() {
     console.log('Empezar paseo', { time: this.time, pet: this.petName });
+  }
+
+   continue(path: string) {
+    this.router.navigateByUrl(path);     // o this.router.navigate([path])
   }
 }

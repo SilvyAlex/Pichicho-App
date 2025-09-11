@@ -1,13 +1,117 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>puntos</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content fullscreen="true" class="onboard-content">
+  <div class="viewport">
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">puntos</ion-title>
-    </ion-toolbar>
-  </ion-header>
+    <!-- Título -->
+    <h2 class="big-title">¡Mira tu<br>progreso!</h2>
+
+    <!-- Donut mejorado -->
+    <div class="donut-wrap">
+      <svg class="donut" [attr.viewBox]="'0 0 ' + (center*2) + ' ' + (center*2)">
+        <defs>
+          <!-- Degradado del trazo -->
+          <linearGradient [attr.id]="gradStrokeId" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"  stop-color="#34d399"/>
+            <stop offset="55%" stop-color="#22c55e"/>
+            <stop offset="100%" stop-color="#16a34a"/>
+          </linearGradient>
+
+          <!-- Degradado del track -->
+          <linearGradient [attr.id]="gradTrackId" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%"  stop-color="#e9f7ef"/>
+            <stop offset="100%" stop-color="#dff3e7"/>
+          </linearGradient>
+
+          <!-- Halo suave -->
+          <filter [attr.id]="glowId" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+
+        <!-- Borde interior para look más sólido -->
+        <circle
+          class="inner-ring"
+          [attr.cx]="center" [attr.cy]="center" [attr.r]="radius - stroke/2"
+          stroke="#d9f0e4" stroke-width="1.5" fill="none">
+        </circle>
+
+        <!-- TRACK (fondo) -->
+        <circle
+          class="track"
+          [attr.cx]="center" [attr.cy]="center" [attr.r]="radius"
+          [attr.stroke-width]="stroke"
+          [attr.stroke]="'url(#' + gradTrackId + ')'"
+          stroke-linecap="round" fill="none">
+        </circle>
+
+        <!-- GLOW del progreso (mismo trazo con blur) -->
+        <circle
+          class="progress glow"
+          [attr.cx]="center" [attr.cy]="center" [attr.r]="radius"
+          [attr.stroke-width]="stroke"
+          [attr.stroke-dasharray]="circumference"
+          [attr.stroke-dashoffset]="dashOffset"
+          [attr.stroke]="'url(#' + gradStrokeId + ')'"
+          stroke-linecap="round" fill="none"
+          [attr.filter]="'url(#' + glowId + ')'">
+        </circle>
+
+        <!-- PROGRESO nítido -->
+        <circle
+          class="progress"
+          [attr.cx]="center" [attr.cy]="center" [attr.r]="radius"
+          [attr.stroke-width]="stroke"
+          [attr.stroke-dasharray]="circumference"
+          [attr.stroke-dashoffset]="dashOffset"
+          [attr.stroke]="'url(#' + gradStrokeId + ')'"
+          stroke-linecap="round" fill="none">
+        </circle>
+
+        <!-- Puntito final -->
+        <circle class="cap-dot" [attr.cx]="endX" [attr.cy]="endY" r="4.2" fill="#22c55e"></circle>
+        <circle class="cap-dot glow" [attr.cx]="endX" [attr.cy]="endY" r="7" fill="#22c55e" opacity=".25"></circle>
+      </svg>
+
+      <div class="donut-center">
+        <div class="value">{{ shown | number:'1.0-0' }}%</div>
+        <div class="sub">de responsabilidad</div>
+      </div>
+    </div>
+
+    <!-- Barras por día -->
+    <div class="bars">
+      <div class="bar-col" *ngFor="let v of dayValues; let i = index">
+        <div class="bar" [ngStyle]="{ height: (v + 'px'), background: dayColors[i] }"></div>
+        <div class="lbl">{{ dayLabels[i] }}</div>
+      </div>
+    </div>
+
+    <!-- Tarjeta punteada con perrito -->
+    <div class="dashed-card">
+      <h3 class="headline">¡Increíble!</h3>
+      <p class="note">Eres un cuidador experto<br>{{petName}} está feliz contigo</p>
+      <div class="dog">
+        <ion-img src="assets/images/Artboard 1.png" alt="Perrito feliz"></ion-img>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra inferior fija personalizada -->
+  <nav class="bottom-bar">
+    <a class="tab" href="/home">
+      <ion-icon name="home-outline"></ion-icon>
+      <span>Inicio</span>
+    </a>
+    <a class="tab active" href="#">
+      <ion-icon name="heart-outline"></ion-icon>
+      <span>Puntos</span>
+    </a>
+    <a class="tab" href="perfil">
+      <ion-icon name="person-outline"></ion-icon>
+      <span>Perfil</span>
+    </a>
+  </nav>
 </ion-content>

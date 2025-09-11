@@ -26,11 +26,10 @@
 
     <!-- Imagen -->
     <div class="dog">
-      <!-- Coloca tu imagen en src/assets/images/perro-vacunas.png -->
-      <img src="/src/assets/images/Artboard 3.png" alt="Imagen de un perrito con una vacuna" />
+      <ion-img src="assets/images/Artboard%201.png" alt="Perrito entrenando"></ion-img>
     </div>
 
-    <!-- Historial de Vacunación (alto, como en tu mock) -->
+    <!-- Historial de Vacunación -->
     <div class="section-title">Historial de Vacunación</div>
 
     <div class="form-dashed">
@@ -46,27 +45,28 @@
         </ion-select>
       </ion-item>
 
-      <!-- Fecha vacunación -->
-      <ion-item class="clean" lines="none">
-        <ion-label position="stacked">Fecha Vacunación</ion-label>
-        <ion-input
-          type="date"
-          class="field-input"
-          [(ngModel)]="form.fechaVacunacion"
-          (ionChange)="onDateChange('fechaVacunacion', $event)">
-        </ion-input>
-      </ion-item>
+      <!-- Fechas en dos columnas -->
+      <div class="row-2">
+        <ion-item class="clean" lines="none">
+          <ion-label position="stacked">Fecha Vacunación</ion-label>
+          <ion-input
+            type="date"
+            class="field-input"
+            [(ngModel)]="form.fechaVacunacion"
+            (ionChange)="onDateChange('fechaVacunacion', $event)">
+          </ion-input>
+        </ion-item>
 
-      <!-- Fecha refuerzo -->
-      <ion-item class="clean" lines="none">
-        <ion-label position="stacked">Fecha Refuerzo</ion-label>
-        <ion-input
-          type="date"
-          class="field-input"
-          [(ngModel)]="form.fechaRefuerzo"
-          (ionChange)="onDateChange('fechaRefuerzo', $event)">
-        </ion-input>
-      </ion-item>
+        <ion-item class="clean" lines="none">
+          <ion-label position="stacked">Fecha Refuerzo</ion-label>
+          <ion-input
+            type="date"
+            class="field-input"
+            [(ngModel)]="form.fechaRefuerzo"
+            (ionChange)="onDateChange('fechaRefuerzo', $event)">
+          </ion-input>
+        </ion-item>
+      </div>
     </div>
 
     <!-- Botón + rojo (más arriba, no pegado al borde) -->

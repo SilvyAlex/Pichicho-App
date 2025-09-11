@@ -11,6 +11,7 @@ import {
   IonLabel,
   IonSelect,
   IonSelectOption,
+  IonImg,
   IonInput
 } from '@ionic/angular/standalone';
 
@@ -44,6 +45,7 @@ interface VaccinationForm {
     IonSelectOption,
     IonInput,
     CommonModule,
+    IonImg,
     FormsModule
   ]
 })

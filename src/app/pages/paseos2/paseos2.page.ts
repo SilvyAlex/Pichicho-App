@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule, Router } from '@angular/router';
 import {
   IonContent,
   IonButtons,
@@ -37,7 +38,7 @@ export class Paseos2Page implements OnInit, OnDestroy {
   running = false;
   finished = false;
 
-  constructor() {
+  constructor(private router: Router) {
     addIcons({ chevronBackOutline, volumeHighOutline });
   }
 
@@ -104,5 +105,9 @@ export class Paseos2Page implements OnInit, OnDestroy {
     if (!this.finished) {
       this.finishWalk();
     }
+  }
+
+  continue(path: string) {
+    this.router.navigateByUrl(path);     // o this.router.navigate([path])
   }
 }

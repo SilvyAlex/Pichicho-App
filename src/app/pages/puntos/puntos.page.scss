@@ -1,0 +1,120 @@
+:host {
+  --bg: #ffffff;
+  --text-main: #0f172a;
+  --text-sub: #6b7280;
+  --dashed: #8bd0ff;
+}
+
+.onboard-content { --background: var(--bg); display: grid; place-items: center; padding: 0; }
+
+.viewport {
+  width: 100%; max-width: 390px; min-height: 100dvh;
+  padding: 22px 18px 26px;
+  display: grid; grid-template-rows: auto auto auto auto 1fr;
+  align-items: start; justify-items: center; margin-inline: auto; box-sizing: border-box;
+}
+
+/* Header */
+.header-bar { width: 100%; display: flex; align-items: center; justify-content: space-between; }
+.title { margin: 0; font-size: 18px; font-weight: 700; color: var(--text-main); }
+.audio-btn { --background:#eaf2ff; --box-shadow:none; width:42px;height:42px;border-radius:50%;border:2px solid #dbeafe;
+  ion-icon{font-size:20px;color:#2b6cb0;} }
+
+/* Título */
+.big-title {
+  width: 100%;
+  margin: 10px 0 6px;
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 900;
+  color: var(--text-main);
+  text-align: center;
+}
+
+/* DONUT mejorado */
+.donut-wrap {
+  width: 100%;
+  position: relative;
+  display: grid;
+  place-items: center;     /* centra el <svg> */
+  margin: 12px 0 8px;
+}
+.donut { width: 220px; height: 220px; overflow: visible; }
+
+.track { fill: none; }
+.progress { fill: none; transition: stroke-dashoffset 450ms ease; }
+.inner-ring { opacity: .7; }
+
+.cap-dot { mix-blend-mode: multiply; }
+
+.donut-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);   /* ⬅️ centro matemático */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  text-align: center;
+  min-width: 0;         
+}
+.value { font-size: 24px; 
+  font-weight: 900; 
+  color: var(--text-main); 
+  line-height: 1;                      /* evita que “salte” hacia arriba/abajo */
+  margin: 0; }
+.sub   { font-size: 10px; 
+  color: #8b8b8b; 
+  margin-top: 2px; 
+  line-height: 1.1; }
+
+/* Barras por día */
+.bars {
+  width: 100%; display: grid; grid-template-columns: repeat(7, 1fr); align-items: end; gap: 14px;
+  margin: 10px 0 10px; padding: 0 12px;
+}
+.bar-col { display: grid; grid-template-rows: auto 14px; justify-items: center; }
+.bar {
+  width: 16px; border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(0,0,0,.10);
+  background: #e5e7eb;
+}
+.lbl { font-size: 10px; color: #a0a4ab; }
+
+/* Tarjeta punteada */
+.dashed-card {
+  width: 100%; border: 2px dashed var(--dashed); border-radius: 18px;
+  padding: 14px 14px 18px; background: #fff; text-align: center; margin-top: 12px;
+  .headline { margin: 0 0 6px; font-size: 18px; font-weight: 800; color: var(--text-main); }
+  .note { margin: 0 0 10px; color: var(--text-sub); font-size: 13px; line-height: 1.35; }
+  .dog ion-img { width: 150px; height: auto; display: block; margin: 4px auto 0; }
+}
+
+/* Responsive */
+@media (max-width: 330px) {
+  .big-title { font-size: 24px; }
+  .donut { width: 200px; height: 200px; }
+}
+
+/* =================== Barra inferior fija (custom) =================== */
+.bottom-bar{
+  position:fixed; left:12px; right:12px; bottom:10px; height:64px;
+  background:#ffffff;
+  box-shadow:0 -1px 0 rgba(0,0,0,0.06), 0 6px 18px rgba(0,0,0,0.08);
+  border-radius:20px;
+  display:flex; justify-content:space-evenly; align-items:center;
+  z-index:999;
+}
+.bottom-bar .tab{
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  color:#a6aab0; text-decoration:none; padding:8px 14px; border-radius:14px;
+}
+.bottom-bar .tab ion-icon{ font-size:22px; color:inherit; }
+.bottom-bar .tab span{ font-size:12px; color:inherit; }
+
+.bottom-bar .tab.active{
+  background:#ffe6ea;      
+  color:#ff8fa3;           
+}

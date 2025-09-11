@@ -1,0 +1,51 @@
+<ion-content fullscreen="true" class="onboard-content">
+  <div class="viewport">
+    <!-- Header -->
+    <div class="header-bar">
+      <ion-buttons slot="start">
+        <ion-back-button defaultHref="/" text="" icon="chevron-back-outline"></ion-back-button>
+      </ion-buttons>
+
+      <h1 class="title">Entrenamiento</h1>
+
+      <ion-buttons slot="end">
+        <ion-button class="audio-btn" aria-label="Audio" (click)="speakCard()">
+          <ion-icon name="volume-high-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </div>
+
+    <!-- Ilustración -->
+    <div class="hero">
+      <video class="hero-video"
+         controls
+         playsinline
+         preload="metadata"
+         [attr.poster]="'assets/images/entrena-poster.png'">
+        <source src="assets/images/dog sit.mp4" type="video/mp4" />
+        Tu navegador no soporta video.
+      </video>
+    </div>
+
+    <!-- Tarjeta punteada con instrucciones -->
+    <div class="dashed-card">
+      <p class="line">Dile su nombre con voz alegre.</p>
+      <p class="line">
+        Cuando venga hacia ti,<br />
+        dale una galletita 🍪 y<br />
+        muchas caricias.
+      </p>
+
+      <p class="strong">
+        ¡Repite esto varias<br />
+        veces hasta que<br />
+        entienda!
+      </p>
+    </div>
+
+    <!-- CTA -->
+    <ion-button class="cta" expand="block" size="large" (click)="continue('/entrena3')">
+      Entrenamiento terminado
+    </ion-button>
+  </div>
+</ion-content>

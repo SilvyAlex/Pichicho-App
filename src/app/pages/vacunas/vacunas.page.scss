@@ -9,7 +9,7 @@
   --plus-border: #ffc8d2;
   --plus-icon: #e11d48;
 
-  /* distancia del FAB respecto al borde inferior */
+  /* Distancia del FAB respecto al borde inferior (ajústala si quieres) */
   --fab-offset: 110px;
 }
 
@@ -24,7 +24,8 @@
   width: 100%;
   max-width: 390px;
   min-height: 100dvh;
-  padding: 26px 20px 140px; /* espacio para que el FAB no tape nada */
+  /* 👇 deja espacio suficiente para que el FAB no tape el final del form */
+  padding: 26px 20px calc(var(--fab-offset) + 88px);
   display: grid;
   grid-template-rows: auto auto auto auto 1fr;
   align-items: start;
@@ -40,6 +41,7 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 14px;
+  color: var(--text-main);
 }
 
 .title {
@@ -49,7 +51,7 @@
   color: var(--text-main);
 }
 
-/* Botón audio redondo (42x42) */
+/* Botón audio */
 .audio-btn {
   --background: #eaf2ff;
   --box-shadow: none;
@@ -69,7 +71,7 @@
   padding: 16px 14px;
   text-align: center;
   background: #fff;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 
   .hello {
     margin: 0 0 6px;
@@ -94,26 +96,38 @@
     width: 156px;
     height: auto;
     margin: 0 auto;
+    display: block;
   }
 }
 
-/* Sección + formulario */
+/* Título sección */
 .section-title {
   align-self: start;
   width: 100%;
-  margin: 2px 0 6px 4px;
+  margin: 6px 0 8px 4px;
   font-size: 15px;
   font-weight: 600;
   color: var(--text-main);
 }
 
+/* Formulario armonizado */
 .form-dashed {
   width: 100%;
   border: 2px dashed #d6d6d6;
   border-radius: 16px;
-  padding: 10px 12px 8px;
+  padding: 12px;
   background: #fff;
-  margin-bottom: 8px;
+  display: grid;
+  gap: 10px;
+  /* 👇 empuja el contenido final para que el FAB nunca lo tape */
+  margin-bottom: calc(var(--fab-offset) + 12px);
+}
+
+/* Fila de dos columnas para las fechas */
+.row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
 /* Items del form */
@@ -126,7 +140,7 @@
   ion-label {
     font-size: 12px;
     color: var(--text-sub);
-    margin-bottom: 4px;
+    margin-bottom: 6px;
   }
 
   /* Inputs (fecha) */
@@ -142,47 +156,53 @@
     --padding-end: 8px;
     font-size: 14px;
     height: 44px; /* para alinear con el select */
+    transition: border-color .15s ease, box-shadow .15s ease;
   }
 
-  /* === Select centrado + flecha a la derecha === */
+  /* Select centrado + flecha a la derecha */
   .field-select {
     position: relative;
     width: 100%;
-    height: 44px;                   /* alto fijo para centrar */
+    height: 44px;
     background: #fff;
     color: var(--text-main);
     border: 1px solid #e5e7eb;
     border-radius: 12px;
-    padding: 0 36px 0 12px;         /* espacio para icono derecho */
+    padding: 0 36px 0 12px;
     --padding-start: 0;
     --padding-end: 0;
+    transition: border-color .15s ease, box-shadow .15s ease;
   }
 
-  /* Texto/placeholder del ion-select */
   .field-select::part(text) {
     display: block;
-    line-height: 44px;              /* centra verticalmente el texto */
+    line-height: 44px;
     color: var(--text-main);
     opacity: 1;
   }
 
-  /* Icono (flecha) del ion-select */
   .field-select::part(icon) {
     position: absolute;
     right: 10px;
     top: 50%;
-    transform: translateY(-50%);    /* centrado vertical */
+    transform: translateY(-50%);
     font-size: 18px;
     color: #9ca3af;
   }
 
-  &:not(:last-child) { margin-bottom: 8px; }
+  /* realce al foco */
+  &:focus-within .field-input,
+  &:focus-within .field-select {
+    border-color: var(--dashed);
+    box-shadow: 0 0 0 3px rgba(139, 208, 255, .25);
+  }
 }
 
-/* FAB rojo - mismo calibre que audio, pero más arriba */
+/* FAB rojo */
 .fab-add {
   position: fixed;
-  bottom: var(--fab-offset); /* más arriba del borde inferior */
+  z-index: 10;
+  bottom: var(--fab-offset);
   left: 50%;
   transform: translateX(-50%);
   width: 42px;
@@ -202,8 +222,9 @@
 }
 
 /* Responsive chico */
-@media (max-width: 330px) {
+@media (max-width: 360px) {
   :host { --fab-offset: 96px; }
-  .viewport { padding: 22px 16px 130px; }
+  .viewport { padding: 22px 16px calc(var(--fab-offset) + 84px); }
   .dog ion-img { width: 140px; }
+  .row-2 { grid-template-columns: 1fr; } /* fechas apiladas en pantallas pequeñas */
 }

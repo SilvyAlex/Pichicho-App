@@ -1,6 +1,7 @@
 import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule, Router } from '@angular/router';
 import {
   IonContent,
   IonButtons,
@@ -61,7 +62,7 @@ export class Entrena1Page implements OnInit {
 
   @ViewChild('scroller') scrollerRef!: ElementRef<HTMLDivElement>;
 
-  constructor() {
+  constructor(private router: Router) {
     addIcons({
       chevronBackOutline,
       volumeHighOutline,
@@ -93,5 +94,8 @@ export class Entrena1Page implements OnInit {
     const el = this.scrollerRef?.nativeElement;
     if (!el) return;
     el.scrollBy({ left: 220, behavior: 'smooth' });
+  }
+  continue(path: string) {
+    this.router.navigateByUrl(path);     // o this.router.navigate([path])
   }
 }

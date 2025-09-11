@@ -39,12 +39,12 @@
       <button
         class="card"
         *ngFor="let a of activities; let i = index"
-        (click)="selectActivity(i)"
+        (click)="continue('/entrena3')"
         [class.active]="i === selected"
         aria-pressed="{{ i === selected ? 'true' : 'false' }}"
       >
         <div class="media">
-          <ion-img [src]="a.img" [alt]="a.title"></ion-img>
+          <ion-img src="assets/images/perrosdefault.png" alt="Perrito entrenando"></ion-img>
         </div>
 
         <div class="meta">

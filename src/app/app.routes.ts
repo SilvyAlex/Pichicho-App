@@ -71,4 +71,12 @@ export const routes: Routes = [
     path: 'entrena1',
     loadComponent: () => import('./pages/entrena1/entrena1.page').then( m => m.Entrena1Page)
   },
+  {
+    path: 'entrena2',
+    loadComponent: () => import('./pages/entrena2/entrena2.page').then( m => m.Entrena2Page)
+  },
+  {
+    path: 'entrena3',
+    loadComponent: () => import('./pages/entrena3/entrena3.page').then( m => m.Entrena3Page)
+  },
 ];
