@@ -1,0 +1,74 @@
+<ion-content fullscreen="true" class="onboard-content">
+  <div class="viewport">
+    <!-- Header -->
+    <div class="header-bar">
+      <ion-buttons slot="start">
+        <ion-back-button defaultHref="/" text="" icon="chevron-back-outline"></ion-back-button>
+      </ion-buttons>
+
+      <h1 class="title">Limpieza</h1>
+
+      <ion-buttons slot="end">
+        <ion-button class="audio-btn" aria-label="Audio" (click)="speakCard()">
+          <ion-icon name="volume-high-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </div>
+
+    <!-- Perrito -->
+    <div class="dog-top">
+      <ion-img src="assets/images/perro-limpieza.png" alt="Perrito"></ion-img>
+    </div>
+
+    <!-- Tarjeta -->
+    <div class="dashed-card">
+      <p class="note">
+        ¡Hora de planear el baño de {{petName}}!<br />
+        Los perritos necesitan un baño al menos <b>una vez al mes</b> para estar limpios y sanos.
+      </p>
+      <h3 class="cta-title">Marca el día que fue su<br />último baño.</h3>
+      <p class="note small">
+        El día elegido se marcará en <b>amarillo</b> y los días en <b>celeste</b> serán estimados para el próximo baño.
+      </p>
+    </div>
+
+    <!-- Calendario -->
+    <div class="calendar-card">
+      <div class="cal-header">
+        <button class="nav" (click)="prevMonth()" aria-label="Mes anterior">‹</button>
+        <div class="month">{{ monthLabel | titlecase }}</div>
+        <button class="nav" (click)="nextMonth()" aria-label="Mes siguiente">›</button>
+      </div>
+
+      <div class="week-head">
+        <div>DOM</div><div>LUN</div><div>MAR</div><div>MIÉ</div><div>JUE</div><div>VIE</div><div>SÁB</div>
+      </div>
+
+      <div class="grid">
+        <ng-container *ngFor="let w of weeks">
+          <div class="row">
+            <button
+              *ngFor="let d of w"
+              class="day"
+              [class.out]="!d.inMonth"
+              [class.selected]="d.selected"
+              [class.est]="d.est"
+              (click)="selectDay(d)"
+              [disabled]="!d.inMonth">
+              <span>{{ d.dayNum }}</span>
+            </button>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP de confirmación -->
+  <ion-alert
+    [isOpen]="isConfirmOpen"
+    header="Confirmación"
+    [message]="confirmMessage"
+    [buttons]="confirmButtons"
+    (didDismiss)="isConfirmOpen = false">
+  </ion-alert>
+</ion-content>

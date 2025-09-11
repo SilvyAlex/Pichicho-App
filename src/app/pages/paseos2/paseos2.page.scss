@@ -1,0 +1,141 @@
+:host {
+  --bg: #ffffff;
+  --text-main: #111827;
+  --text-sub: #6b7280;
+  --dashed: #8bd0ff;
+
+  --primary: #ffc98a;        /* botón durazno */
+  --primary-pressed: #f8b96c;
+
+  --timer-text: #f59e0b;     /* naranja del tiempo */
+
+  /* 👇 espacio extra debajo del botón para que no quede al ras */
+  --cta-offset: 24px;        /* súbelo/bájalo: 20–36px va bien */
+}
+
+.onboard-content {
+  --background: var(--bg);
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.viewport {
+  width: 100%;
+  max-width: 390px;
+  min-height: 100dvh;
+  /* padding-bottom aumentado con la variable para separar el botón del borde */
+  padding: 26px 20px calc(28px + var(--cta-offset));
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto;
+  align-items: start;
+  justify-items: center;
+  margin-inline: auto;
+  box-sizing: border-box;
+}
+
+/* Header */
+.header-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.title { margin: 0; font-size: 18px; font-weight: 700; color: var(--text-main); }
+.audio-btn {
+  --background: #eaf2ff;
+  --box-shadow: none;
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 2px solid #dbeafe;
+  ion-icon { font-size: 20px; color: #2b6cb0; }
+}
+
+/* Texto superior */
+.helper-top {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-sub);
+  margin: 4px 0 8px;
+}
+
+/* Timer neumórfico */
+.timer-wrap {
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+  position: relative;
+}
+
+.timer-circle {
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  background: radial-gradient(120% 120% at 50% 35%, #ffffff 0%, #eef2f7 75%);
+  box-shadow:
+    inset 8px 8px 16px rgba(0,0,0,0.06),
+    inset -8px -8px 16px #ffffff,
+    0 10px 24px rgba(0,0,0,0.10);
+  display: grid;
+  place-items: center;
+}
+
+.time {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--timer-text);
+}
+
+.timer-wrap .shadow {
+  width: 140px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(60% 60% at 50% 50%, rgba(0,0,0,.12), rgba(0,0,0,0));
+  filter: blur(6px);
+  position: absolute;
+  bottom: -10px;
+}
+
+/* Tarjeta punteada */
+.dashed-card {
+  width: 100%;
+  border: 2px dashed var(--dashed);
+  border-radius: 18px;
+  padding: 16px 16px;
+  text-align: center;
+  background: #fff;
+  margin-bottom: 16px;
+
+  .note {
+    margin: 0 0 8px;
+    color: var(--text-sub);
+    font-size: 14px;
+    line-height: 1.35;
+  }
+  .strong {
+    margin: 0;
+    color: var(--text-main);
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+}
+
+/* CTA (más arriba gracias al margin-bottom y al padding-bottom del contenedor) */
+.cta {
+  --border-radius: 16px;
+  --background: var(--primary);
+  --background-activated: var(--primary-pressed);
+  font-weight: 700;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, .25);
+  margin-bottom: var(--cta-offset); /* 👈 separa el botón del borde inferior */
+}
+
+/* Responsive */
+@media (max-width: 330px) {
+  :host { --cta-offset: 20px; }
+  .viewport { padding: 22px 16px calc(24px + var(--cta-offset)); }
+  .timer-circle { width: 116px; height: 116px; }
+  .time { font-size: 28px; }
+}

@@ -1,0 +1,57 @@
+<ion-content fullscreen="true" class="onboard-content">
+  <div class="viewport">
+    <!-- Header -->
+    <div class="header-bar">
+      <ion-buttons slot="start">
+        <ion-back-button defaultHref="/" text="" icon="chevron-back-outline"></ion-back-button>
+      </ion-buttons>
+
+      <h1 class="title">Comida</h1>
+
+      <ion-buttons slot="end">
+        <ion-button class="audio-btn" aria-label="Audio" (click)="speakCard()">
+          <ion-icon name="volume-high-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </div>
+
+    <!-- Main -->
+    <div class="center-wrap">
+      <div class="dashed-card">
+        <p class="hello">¡Hola {{userName}}! Es hora de alimentar a {{petName}}.</p>
+        <p class="subtitle">Hoy necesita:</p>
+        <h2 class="scoops">{{scoops}} scoops</h2>
+        <p class="note">de croquetas para estar<br />fuerte y feliz.</p>
+      </div>
+
+      <!-- Segment -->
+      <div class="section-label">Tiempo para darle de comer</div>
+      <ion-segment mode="ios" [value]="time" (ionChange)="handleSegmentChange($event)" class="day-night">
+        <ion-segment-button value="dia">
+          <ion-label>Día</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="noche">
+          <ion-label>Noche</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+
+      <!-- Peso -->
+      <div class="weight-box">
+        <div class="w-label">Peso Actual</div>
+        <div class="w-value">{{currentWeightKg}} Kg</div>
+      </div>
+
+      <!-- Imagen -->
+      <div class="dog">
+        <!-- 👉 Cambia la ruta por la tuya -->
+        <ion-img src="assets/images/Artboard 1.png" alt="Perrito entrenando"></ion-img>
+
+      </div>
+
+      <!-- CTA -->
+      <ion-button size="large" expand="block" class="cta" (click)="feedNow()">
+        ¡Darle de comer!
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

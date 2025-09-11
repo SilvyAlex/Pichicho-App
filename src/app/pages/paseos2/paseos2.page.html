@@ -1,0 +1,47 @@
+<ion-content fullscreen="true" class="onboard-content">
+  <div class="viewport">
+    <!-- Header -->
+    <div class="header-bar">
+      <ion-buttons slot="start">
+        <ion-back-button defaultHref="/" text="" icon="chevron-back-outline"></ion-back-button>
+      </ion-buttons>
+
+      <h1 class="title">Paseos</h1>
+
+      <ion-buttons slot="end">
+        <ion-button class="audio-btn" aria-label="Audio" (click)="speakCard()">
+          <ion-icon name="volume-high-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </div>
+
+    <!-- Texto superior -->
+    <div class="helper-top">¡Paseo en curso!</div>
+
+    <!-- Reloj (neumórfico) -->
+    <div class="timer-wrap">
+      <div class="timer-circle">
+        <div class="time">{{ displayTime }}</div>
+      </div>
+      <div class="shadow"></div>
+    </div>
+
+    <!-- Tarjeta punteada -->
+    <div class="dashed-card">
+      <p class="note">
+        Aprovecha este tiempo para<br />
+        que explore y juegue.
+      </p>
+      <p class="strong">
+        ¡No olvides recoger<br />
+        sus desechos con una<br />
+        fundita!
+      </p>
+    </div>
+
+    <!-- CTA -->
+    <ion-button size="large" expand="block" class="cta" (click)="onEndPress()">
+      {{ finished ? '¡Paseo terminado!' : '¡Terminar paseo!' }}
+    </ion-button>
+  </div>
+</ion-content>

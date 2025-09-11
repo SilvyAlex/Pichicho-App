@@ -1,0 +1,200 @@
+:host {
+  --bg: #ffffff;
+  --text-main: #111827;
+  --text-sub: #6b7280;
+  --dashed: #8bd0ff;
+
+  --green: #22c55e;          /* borde activo / badge */
+  --card-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+}
+
+.onboard-content {
+  --background: var(--bg);
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.viewport {
+  width: 100%;
+  max-width: 390px;
+  min-height: 100dvh;
+  padding: 26px 18px 24px;
+  display: grid;
+  grid-template-rows: auto auto auto auto auto 1fr;
+  align-items: start;
+  justify-items: center;
+  box-sizing: border-box;
+  margin-inline: auto;
+}
+
+/* Header */
+.header-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.title { margin: 0; font-size: 18px; font-weight: 700; color: var(--text-main); }
+
+.audio-btn {
+  --background: #eaf2ff;
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 2px solid #dbeafe;
+  ion-icon { font-size: 20px; color: #2b6cb0; }
+}
+
+/* Dog top */
+.dog-top {
+  width: 100%;
+  display: grid;
+  place-items: center;
+  margin: 2px 0 8px;
+
+  ion-img { width: 148px; height: auto; }
+}
+
+/* Dashed info card */
+.dashed-card {
+  width: 100%;
+  border: 2px dashed var(--dashed);
+  border-radius: 18px;
+  padding: 14px 16px;
+  text-align: center;
+  background: #fff;
+  margin-bottom: 12px;
+
+  .headline {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.25;
+  }
+  .note {
+    margin: 0;
+    color: var(--text-sub);
+    font-size: 14px;
+  }
+}
+
+/* Section head */
+.section-head {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  margin: 2px 0 8px;
+
+  .section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+}
+.next-btn {
+  --padding-start: 4px;
+  --padding-end: 4px;
+  --padding-top: 2px;
+  --padding-bottom: 2px;
+  --box-shadow: none;
+}
+
+/* Horizontal cards */
+.cards-scroller {
+  width: 100%;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 70%;
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+  scroll-snap-type: x mandatory;
+}
+
+.card {
+  scroll-snap-align: start;
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid #eef2f7;
+  box-shadow: var(--card-shadow);
+  padding: 10px 10px 12px;
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 8px;
+  position: relative;
+  text-align: left;
+  cursor: pointer;
+
+  .media ion-img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 14px;
+    background: #f1f5f9;
+  }
+
+  .meta .title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+  .meta .sub {
+    font-size: 12px;
+    color: var(--text-sub);
+    margin-top: 2px;
+  }
+
+  /* estado activo */
+  &.active {
+    border: 2px solid var(--green);
+    box-shadow: 0 10px 20px rgba(34, 197, 94, 0.15);
+
+    .badge {
+      position: absolute;
+      right: 10px;
+      top: -10px;
+      width: 20px;
+      height: 20px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 4px 10px rgba(34, 197, 94, 0.35);
+    }
+  }
+}
+
+/* Tip card inferior */
+.tip-card {
+  width: 100%;
+  background: #fff;
+  border-radius: 18px;
+  border: 2px dashed #d6d6d6;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+
+  .icon {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    display: grid; place-items: center;
+
+    ion-icon { font-size: 16px; color: #64748b; }
+  }
+
+  .tip-text {
+    font-size: 13px;
+    color: var(--text-main);
+  }
+}
+
+/* Responsive */
+@media (max-width: 330px) {
+  .cards-scroller { grid-auto-columns: 78%; }
+  .dog-top ion-img { width: 136px; }
+}

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
-import { guardarRegistro } from '../services/registro.service';
+
 @Component({
   selector: 'app-registro',
   standalone: true,
@@ -71,14 +71,6 @@ export class RegistroPage {
 
   const payload = this.form.value;
 
-  try {
-    await guardarRegistro(payload);
-    alert('¡Registro guardado en Firebase! 🎉');
-    this.router.navigate(['/intro2']);
-  } catch (error) {
-    console.error('Error al guardar:', error);
-    alert('Ocurrió un error al guardar el registro.');
-  }
 }
 
   goToIntro2() {

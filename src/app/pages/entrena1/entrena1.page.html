@@ -1,0 +1,65 @@
+<ion-content fullscreen="true" class="onboard-content">
+  <div class="viewport">
+    <!-- Header -->
+    <div class="header-bar">
+      <ion-buttons slot="start">
+        <ion-back-button defaultHref="/" text="" icon="chevron-back-outline"></ion-back-button>
+      </ion-buttons>
+
+      <h1 class="title">Entrenamiento</h1>
+
+      <ion-buttons slot="end">
+        <ion-button class="audio-btn" aria-label="Audio" (click)="speakCard()">
+          <ion-icon name="volume-high-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </div>
+
+    <!-- Perro arriba -->
+    <div class="dog-top">
+      <ion-img src="assets/images/Artboard 1.png" alt="Perrito entrenando"></ion-img>
+    </div>
+
+    <!-- Tarjeta punteada -->
+    <div class="dashed-card">
+      <h3 class="headline">¡Hora de enseñarle trucos a {{petName}}!</h3>
+      <p class="note">Escoge qué quieres practicar hoy</p>
+    </div>
+
+    <!-- Sección Actividades -->
+    <div class="section-head">
+      <div class="section-title">Actividades</div>
+      <ion-button class="next-btn" fill="clear" size="small" (click)="scrollNext()" aria-label="Siguiente">
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </ion-button>
+    </div>
+
+    <!-- Cards horizontales -->
+    <div #scroller class="cards-scroller">
+      <button
+        class="card"
+        *ngFor="let a of activities; let i = index"
+        (click)="selectActivity(i)"
+        [class.active]="i === selected"
+        aria-pressed="{{ i === selected ? 'true' : 'false' }}"
+      >
+        <div class="media">
+          <ion-img [src]="a.img" [alt]="a.title"></ion-img>
+        </div>
+
+        <div class="meta">
+          <div class="title">{{ a.title }}</div>
+          <div class="sub">{{ a.subtitle }}</div>
+        </div>
+      </button>
+    </div>
+
+    <!-- Recordatorio inferior -->
+    <div class="tip-card">
+      <div class="icon">
+        <ion-icon name="construct-outline" aria-hidden="true"></ion-icon>
+      </div>
+      <div class="tip-text">Recuerda premiarlo por un buen trabajo</div>
+    </div>
+  </div>
+</ion-content>

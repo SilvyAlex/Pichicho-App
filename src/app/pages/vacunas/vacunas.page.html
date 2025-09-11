@@ -1,0 +1,77 @@
+<ion-content fullscreen="true" class="onboard-content">
+  <div class="viewport">
+    <!-- Header -->
+    <div class="header-bar">
+      <ion-buttons slot="start">
+        <ion-back-button defaultHref="/" text="" icon="chevron-back-outline"></ion-back-button>
+      </ion-buttons>
+
+      <h1 class="title">Vacunas</h1>
+
+      <ion-buttons slot="end">
+        <ion-button class="audio-btn" aria-label="Audio" (click)="speakCard()">
+          <ion-icon name="volume-high-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </div>
+
+    <!-- Tarjeta punteada -->
+    <div class="dashed-card">
+      <p class="hello">🐾 ¡{{petName}} necesita sus vacunas!</p>
+      <p class="note">
+        Marca cuál fue la vacuna que recibió, la fecha en<br />
+        que se la pusieron y el día de su refuerzo.
+      </p>
+    </div>
+
+    <!-- Imagen -->
+    <div class="dog">
+      <!-- Coloca tu imagen en src/assets/images/perro-vacunas.png -->
+      <img src="/src/assets/images/Artboard 3.png" alt="Imagen de un perrito con una vacuna" />
+    </div>
+
+    <!-- Historial de Vacunación (alto, como en tu mock) -->
+    <div class="section-title">Historial de Vacunación</div>
+
+    <div class="form-dashed">
+      <!-- Tipo de vacuna -->
+      <ion-item class="clean" lines="none">
+        <ion-label position="stacked">Tipo</ion-label>
+        <ion-select
+          interface="popover"
+          placeholder="Elige la vacuna"
+          [(ngModel)]="form.tipo"
+          class="field-select">
+          <ion-select-option *ngFor="let v of vacunas" [value]="v">{{ v }}</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <!-- Fecha vacunación -->
+      <ion-item class="clean" lines="none">
+        <ion-label position="stacked">Fecha Vacunación</ion-label>
+        <ion-input
+          type="date"
+          class="field-input"
+          [(ngModel)]="form.fechaVacunacion"
+          (ionChange)="onDateChange('fechaVacunacion', $event)">
+        </ion-input>
+      </ion-item>
+
+      <!-- Fecha refuerzo -->
+      <ion-item class="clean" lines="none">
+        <ion-label position="stacked">Fecha Refuerzo</ion-label>
+        <ion-input
+          type="date"
+          class="field-input"
+          [(ngModel)]="form.fechaRefuerzo"
+          (ionChange)="onDateChange('fechaRefuerzo', $event)">
+        </ion-input>
+      </ion-item>
+    </div>
+
+    <!-- Botón + rojo (más arriba, no pegado al borde) -->
+    <button class="fab-add" type="button" aria-label="Agregar vacuna" (click)="addRecord()">
+      <ion-icon name="add-outline"></ion-icon>
+    </button>
+  </div>
+</ion-content>

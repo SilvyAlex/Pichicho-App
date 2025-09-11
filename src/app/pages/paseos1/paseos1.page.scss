@@ -1,0 +1,142 @@
+:host {
+  --bg: #ffffff;
+  --primary: #ffc98a;           /* botón durazno para esta pantalla */
+  --primary-pressed: #f8b96c;
+  --text-main: #111827;
+  --text-sub: #6b7280;
+  --dashed: #8bd0ff;
+}
+
+.onboard-content {
+  --background: var(--bg);
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.viewport {
+  width: 100%;
+  max-width: 390px;
+  min-height: 100dvh;
+  padding: 28px 20px 24px;      /* respiro superior */
+  display: grid;
+  grid-template-rows: auto 1fr;
+  align-items: start;
+  justify-items: center;
+  box-sizing: border-box;
+  margin-inline: auto;
+}
+
+/* Header */
+.header-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* Audio redondo */
+.audio-btn {
+  --background: #eaf2ff;
+  --box-shadow: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid #dbeafe;
+
+  ion-icon { font-size: 20px; color: #2b6cb0; }
+}
+
+/* Tarjeta punteada */
+.dashed-card {
+  border: 2px dashed var(--dashed);
+  border-radius: 18px;
+  padding: 18px 16px;
+  text-align: center;
+  margin-bottom: 18px;
+  background: #fff;
+
+  .hello {
+    margin: 0 0 8px;
+    color: var(--text-main);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .note {
+    margin: 0;
+    color: var(--text-sub);
+    font-size: 14px;
+    line-height: 1.3;
+  }
+
+  .strong {
+    margin: 10px 0 0;
+    color: #111;
+    font-size: 14px;
+    line-height: 1.25;
+  }
+}
+
+/* Segmento Día/Tarde */
+.section-label {
+  margin: 8px 0 8px 4px;
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.day-night {
+  border-radius: 14px;
+  background: #f0f0f0;
+  padding: 4px;
+  margin-bottom: 14px;
+
+  ion-segment-button {
+    border-radius: 12px;
+    min-height: 44px;
+    font-weight: 600;
+    color: #333;                /* más visible cuando no está seleccionado */
+    border: 1px solid transparent;
+
+    &.segment-button-checked {
+      background: #bfbfbf;
+      color: #000;
+      border: 1px solid #9a9a9a;
+    }
+  }
+}
+
+/* Imagen */
+.dog {
+  text-align: center;
+  margin: 6px 0 18px;
+
+  ion-img {
+    width: 140px;
+    height: auto;
+    margin: 0 auto;
+  }
+}
+
+/* CTA */
+.cta {
+  --border-radius: 16px;
+  --background: var(--primary);
+  --background-activated: var(--primary-pressed);
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, .25);
+}
+
+/* Responsive pequeñito */
+@media (max-width: 330px) {
+  .viewport { padding: 24px 16px 20px; }
+  .dog ion-img { width: 120px; }
+}

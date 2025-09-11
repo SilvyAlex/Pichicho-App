@@ -1,0 +1,40 @@
+<ion-content fullscreen="true" class="onboard-content">
+  <div class="viewport">
+    <!-- Header -->
+    <div class="header-bar">
+      <ion-buttons slot="start">
+        <ion-back-button defaultHref="/" text="" icon="chevron-back-outline"></ion-back-button>
+      </ion-buttons>
+
+      <h1 class="title">Comida</h1>
+
+      <ion-buttons slot="end">
+        <ion-button class="audio-btn" aria-label="Audio" (click)="speakCard()">
+          <ion-icon name="volume-high-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </div>
+
+    <!-- Texto -->
+    <div class="helper-text">
+      <p>¡Qué bien lo hicieron!<br>Ahora toma una foto de {{petName}}</p>
+    </div>
+
+    <!-- Marco punteado + preview -->
+    <div class="photo-frame">
+      <!-- Vista cámara -->
+      <video #video class="preview" autoplay playsinline muted *ngIf="!photoDataUrl"></video>
+
+      <!-- Foto capturada -->
+      <img *ngIf="photoDataUrl" class="preview" [src]="photoDataUrl" alt="Foto de {{petName}}"/>
+
+      <!-- Canvas oculto (para captura) -->
+      <canvas #canvas hidden></canvas>
+    </div>
+
+    <!-- Botón disparo -->
+    <button class="shutter" type="button" (click)="onShutter()" aria-label="Tomar/rehacer foto">
+      <ion-icon name="camera-outline"></ion-icon>
+    </button>
+  </div>
+</ion-content>

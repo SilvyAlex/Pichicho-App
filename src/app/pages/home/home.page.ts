@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
+import { RouterModule, Router } from '@angular/router';
 import { checkmarkOutline,homeOutline, heartOutline, personOutline } from 'ionicons/icons';
 
 @Component({
@@ -20,7 +21,10 @@ export class HomePage {
     score: 87
   };
 
-  constructor() {
+  constructor(private router: Router) {
   addIcons({ checkmarkOutline, homeOutline, heartOutline, personOutline });
 }
+   go(url: string) {
+    this.router.navigateByUrl(url);
+  }
 }

@@ -1,0 +1,131 @@
+:host {
+  --bg: #ffffff;
+  --primary: #93c5fd;
+  --primary-pressed: #7bb3fb;
+  --text-main: #111827;
+  --text-sub: #6b7280;
+  --dashed: #8bd0ff;
+}
+
+.onboard-content {
+  --background: var(--bg);
+  display: grid;
+  place-items: center;
+}
+
+.viewport {
+  width: 100%;
+  max-width: 390px;
+  min-height: 100dvh;
+  padding: 28px 20px 24px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  align-items: start;
+  justify-items: center;
+  margin-inline: auto;
+}
+
+/* Header */
+.header-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* Botón audio */
+.audio-btn {
+  --background: #eaf2ff;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid #dbeafe;
+  ion-icon {
+    font-size: 20px;
+    color: #2b6cb0;
+  }
+}
+
+/* Tarjeta */
+.dashed-card {
+  border: 2px dashed var(--dashed);
+  border-radius: 18px;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 20px;
+  background: #fff;
+}
+
+.hello { font-size: 14px; color: var(--text-main); margin-bottom: 10px; }
+.subtitle { font-size: 14px; color: var(--text-sub); }
+.scoops { font-size: 28px; font-weight: 800; color: #000; margin: 4px 0; }
+.note { font-size: 14px; color: var(--text-sub); }
+
+/* Segment Día/Noche */
+.section-label {
+  margin: 10px 0 8px 4px;
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.day-night {
+  border-radius: 14px;
+  background: #f0f0f0;
+  padding: 4px;
+  margin-bottom: 14px;
+
+  ion-segment-button {
+    border-radius: 12px;
+    min-height: 44px;
+    font-weight: 600;
+    color: #333; /* 👈 más visible cuando NO está seleccionado */
+    border: 1px solid transparent;
+
+    &.segment-button-checked {
+      background: #bfbfbf;
+      color: #000;
+      border: 1px solid #999;
+    }
+  }
+}
+
+/* Peso */
+.weight-box {
+  border: 2px dashed #d6d6d6;
+  border-radius: 16px;
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0 18px;
+  .w-label { font-size: 15px; color: var(--text-sub); font-weight: 600; }
+  .w-value { font-size: 18px; font-weight: 700; color: #000; }
+}
+
+/* Imagen perro */
+.dog {
+  place-items: center;
+  text-align: center;
+  margin: 12px 0 18px;
+
+  ion-img {
+    width: 120px; /* ajusta al tamaño que quieras */
+    height: auto;
+  }
+}
+
+/* CTA */
+.cta {
+  --border-radius: 16px;
+  --background: var(--primary);
+  --background-activated: var(--primary-pressed);
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}

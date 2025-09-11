@@ -39,4 +39,36 @@ export const routes: Routes = [
     path: 'puntos',
     loadComponent: () => import('./pages/puntos/puntos.page').then( m => m.PuntosPage)
   },
+  {
+    path: 'comida1',
+    loadComponent: () => import('./pages/comida1/comida1.page').then( m => m.Comida1Page)
+  },
+  {
+    path: 'paseos1',
+    loadComponent: () => import('./pages/paseos1/paseos1.page').then( m => m.Paseos1Page)
+  },
+  {
+    path: 'vacunas',
+    loadComponent: () => import('./pages/vacunas/vacunas.page').then( m => m.VacunasPage)
+  },
+  {
+    path: 'limpieza',
+    loadComponent: () => import('./pages/limpieza/limpieza.page').then( m => m.LimpiezaPage)
+  },
+  {
+    path: 'comida2',
+    loadComponent: () => import('./pages/comida2/comida2.page').then( m => m.Comida2Page)
+  },
+  {
+    path: 'paseos2',
+    loadComponent: () => import('./pages/paseos2/paseos2.page').then( m => m.Paseos2Page)
+  },
+  {
+    path: 'paseos3',
+    loadComponent: () => import('./pages/paseos3/paseos3.page').then( m => m.Paseos3Page)
+  },
+  {
+    path: 'entrena1',
+    loadComponent: () => import('./pages/entrena1/entrena1.page').then( m => m.Entrena1Page)
+  },
 ];

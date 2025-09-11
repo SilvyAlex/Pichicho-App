@@ -1,0 +1,113 @@
+:host {
+  --bg: #ffffff;
+  --text-main: #111827;
+  --text-sub: #6b7280;
+  --dashed: #8bd0ff;
+
+  /* Distancia del botón respecto al borde inferior (ajústala si quieres) */
+  --shutter-offset: 120px;
+}
+
+.onboard-content {
+  --background: var(--bg);
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.viewport {
+  width: 100%;
+  max-width: 390px;
+  min-height: 100dvh;
+  /* Deja espacio para que el botón no tape contenido */
+  padding: 26px 16px calc(var(--shutter-offset) + 70px);
+  display: grid;
+  grid-template-rows: auto auto auto 1fr;
+  align-items: start;
+  justify-items: center;
+  margin-inline: auto;
+  box-sizing: border-box;
+}
+
+/* Header */
+.header-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.audio-btn {
+  --background: #eaf2ff;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid #dbeafe;
+
+  ion-icon {
+    font-size: 20px;
+    color: #2b6cb0;
+  }
+}
+
+/* Texto superior */
+.helper-text {
+  text-align: center;
+  color: var(--text-sub);
+  font-size: 14px;
+  line-height: 1.35;
+  margin-bottom: 10px;
+}
+
+/* Marco punteado de la cámara/foto */
+.photo-frame {
+  width: 100%;
+  border: 3px dashed var(--dashed);
+  border-radius: 18px;
+  padding: 8px;
+  background: #f8fbff;
+}
+
+.preview {
+  width: 100%;
+  aspect-ratio: 3 / 4;      /* proporción vertical */
+  border-radius: 14px;
+  object-fit: cover;
+  display: block;
+  background: #eaeef5;
+}
+
+/* Botón disparo (más arriba, no pegado al borde) */
+.shutter {
+  position: fixed;
+  bottom: calc(var(--shutter-offset) + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 0;
+  background: radial-gradient(120% 120% at 50% 30%, #ffffff 0%, #f3f4f6 80%);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.12);
+  display: grid;
+  place-items: center;
+}
+
+.shutter ion-icon {
+  font-size: 26px;
+  color: #111827;
+}
+
+/* Responsive pantallas pequeñas */
+@media (max-width: 330px) {
+  :host { --shutter-offset: 100px; }
+  .viewport { padding: 22px 12px calc(var(--shutter-offset) + 70px); }
+}
