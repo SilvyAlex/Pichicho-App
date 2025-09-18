@@ -11,7 +11,7 @@ import { chevronBackOutline, volumeHighOutline,homeOutline, heartOutline, person
   templateUrl: './puntos.page.html',
   styleUrls: ['./puntos.page.scss'],
   standalone: true,
-  imports: [IonContent, IonButtons, IonBackButton, IonButton, IonIcon, IonImg, CommonModule]
+  imports: [IonContent, IonIcon, IonImg, CommonModule]
 })
 export class PuntosPage implements OnInit {
 

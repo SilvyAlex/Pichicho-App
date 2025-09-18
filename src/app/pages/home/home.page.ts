@@ -5,6 +5,10 @@ import { addIcons } from 'ionicons';
 import { RouterModule, Router } from '@angular/router';
 import { checkmarkOutline,homeOutline, heartOutline, personOutline } from 'ionicons/icons';
 
+import { SessionService } from '../../services/session';  // 👈
+import { Observable } from 'rxjs';
+import { Profile } from '../../models/profile.model';
+
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -21,10 +25,17 @@ export class HomePage {
     score: 87
   };
 
-  constructor(private router: Router) {
-  addIcons({ checkmarkOutline, homeOutline, heartOutline, personOutline });
-}
-   continue(path: string) {
-    this.router.navigateByUrl(path);     // o this.router.navigate([path])
+  profile$: Observable<Profile | null>;  
+
+  constructor(
+    private router: Router,
+    private session: SessionService      
+  ) {
+    addIcons({ checkmarkOutline, homeOutline, heartOutline, personOutline });
+    this.profile$ = this.session.profile$;  
+  }
+
+  continue(path: string) {
+    this.router.navigateByUrl(path);
   }
 }

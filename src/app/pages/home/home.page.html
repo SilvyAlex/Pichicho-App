@@ -1,7 +1,7 @@
 <ion-content class="page white" [forceOverscroll]="false" fullscreen>
   <div class="wrap">
-    <div class="hello">Hola Mary</div>
-    <h1 class="title">¿Cómo esta pelusa<br/>hoy?</h1>
+    <div class="hello">Hola {{ (profile$ | async)?.nombreNino || '...' }}</div>
+    <h1 class="title">¿Cómo está {{ (profile$ | async)?.nombrePerro || 'tu pelusa' }}<br/>hoy?</h1>
 
     <!-- Card de estado -->
     <section class="status-card">
