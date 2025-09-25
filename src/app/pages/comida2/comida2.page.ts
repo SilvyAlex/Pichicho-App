@@ -6,15 +6,17 @@ import {
   IonButtons,
   IonBackButton,
   IonButton,
-  IonIcon,
-  IonImg
+  IonIcon
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import {
-  chevronBackOutline,
-  volumeHighOutline,
-  cameraOutline
-} from 'ionicons/icons';
+import { chevronBackOutline, volumeHighOutline, cameraOutline } from 'ionicons/icons';
+
+import { FirebaseService } from '../../services/firebase';
+import { SessionService } from '../../services/session';
+import { Profile } from '../../models/profile.model';
+
+import { Firestore, doc, updateDoc, arrayUnion } from '@angular/fire/firestore';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-comida2',
@@ -27,28 +29,37 @@ import {
     IonBackButton,
     IonButton,
     IonIcon,
-    //IonImg,
     CommonModule,
     FormsModule
   ]
 })
 export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
-  userName = 'Mary';
-  petName  = 'Pelusa';
+  userName = '';
+  petName  = '';
 
   @ViewChild('video')  videoRef!: ElementRef<HTMLVideoElement>;
   @ViewChild('canvas') canvasRef!: ElementRef<HTMLCanvasElement>;
 
   private stream: MediaStream | null = null;
+  isStreaming = false;
+  photoDataUrl: string | null = null;
 
-  isStreaming = false;       // cámara encendida
-  photoDataUrl: string | null = null; // foto capturada
-
-  constructor() {
+  constructor(
+    private firebaseSvc: FirebaseService,
+    private session: SessionService,
+    private firestore: Firestore,
+    private router: Router
+  ) {
     addIcons({ chevronBackOutline, volumeHighOutline, cameraOutline });
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    const profile: Profile | null = this.session.snapshot;
+    if (profile) {
+      this.userName = profile.nombreNino;
+      this.petName  = profile.nombrePerro;
+    }
+  }
 
   async ngAfterViewInit() {
     await this.startCamera();
@@ -58,13 +69,9 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
     this.stopCamera();
   }
 
-  /** Enciende la cámara (trasera si está disponible) */
+  /** Enciende la cámara */
   async startCamera() {
     try {
-      if (!navigator.mediaDevices?.getUserMedia) {
-        console.warn('getUserMedia no disponible');
-        return;
-      }
       this.stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: 'environment' } },
         audio: false
@@ -90,10 +97,9 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
     this.isStreaming = false;
   }
 
-  /** Dispara o rehace la foto según el estado */
+  /** Tomar o rehacer foto */
   async onShutter() {
     if (this.photoDataUrl) {
-      // Repetir: borrar foto y reactivar cámara
       this.photoDataUrl = null;
       await this.startCamera();
       return;
@@ -101,7 +107,7 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
     this.takePhoto();
   }
 
-  /** Captura la imagen del video en un canvas */
+  /** Capturar en canvas */
   takePhoto() {
     const video = this.videoRef?.nativeElement;
     const canvas = this.canvasRef?.nativeElement;
@@ -118,11 +124,59 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
     ctx.drawImage(video, 0, 0, w, h);
     this.photoDataUrl = canvas.toDataURL('image/jpeg', 0.92);
 
-    // apagar cámara para liberar recursos
     this.stopCamera();
   }
 
-  /** Lee el texto con Web Speech API (si existe) */
+  /** Guardar evidencia en el documento del niño */
+  async saveEvidence() {
+  if (!this.photoDataUrl) {
+    console.warn('No hay foto capturada');
+    return;
+  }
+
+  const profile = this.session.snapshot;
+  if (!profile) {
+    console.warn('No hay perfil en sesión');
+    return;
+  }
+
+  try {
+    // 1) Subir foto a Storage
+    const fotoUrl = await this.firebaseSvc.uploadEvidencePhoto(
+      this.photoDataUrl,
+      profile.nombrePerro
+    );
+
+    // 2) Calcular nuevos puntos
+    const nuevosPuntos = (profile.puntos || 0) + 10;
+
+    // 3) Referencia al documento en "registros"
+    const ref = doc(this.firestore, 'registros', profile.id);
+
+    // 4) Actualizar documento
+    await updateDoc(ref, {
+      puntos: nuevosPuntos,
+      evidencias: arrayUnion(fotoUrl)
+    });
+
+    // 5) Actualizar sesión local
+    await this.session.setProfile({
+      ...profile,
+      puntos: nuevosPuntos,
+      evidencias: [...(profile.evidencias || []), fotoUrl]
+    });
+
+    console.log('✅ Evidencia guardada dentro del perfil');
+
+    // 6) Redirigir a Home (ajusta según tu rutas)
+    this.router.navigateByUrl('/home');
+
+  } catch (err) {
+    console.error('❌ Error al guardar evidencia:', err);
+  }
+}
+
+  /** Texto leído */
   speakCard() {
     const text = `¡Qué bien lo hicieron! Ahora toma una foto de ${this.petName}.`;
     try {
@@ -133,6 +187,6 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
         synth.cancel();
         synth.speak(utter);
       }
-    } catch { /* no-op */ }
+    } catch {}
   }
 }

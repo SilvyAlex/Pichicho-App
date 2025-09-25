@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   IonContent,
   IonButtons,
@@ -12,6 +12,10 @@ import {
 
 import { addIcons } from 'ionicons';
 import { chevronBackOutline, volumeHighOutline } from 'ionicons/icons';
+
+import { SessionService } from '../../services/session';
+import { Profile } from '../../models/profile.model';
+import { FeedingService, FeedingResult } from '../../services/feeding.service';
 
 @Component({
   selector: 'app-paseos2',
@@ -29,21 +33,39 @@ import { chevronBackOutline, volumeHighOutline } from 'ionicons/icons';
   ]
 })
 export class Paseos2Page implements OnInit, OnDestroy {
-  petName = 'Pelusa';
+  userName = '';
+  petName = '';
 
-  private durationSec = 7 * 60; // 7 minutos
-  remainingSec = this.durationSec;
-  displayTime = '7:00';
+  feeding: FeedingResult = { grams: 0, scoops: 0, paseo: 0, edadHumana: '-' };
+
+  private durationSec = 0;
+  remainingSec = 0;
+  displayTime = '0:00';
   private timerId: any = null;
   running = false;
   finished = false;
 
-  constructor(private router: Router) {
+  constructor(
+    private router: Router,
+    private session: SessionService,
+    private feedingSvc: FeedingService
+  ) {
     addIcons({ chevronBackOutline, volumeHighOutline });
   }
 
   ngOnInit() {
-    this.startTimer();
+    const profile: Profile | null = this.session.snapshot;
+    if (profile) {
+      this.userName = profile.nombreNino;
+      this.petName = profile.nombrePerro;
+      this.feeding = this.feedingSvc.calculate(profile);
+
+      // Tiempo recomendado de paseo en minutos
+      this.durationSec = this.feeding.paseo * 60;
+      this.remainingSec = this.durationSec;
+      this.updateDisplay();
+      this.startTimer();
+    }
   }
 
   ngOnDestroy() {
@@ -54,7 +76,6 @@ export class Paseos2Page implements OnInit, OnDestroy {
     if (this.running) return;
     this.running = true;
     this.finished = false;
-    this.updateDisplay();
 
     this.timerId = setInterval(() => {
       this.remainingSec = Math.max(0, this.remainingSec - 1);
@@ -83,7 +104,6 @@ export class Paseos2Page implements OnInit, OnDestroy {
   finishWalk() {
     this.clearTimer();
     this.finished = true;
-    // Aquí podrías navegar/guardar métricas/mostrar toast, etc.
     console.log('Paseo finalizado');
   }
 
@@ -100,7 +120,6 @@ export class Paseos2Page implements OnInit, OnDestroy {
     } catch { /* no-op */ }
   }
 
-  // Si tocas el botón otra vez y aún no terminó, terminas antes de tiempo
   onEndPress() {
     if (!this.finished) {
       this.finishWalk();
@@ -108,6 +127,6 @@ export class Paseos2Page implements OnInit, OnDestroy {
   }
 
   continue(path: string) {
-    this.router.navigateByUrl(path);     // o this.router.navigate([path])
+    this.router.navigateByUrl(path);
   }
 }

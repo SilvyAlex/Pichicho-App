@@ -20,8 +20,10 @@
       <div class="dashed-card">
         <p class="hello">¡Hola {{userName}}! Es hora de alimentar a {{petName}}.</p>
         <p class="subtitle">Hoy necesita:</p>
-        <h2 class="scoops">{{scoops}} scoops</h2>
-        <p class="note">de croquetas para estar<br />fuerte y feliz.</p>
+        <h2 class="scoops">{{feeding.grams}} g</h2>
+        <p class="note">de croquetas para estar fuerte y feliz</p>
+        <p class="note small">Edad humana: {{feeding.edadHumana}} | Paseo: {{feeding.paseo}} min</p>
+
       </div>
 
       <!-- Segment -->
@@ -35,16 +37,9 @@
         </ion-segment-button>
       </ion-segment>
 
-      <!-- Peso -->
-      <div class="weight-box">
-        <div class="w-label">Peso Actual</div>
-        <div class="w-value">{{currentWeightKg}} Kg</div>
-      </div>
-
       <!-- Imagen -->
       <div class="dog">
-        <ion-img src="assets/images/Artboard 1.png" alt="Perrito entrenando"></ion-img>
-
+        <ion-img src="assets/images/Artboard 1.png" alt="Perrito comiendo"></ion-img>
       </div>
 
       <!-- CTA -->

@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
 
 import { FirebaseService } from '../../services/firebase';   // 👈 servicio Firestore/Storage
 import { SessionService } from '../../services/session';     // 👈 sesión (Preferences)
-import { Profile } from '../../models/profile.model';                // 👈 interface de perfil
+import { Profile } from '../../models/profile.model';        // 👈 interface de perfil
 
 @Component({
   selector: 'app-registro',
@@ -19,7 +19,8 @@ export class RegistroPage {
   form: FormGroup;
   photoDataUrl: string | null = null;
 
-  pesos = ['< 5 kg', '5 – 10 kg', '10 – 20 kg', '20 – 30 kg', '> 30 kg'];
+  // ahora los pesos son números de 5 en 5 (5, 10, 15 ... 100)
+  pesos: number[] = Array.from({ length: 20 }, (_, i) => (i + 1) * 5);
 
   razas = [
     'Mestizo', 'Labrador Retriever', 'Golden Retriever', 'Bulldog',
@@ -39,7 +40,7 @@ export class RegistroPage {
     this.form = this.fb.group({
       nombreNino: ['', [Validators.required, Validators.minLength(2)]],
       nombrePerro: ['', [Validators.required, Validators.minLength(2)]],
-      peso: ['', Validators.required],
+      peso: [null, [Validators.required, Validators.min(1)]],
       raza: ['', Validators.required],
       edad: [null, [Validators.required, Validators.min(0), Validators.max(20)]],
       correoAdulto: [
@@ -87,9 +88,9 @@ export class RegistroPage {
       const { foto, ...rest } = this.form.value;
       let fotoUrl: string | null = null;
 
-      // 1) Subir imagen a Storage (si el usuario seleccionó una)
+      // 1) Subir imagen de perfil a Storage (si el usuario seleccionó una)
       if (this.photoDataUrl) {
-        fotoUrl = await this.firebaseSvc.uploadPhotoFromDataUrl(
+        fotoUrl = await this.firebaseSvc.uploadProfilePhoto(
           this.photoDataUrl,
           (this.form.value.nombrePerro || 'peludito').toString()
         );
@@ -99,6 +100,8 @@ export class RegistroPage {
       const docRef = await this.firebaseSvc.saveRegistro({
         ...rest,
         fotoUrl,
+        puntos: 0,
+        evidencias: []
       });
 
       // 3) Persistir perfil en la sesión (Preferences) para toda la app
@@ -106,6 +109,8 @@ export class RegistroPage {
         id: docRef.id,
         ...rest,
         fotoUrl,
+        puntos: 0,
+        evidencias: []
       };
       await this.session.setProfile(profile);
 
@@ -118,7 +123,7 @@ export class RegistroPage {
       });
       await ok.present();
 
-      this.router.navigate(['/intro2']);
+      this.goToIntro2(); // 👈 aquí usamos tu función de antes
 
     } catch (err) {
       console.error(err);
@@ -133,7 +138,7 @@ export class RegistroPage {
     }
   }
 
-  // (opcional) ya no lo uses en el botón; se navega tras guardar
+  // 👇 la función que tenías antes
   goToIntro2() {
     this.router.navigate(['/intro2']);
   }

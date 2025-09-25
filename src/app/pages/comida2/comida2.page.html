@@ -36,5 +36,10 @@
     <button class="shutter" type="button" (click)="onShutter()" aria-label="Tomar/rehacer foto">
       <ion-icon name="camera-outline"></ion-icon>
     </button>
+
+    <!-- Botón guardar evidencia (solo visible cuando hay foto) -->
+    <ion-button expand="block" color="success" *ngIf="photoDataUrl" (click)="saveEvidence()">
+      Guardar evidencia
+    </ion-button>
   </div>
 </ion-content>

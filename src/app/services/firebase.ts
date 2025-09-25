@@ -5,11 +5,11 @@ import { ref, uploadString, getDownloadURL, Storage } from '@angular/fire/storag
 export interface RegistroPayload {
   nombreNino: string;
   nombrePerro: string;
-  peso: string;
+  peso: number;
   raza: string;
   edad: number;
   correoAdulto: string;
-  foto?: string | null; // DataURL opcional (base64)
+  foto?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -19,23 +19,32 @@ export class FirebaseService {
     private storage: Storage
   ) {}
 
-  /** Sube una imagen (DataURL/base64) a Storage y devuelve la URL pública */
-  async uploadPhotoFromDataUrl(dataUrl: string, nombrePerro: string): Promise<string> {
+  /** Foto perfil */
+  async uploadProfilePhoto(dataUrl: string, nombrePerro: string): Promise<string> {
     const safeName = (nombrePerro || 'peludito').trim().replace(/\s+/g, '_').toLowerCase();
     const filePath = `registros/${safeName}_${Date.now()}.jpg`;
     const storageRef = ref(this.storage, filePath);
-
-    // Sube el DataURL directamente
     await uploadString(storageRef, dataUrl, 'data_url');
     return await getDownloadURL(storageRef);
   }
 
-  /** Guarda el documento del registro en Firestore */
+  /** Foto de evidencia */
+  async uploadEvidencePhoto(dataUrl: string, nombrePerro: string): Promise<string> {
+    const safeName = (nombrePerro || 'peludito').trim().replace(/\s+/g, '_').toLowerCase();
+    const filePath = `evidencias/${safeName}_${Date.now()}.jpg`;
+    const storageRef = ref(this.storage, filePath);
+    await uploadString(storageRef, dataUrl, 'data_url');
+    return await getDownloadURL(storageRef);
+  }
+
+  /** 📝 Registro inicial (perfil del niño) */
   async saveRegistro(data: Omit<RegistroPayload, 'foto'> & { fotoUrl?: string | null }) {
     const colRef = collection(this.firestore, 'registros');
     return await addDoc(colRef, {
       ...data,
       createdAt: serverTimestamp(),
+      puntos: 0,          // inicializa en 0
+      evidencias: []      // inicializa vacío
     });
   }
 }

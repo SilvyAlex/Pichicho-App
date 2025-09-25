@@ -20,7 +20,9 @@ import {
   volumeHighOutline,
   pawOutline
 } from 'ionicons/icons';
-
+import { SessionService } from '../../services/session';
+import { Profile } from '../../models/profile.model';
+import { FeedingService, FeedingResult } from '../../services/feeding.service';
 type FeedTime = 'dia' | 'noche';
 
 @Component({
@@ -43,32 +45,35 @@ type FeedTime = 'dia' | 'noche';
   ]
 })
 export class Comida1Page implements OnInit {
-  // Datos fijos de la UI
-  userName = 'Mary';
-  petName = 'Pelusa';
-  scoops = 2;
-  currentWeightKg = 20;
+  userName = '';
+  petName = '';
+  feeding: FeedingResult = { grams: 0, scoops: 0, paseo: 0, edadHumana: '-' }
 
-  // Segmento seleccionado
   time: FeedTime = 'noche'; // por defecto Noche
 
-  constructor(private router: Router) {
-    // Registrar íconos que usamos
-    addIcons({
-      chevronBackOutline,
-      volumeHighOutline,
-      pawOutline
-    });
+  constructor(
+    private router: Router,
+    private session: SessionService,
+    private feedingSvc: FeedingService
+  ) {
+    addIcons({ chevronBackOutline, volumeHighOutline, pawOutline });
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    const profile: Profile | null = this.session.snapshot;
+    if (profile) {
+      this.userName = profile.nombreNino;
+      this.petName = profile.nombrePerro;
+      this.feeding = this.feedingSvc.calculate(profile);
+    }
+  }
 
   handleSegmentChange(ev: CustomEvent) {
     this.time = (ev.detail.value as FeedTime) || 'dia';
   }
 
   speakCard() {
-    const text = `Hola ${this.userName}. Hoy ${this.petName} necesita ${this.scoops} scoops de croquetas para estar fuerte y feliz.`;
+    const text = `Hola ${this.userName}. Hoy ${this.petName} necesita ${this.feeding.scoops} scoops, es decir ${this.feeding.grams} gramos de croquetas.`;
     try {
       const synth = (window as any).speechSynthesis;
       if (synth) {
@@ -78,19 +83,11 @@ export class Comida1Page implements OnInit {
         synth.speak(utter);
       }
     } catch {
-      console.warn('Speech synthesis no disponible en este dispositivo');
+      console.warn('Speech synthesis no disponible');
     }
   }
 
-  feedNow() {
-    console.log('¡Darle de comer!', {
-      time: this.time,
-      weightKg: this.currentWeightKg,
-      scoops: this.scoops
-    });
-  }
-
   continue(path: string) {
-    this.router.navigateByUrl(path);     // o this.router.navigate([path])
+    this.router.navigateByUrl(path);
   }
 }
