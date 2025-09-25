@@ -14,6 +14,9 @@ import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
 import { chevronBackOutline, volumeHighOutline } from 'ionicons/icons';
 
+import { FirebaseService } from '../../services/firebase';
+import { SessionService } from '../../services/session';
+
 interface DayCell {
   date: Date;
   inMonth: boolean;
@@ -43,11 +46,13 @@ export class LimpiezaPage implements OnInit {
 
   petName = 'Pelusa';
 
-  // mes mostrado (1er día del mes actual)
+  // Mes mostrado (1er día del mes actual)
   monthDate = new Date();
 
-  // ⬇️ ahora puede ser null: NO hay selección al iniciar
-  selectedDate: Date | null = null;
+  // Historial de baños (todas las fechas marcadas en amarillo)
+  banos: Date[] = [];
+  proximoBano: Date | null = null;
+  profileId: string | null = null;
 
   weeks: DayCell[][] = [];
   monthLabel = '';
@@ -58,7 +63,10 @@ export class LimpiezaPage implements OnInit {
   confirmMessage = '';
   confirmButtons: Array<any> = [];
 
-  constructor() {
+  constructor(
+    private firebase: FirebaseService,
+    private session: SessionService
+  ) {
     addIcons({ chevronBackOutline, volumeHighOutline });
 
     this.confirmButtons = [
@@ -67,12 +75,22 @@ export class LimpiezaPage implements OnInit {
     ];
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.confirmMessage = `¿Has bañado a ${this.petName}?`;
-    this.rebuild(); // ⬅️ construimos sin selección inicial
+    this.rebuild();
+
+    // ⚡ Recuperar profileId desde la sesión
+    const profile = this.session.snapshot;
+    if (profile) {
+      this.profileId = profile.id;
+      const data = await this.firebase.getBathHistory(profile.id);
+      this.banos = data.banos;
+      this.proximoBano = data.proximoBano || null;
+      this.rebuild();
+    }
   }
 
-  /** Construye la grilla del mes y aplica selección/estimados si corresponde */
+  /** Construye la grilla del mes y aplica selección/estimados */
   private rebuild() {
     this.monthLabel = this.monthDate.toLocaleDateString('es-ES', {
       month: 'long', year: 'numeric'
@@ -93,21 +111,22 @@ export class LimpiezaPage implements OnInit {
       cells.push({ date: d, inMonth, dayNum: inMonth ? d.getDate() : '' });
     }
 
-    // Marcar seleccionado SOLO si existe selectedDate
+    // Pintar todos los baños en amarillo
     cells.forEach(c => {
-      c.selected = !!(this.selectedDate && c.inMonth && this.sameDate(c.date, this.selectedDate));
+      c.selected = this.banos.some(b => this.sameDate(c.date, b));
     });
 
-    // Estimados +28..+30 SOLO si hay selectedDate
-    if (this.selectedDate) {
-      const estStart = this.addDays(this.selectedDate, 28);
-      const estEnd   = this.addDays(this.selectedDate, 30);
+    // Pintar estimados solo desde el último baño
+    if (this.banos.length > 0) {
+      const ultimo = this.banos[this.banos.length - 1];
+      const estStart = this.addDays(ultimo, 28);
+      const estEnd   = this.addDays(ultimo, 30);
       cells.forEach(c => { c.est = c.inMonth && this.inRange(c.date, estStart, estEnd); });
     } else {
       cells.forEach(c => c.est = false);
     }
 
-    // a semanas
+    // A semanas
     this.weeks = [];
     for (let i = 0; i < 6; i++) this.weeks.push(cells.slice(i * 7, i * 7 + 7));
   }
@@ -133,17 +152,30 @@ export class LimpiezaPage implements OnInit {
     this.isConfirmOpen = true; // abrir confirmación
   }
 
-  confirmSelect() {
-    if (!this.pendingCell) return;
-    this.selectedDate = new Date(this.pendingCell.date); // confirmar selección
+  async confirmSelect() {
+    if (!this.pendingCell || !this.profileId) return;
+
+    const nuevaFecha = new Date(this.pendingCell.date);
+
+    // Evitar duplicados (si ya existe en el historial)
+    if (!this.banos.some(b => this.sameDate(b, nuevaFecha))) {
+      this.banos.push(nuevaFecha);
+    }
+
+    // Próximo baño calculado desde la última fecha
+    this.proximoBano = this.addDays(nuevaFecha, 30);
+
+    // Guardar en Firebase (acumulando historial)
+    await this.firebase.addBathDate(this.profileId, nuevaFecha, this.proximoBano);
+
     this.pendingCell = null;
     this.isConfirmOpen = false;
-    this.rebuild(); // ahora sí se pinta el círculo amarillo y los estimados
+    this.rebuild();
   }
 
   prevMonth() {
     this.monthDate = new Date(this.monthDate.getFullYear(), this.monthDate.getMonth() - 1, 1);
-    this.rebuild(); // NO cambiamos selectedDate (sigue null hasta que confirme)
+    this.rebuild();
   }
 
   nextMonth() {
