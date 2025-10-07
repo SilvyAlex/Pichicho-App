@@ -1,13 +1,38 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>Perfil</ion-title>
-  </ion-toolbar>
-</ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">perfil</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="white">
+  <div class="wrap">
+    <!-- Encabezado -->
+    <div class="owner">{{ userName }}</div>
+
+    <div class="avatar-ring">
+      <img [src]="petPhoto || 'assets/images/default-dog.png'" class="avatar" alt="Foto de mascota">
+    </div>
+
+    <div class="pet-name">{{ petName }}</div>
+    <div class="pet-level">Nivel {{ petLevel }}</div>
+
+    <!-- Galería de evidencias -->
+    <div class="gallery-grid" *ngIf="allPhotos.length > 0; else emptyGallery">
+      <div *ngFor="let photo of allPhotos" class="photo-card">
+        <img [src]="photo" alt="Evidencia de {{ petName }}">
+      </div>
+    </div>
+
+    <ng-template #emptyGallery>
+      <p class="no-photos">Aún no tienes evidencias registradas 🐾</p>
+    </ng-template>
+  </div>
+
+  <!-- Barra inferior -->
+  <div class="bottom-bar">
+    <a routerLink="/home" class="tab">
+      <ion-icon name="home-outline"></ion-icon>
+      <span>Inicio</span>
+    </a>
+
+    <a routerLink="/perfil" class="tab active">
+      <ion-icon name="person-circle-outline"></ion-icon>
+      <span>Perfil</span>
+    </a>
+  </div>
 </ion-content>
