@@ -14,18 +14,23 @@ import {
   IonImg,
   IonInput
 } from '@ionic/angular/standalone';
-
 import { addIcons } from 'ionicons';
 import {
   chevronBackOutline,
   volumeHighOutline,
-  addOutline
+  addOutline,
+  checkmarkOutline
 } from 'ionicons/icons';
 
-interface VaccinationForm {
+import { FirebaseService } from '../../services/firebase';
+import { SessionService } from '../../services/session';
+import { ToastController } from '@ionic/angular';
+
+interface VaccineRecord {
   tipo: string | null;
-  fechaVacunacion: string | null;  // ISO yyyy-MM-dd
-  fechaRefuerzo: string | null;    // ISO yyyy-MM-dd
+  fechaVacunacion: string | null;
+  fechaRefuerzo: string | null;
+  saved?: boolean; // si ya fue guardado en Firebase
 }
 
 @Component({
@@ -45,14 +50,12 @@ interface VaccinationForm {
     IonSelectOption,
     IonInput,
     CommonModule,
-    IonImg,
     FormsModule
   ]
 })
 export class VacunasPage implements OnInit {
-
-  userName = 'Mary';
-  petName  = 'Pelusa';
+  userName = '';
+  petName = '';
 
   vacunas = [
     'Antirrábica',
@@ -64,26 +67,77 @@ export class VacunasPage implements OnInit {
     'Polivalente (Quíntuple/Séxtuple)'
   ];
 
-  form: VaccinationForm = {
-    tipo: null,
-    fechaVacunacion: null,
-    fechaRefuerzo: null
-  };
+  vaccineList: VaccineRecord[] = []; // array dinámico
+  profileId: string | null = null;
 
-  constructor() {
+  constructor(
+    private firebaseSvc: FirebaseService,
+    private session: SessionService,
+    private toastCtrl: ToastController
+  ) {
     addIcons({
       chevronBackOutline,
       volumeHighOutline,
-      addOutline
+      addOutline,
+      checkmarkOutline
     });
   }
 
-  ngOnInit() {}
+  async ngOnInit() {
+    const profile = this.session.snapshot;
+    if (profile) {
+      this.profileId = profile.id;
+      this.userName = profile.nombreNino;
+      this.petName = profile.nombrePerro;
+      await this.loadVaccineHistory();
+    }
+  }
 
+  /** Cargar historial existente */
+  async loadVaccineHistory() {
+    if (!this.profileId) return;
+    const vacunas = await this.firebaseSvc.getVaccineHistory(this.profileId);
+    this.vaccineList = vacunas.map(v => ({ ...v, saved: true }));
+  }
+
+  /** Agregar un nuevo formulario de vacuna vacío */
+  addRecord() {
+    this.vaccineList.push({
+      tipo: null,
+      fechaVacunacion: null,
+      fechaRefuerzo: null,
+      saved: false
+    });
+  }
+
+  /** Guardar una vacuna específica */
+  async saveVaccine(vacuna: VaccineRecord, index: number) {
+    if (!this.profileId) return;
+
+    if (!vacuna.tipo || !vacuna.fechaVacunacion || !vacuna.fechaRefuerzo) {
+      this.showToast('Completa todos los campos antes de guardar.', 'warning');
+      return;
+    }
+
+    try {
+      await this.firebaseSvc.addVaccine(this.profileId, {
+        tipo: vacuna.tipo!,
+        fechaVacunacion: vacuna.fechaVacunacion!,
+        fechaRefuerzo: vacuna.fechaRefuerzo!
+      });
+
+      vacuna.saved = true;
+      this.vaccineList[index] = { ...vacuna };
+      this.showToast('💉 Vacuna registrada correctamente.', 'success');
+    } catch (err) {
+      console.error(err);
+      this.showToast('Error al guardar vacuna.', 'danger');
+    }
+  }
+
+  /** Voz guía */
   speakCard() {
-    const text =
-      `${this.petName} necesita sus vacunas. ` +
-      `Marca cuál fue la vacuna que recibió, la fecha en que se la pusieron y el día de su refuerzo.`;
+    const text = `${this.petName} necesita sus vacunas. Marca cuál fue la vacuna que recibió, la fecha en que se la pusieron y el día de su refuerzo.`;
     try {
       const synth = (window as any).speechSynthesis;
       if (synth) {
@@ -92,21 +146,17 @@ export class VacunasPage implements OnInit {
         synth.cancel();
         synth.speak(utter);
       }
-    } catch { /* no-op */ }
+    } catch {}
   }
 
-  /** Garantiza que el modelo se actualice al seleccionar una fecha */
-  onDateChange(
-    field: 'fechaVacunacion' | 'fechaRefuerzo',
-    ev: CustomEvent
-  ) {
-    const val = (ev as any)?.detail?.value ?? null;
-    this.form[field] = typeof val === 'string' ? val : null;
-  }
-
-  addRecord() {
-    console.log('Agregar registro de vacuna', this.form);
-    // reset
-    this.form = { tipo: null, fechaVacunacion: null, fechaRefuerzo: null };
+  /** Mensaje visual */
+  async showToast(message: string, color: string) {
+    const toast = await this.toastCtrl.create({
+      message,
+      duration: 1800,
+      color,
+      position: 'top'
+    });
+    toast.present();
   }
 }

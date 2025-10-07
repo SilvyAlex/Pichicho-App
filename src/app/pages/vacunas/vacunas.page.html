@@ -15,45 +15,38 @@
       </ion-buttons>
     </div>
 
-    <!-- Tarjeta punteada -->
+    <!-- Descripción -->
     <div class="dashed-card">
       <p class="hello">🐾 ¡{{petName}} necesita sus vacunas!</p>
       <p class="note">
-        Marca cuál fue la vacuna que recibió, la fecha en<br />
-        que se la pusieron y el día de su refuerzo.
+        Marca cuál fue la vacuna que recibió, la fecha en que se la pusieron y el día de su refuerzo.
       </p>
     </div>
 
-    <!-- Imagen -->
-    <div class="dog">
-      <ion-img src="assets/images/Artboard%201.png" alt="Perrito entrenando"></ion-img>
-    </div>
-
-    <!-- Historial de Vacunación -->
     <div class="section-title">Historial de Vacunación</div>
 
-    <div class="form-dashed">
-      <!-- Tipo de vacuna -->
+    <!-- Lista de vacunas -->
+    <div *ngFor="let v of vaccineList; let i = index" class="form-dashed">
       <ion-item class="clean" lines="none">
         <ion-label position="stacked">Tipo</ion-label>
         <ion-select
           interface="popover"
           placeholder="Elige la vacuna"
-          [(ngModel)]="form.tipo"
+          [(ngModel)]="v.tipo"
+          [disabled]="!!v.saved"
           class="field-select">
-          <ion-select-option *ngFor="let v of vacunas" [value]="v">{{ v }}</ion-select-option>
+          <ion-select-option *ngFor="let tipo of vacunas" [value]="tipo">{{ tipo }}</ion-select-option>
         </ion-select>
       </ion-item>
 
-      <!-- Fechas en dos columnas -->
       <div class="row-2">
         <ion-item class="clean" lines="none">
           <ion-label position="stacked">Fecha Vacunación</ion-label>
           <ion-input
             type="date"
-            class="field-input"
-            [(ngModel)]="form.fechaVacunacion"
-            (ionChange)="onDateChange('fechaVacunacion', $event)">
+            [(ngModel)]="v.fechaVacunacion"
+            [disabled]="!!v.saved"
+            class="field-input">
           </ion-input>
         </ion-item>
 
@@ -61,15 +54,22 @@
           <ion-label position="stacked">Fecha Refuerzo</ion-label>
           <ion-input
             type="date"
-            class="field-input"
-            [(ngModel)]="form.fechaRefuerzo"
-            (ionChange)="onDateChange('fechaRefuerzo', $event)">
+            [(ngModel)]="v.fechaRefuerzo"
+            [disabled]="!!v.saved"
+            class="field-input">
           </ion-input>
         </ion-item>
       </div>
+
+      <!-- Botón guardar (✔️) solo si no está guardado -->
+      <div class="save-wrap" *ngIf="!v.saved">
+        <ion-button color="success" shape="round" (click)="saveVaccine(v, i)">
+          <ion-icon name="checkmark-outline"></ion-icon>
+        </ion-button>
+      </div>
     </div>
 
-    <!-- Botón + rojo (más arriba, no pegado al borde) -->
+    <!-- Botón flotante + -->
     <button class="fab-add" type="button" aria-label="Agregar vacuna" (click)="addRecord()">
       <ion-icon name="add-outline"></ion-icon>
     </button>

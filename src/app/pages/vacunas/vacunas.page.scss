@@ -1,230 +1,158 @@
-:host {
-  --bg: #ffffff;
-  --text-main: #111827;
-  --text-sub: #6b7280;
-  --dashed: #8bd0ff;
-
-  /* Botón + rojo */
-  --plus-bg: #ffeff2;
-  --plus-border: #ffc8d2;
-  --plus-icon: #e11d48;
-
-  /* Distancia del FAB respecto al borde inferior (ajústala si quieres) */
-  --fab-offset: 110px;
+/* ======= FONDO GENERAL ======= */
+:host, .onboard-content {
+  --ion-background-color: #ffffff;
+  background: #ffffff !important;
+  color-scheme: light;
 }
 
-.onboard-content {
-  --background: var(--bg);
-  display: grid;
-  place-items: center;
-  padding: 0;
-}
-
-.viewport {
-  width: 100%;
-  max-width: 390px;
-  min-height: 100dvh;
-  /* 👇 deja espacio suficiente para que el FAB no tape el final del form */
-  padding: 26px 20px calc(var(--fab-offset) + 88px);
-  display: grid;
-  grid-template-rows: auto auto auto auto 1fr;
-  align-items: start;
-  justify-items: center;
-  box-sizing: border-box;
-  margin-inline: auto;
-}
-
-/* Header */
+/* ======= ENCABEZADO ======= */
 .header-bar {
-  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
-  color: var(--text-main);
+  padding: 16px;
 }
 
 .title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-main);
-}
-
-/* Botón audio */
-.audio-btn {
-  --background: #eaf2ff;
-  --box-shadow: none;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  border: 2px solid #dbeafe;
-
-  ion-icon { font-size: 20px; color: #2b6cb0; }
-}
-
-/* Tarjeta punteada */
-.dashed-card {
-  width: 100%;
-  border: 2px dashed var(--dashed);
-  border-radius: 18px;
-  padding: 16px 14px;
-  text-align: center;
-  background: #fff;
-  margin-bottom: 12px;
-
-  .hello {
-    margin: 0 0 6px;
-    color: var(--text-main);
-    font-size: 15px;
-    font-weight: 700;
-  }
-  .note {
-    margin: 0;
-    color: var(--text-sub);
-    font-size: 14px;
-    line-height: 1.32;
-  }
-}
-
-/* Imagen */
-.dog {
-  text-align: center;
-  margin: 6px 0 8px;
-
-  ion-img {
-    width: 156px;
-    height: auto;
-    margin: 0 auto;
-    display: block;
-  }
-}
-
-/* Título sección */
-.section-title {
-  align-self: start;
-  width: 100%;
-  margin: 6px 0 8px 4px;
-  font-size: 15px;
+  font-size: 20px;
   font-weight: 600;
-  color: var(--text-main);
+  color: #1a1a1a;
+  text-align: center;
+  flex: 1;
 }
 
-/* Formulario armonizado */
-.form-dashed {
-  width: 100%;
-  border: 2px dashed #d6d6d6;
+/* ======= TARJETA PRINCIPAL CON TEXTO ======= */
+.dashed-card {
+  border: 2px dashed #ffcaca;
   border-radius: 16px;
-  padding: 12px;
-  background: #fff;
-  display: grid;
-  gap: 10px;
-  /* 👇 empuja el contenido final para que el FAB nunca lo tape */
-  margin-bottom: calc(var(--fab-offset) + 12px);
+  padding: 18px;
+  margin: 10px 16px 20px;
+  background: #fff6f6;
+  text-align: center;
+}
+.dashed-card .hello {
+  font-weight: 600;
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 4px;
+}
+.dashed-card .note {
+  color: #6c757d;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
-/* Fila de dos columnas para las fechas */
-.row-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+/* ======= TÍTULO DE SECCIÓN ======= */
+.section-title {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 18px;
+  margin: 20px 16px 10px;
 }
 
-/* Items del form */
-.clean {
+/* ======= TARJETAS DE VACUNAS ======= */
+.form-dashed {
+  border: 1px solid #e1e1e1;
+  border-radius: 14px;
+  padding: 14px 14px 10px;
+  margin: 10px 16px;
+  background: #fdfdfd; /* ← más contraste que el fondo blanco */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.25s ease;
+}
+.form-dashed:hover {
+  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+/* ✅ Tarjeta ya guardada (saved) */
+.form-dashed.saved {
+  background: #f4fff4;
+  border-color: #bde4b7;
+  box-shadow: 0 2px 5px rgba(0, 128, 0, 0.08);
+  position: relative;
+}
+.form-dashed.saved::after {
+  content: '✔';
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 16px;
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+/* ======= INPUTS Y SELECTS ======= */
+ion-item.clean {
   --background: transparent;
-  --padding-start: 0;
   --inner-padding-end: 0;
-  --min-height: 50px;
-
-  ion-label {
-    font-size: 12px;
-    color: var(--text-sub);
-    margin-bottom: 6px;
-  }
-
-  /* Inputs (fecha) */
-  .field-input {
-    --color: var(--text-main);
-    --placeholder-color: #9ca3af;
-    color: var(--text-main);
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 8px 12px;
-    --padding-start: 8px;
-    --padding-end: 8px;
-    font-size: 14px;
-    height: 44px; /* para alinear con el select */
-    transition: border-color .15s ease, box-shadow .15s ease;
-  }
-
-  /* Select centrado + flecha a la derecha */
-  .field-select {
-    position: relative;
-    width: 100%;
-    height: 44px;
-    background: #fff;
-    color: var(--text-main);
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 0 36px 0 12px;
-    --padding-start: 0;
-    --padding-end: 0;
-    transition: border-color .15s ease, box-shadow .15s ease;
-  }
-
-  .field-select::part(text) {
-    display: block;
-    line-height: 44px;
-    color: var(--text-main);
-    opacity: 1;
-  }
-
-  .field-select::part(icon) {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 18px;
-    color: #9ca3af;
-  }
-
-  /* realce al foco */
-  &:focus-within .field-input,
-  &:focus-within .field-select {
-    border-color: var(--dashed);
-    box-shadow: 0 0 0 3px rgba(139, 208, 255, .25);
-  }
+  --padding-start: 0;
+  margin-bottom: 4px;
+}
+.field-select, .field-input {
+  border-radius: 10px;
+  background: #f3f4f6; /* ← visible pero claro */
+  font-size: 14px;
+  padding: 6px;
+  color: #222;
+  --padding-start: 6px;
+  --padding-end: 6px;
+}
+ion-label {
+  font-size: 13px;
+  color: #555;
 }
 
-/* FAB rojo */
+/* ======= DOS COLUMNAS (FECHAS) ======= */
+.row-2 {
+  display: flex;
+  gap: 10px;
+}
+
+/* ======= BOTÓN DE GUARDAR (✔️) ======= */
+.save-wrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+.save-wrap ion-button {
+  --background: #4caf50;
+  --color: white;
+  font-size: 18px;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  --box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+/* ======= BOTÓN FLOTANTE (+) ======= */
 .fab-add {
   position: fixed;
-  z-index: 10;
-  bottom: var(--fab-offset);
-  left: 50%;
-  transform: translateX(-50%);
-  width: 42px;
-  height: 42px;
+  bottom: 85px;
+  right: 22px;
+  width: 58px;
+  height: 58px;
+  border: none;
   border-radius: 50%;
-  border: 2px solid var(--plus-border);
-  background: var(--plus-bg);
-  display: grid;
-  place-items: center;
-  box-shadow: 0 6px 16px rgba(225, 29, 72, 0.18);
-  padding: 0;
+  background: #ff7b7b;
+  color: #fff;
+  font-size: 26px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  z-index: 1000;
+}
+.fab-add:hover {
+  transform: scale(1.07);
+  box-shadow: 0 8px 16px rgba(255, 123, 123, 0.4);
 }
 
-.fab-add ion-icon {
-  font-size: 20px;
-  color: var(--plus-icon);
-}
-
-/* Responsive chico */
-@media (max-width: 360px) {
-  :host { --fab-offset: 96px; }
-  .viewport { padding: 22px 16px calc(var(--fab-offset) + 84px); }
-  .dog ion-img { width: 140px; }
-  .row-2 { grid-template-columns: 1fr; } /* fechas apiladas en pantallas pequeñas */
+/* ======= RESPONSIVE ======= */
+@media (max-width: 400px) {
+  .form-dashed {
+    padding: 10px;
+    margin: 6px 10px;
+  }
+  .section-title {
+    font-size: 16px;
+  }
 }
