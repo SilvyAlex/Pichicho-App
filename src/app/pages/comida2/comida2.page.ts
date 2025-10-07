@@ -13,9 +13,6 @@ import { chevronBackOutline, volumeHighOutline, cameraOutline } from 'ionicons/i
 
 import { FirebaseService } from '../../services/firebase';
 import { SessionService } from '../../services/session';
-import { Profile } from '../../models/profile.model';
-
-import { Firestore, doc, updateDoc, arrayUnion } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 
 @Component({
@@ -36,6 +33,7 @@ import { Router } from '@angular/router';
 export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
   userName = '';
   petName  = '';
+  profileId: string | null = null;
 
   @ViewChild('video')  videoRef!: ElementRef<HTMLVideoElement>;
   @ViewChild('canvas') canvasRef!: ElementRef<HTMLCanvasElement>;
@@ -45,19 +43,19 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
   photoDataUrl: string | null = null;
 
   constructor(
-    private firebaseSvc: FirebaseService,
+    private firebase: FirebaseService,
     private session: SessionService,
-    private firestore: Firestore,
     private router: Router
   ) {
     addIcons({ chevronBackOutline, volumeHighOutline, cameraOutline });
   }
 
   ngOnInit() {
-    const profile: Profile | null = this.session.snapshot;
+    const profile = this.session.snapshot;
     if (profile) {
       this.userName = profile.nombreNino;
       this.petName  = profile.nombrePerro;
+      this.profileId = profile.id;
     }
   }
 
@@ -127,54 +125,21 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
     this.stopCamera();
   }
 
-  /** Guardar evidencia en el documento del niño */
+  /** Guardar evidencia (igual que baño) */
   async saveEvidence() {
-  if (!this.photoDataUrl) {
-    console.warn('No hay foto capturada');
-    return;
+    if (!this.photoDataUrl || !this.profileId) return;
+
+    try {
+      const fotoUrl = await this.firebase.uploadEvidencePhoto(this.photoDataUrl, this.petName);
+      await this.firebase.addEvidenceDate(this.profileId, 'comida', fotoUrl);
+
+      console.log('✅ Evidencia de comida guardada correctamente');
+      this.router.navigateByUrl('/home');
+
+    } catch (err) {
+      console.error('❌ Error al guardar evidencia de comida:', err);
+    }
   }
-
-  const profile = this.session.snapshot;
-  if (!profile) {
-    console.warn('No hay perfil en sesión');
-    return;
-  }
-
-  try {
-    // 1) Subir foto a Storage
-    const fotoUrl = await this.firebaseSvc.uploadEvidencePhoto(
-      this.photoDataUrl,
-      profile.nombrePerro
-    );
-
-    // 2) Calcular nuevos puntos
-    const nuevosPuntos = (profile.puntos || 0) + 10;
-
-    // 3) Referencia al documento en "registros"
-    const ref = doc(this.firestore, 'registros', profile.id);
-
-    // 4) Actualizar documento
-    await updateDoc(ref, {
-      puntos: nuevosPuntos,
-      evidencias: arrayUnion(fotoUrl)
-    });
-
-    // 5) Actualizar sesión local
-    await this.session.setProfile({
-      ...profile,
-      puntos: nuevosPuntos,
-      evidencias: [...(profile.evidencias || []), fotoUrl]
-    });
-
-    console.log('✅ Evidencia guardada dentro del perfil');
-
-    // 6) Redirigir a Home (ajusta según tu rutas)
-    this.router.navigateByUrl('/home');
-
-  } catch (err) {
-    console.error('❌ Error al guardar evidencia:', err);
-  }
-}
 
   /** Texto leído */
   speakCard() {

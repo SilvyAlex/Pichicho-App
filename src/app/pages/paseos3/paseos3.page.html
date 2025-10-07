@@ -26,9 +26,9 @@
       <video #video class="preview" autoplay playsinline muted *ngIf="!photoDataUrl"></video>
 
       <!-- Foto capturada -->
-      <img *ngIf="photoDataUrl" class="preview" [src]="photoDataUrl" alt="Foto de {{petName}}"/>
+      <img *ngIf="photoDataUrl" class="preview" [src]="photoDataUrl" alt="Foto de {{petName}}" />
 
-      <!-- Canvas oculto (para captura) -->
+      <!-- Canvas oculto -->
       <canvas #canvas hidden></canvas>
     </div>
 
@@ -36,5 +36,10 @@
     <button class="shutter" type="button" (click)="onShutter()" aria-label="Tomar/rehacer foto">
       <ion-icon name="camera-outline"></ion-icon>
     </button>
+
+    <!-- Botón guardar evidencia -->
+    <ion-button expand="block" color="success" *ngIf="photoDataUrl" (click)="saveEvidence()">
+      Guardar evidencia
+    </ion-button>
   </div>
 </ion-content>

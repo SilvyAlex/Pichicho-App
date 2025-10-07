@@ -6,8 +6,7 @@ import {
   IonButtons,
   IonBackButton,
   IonButton,
-  IonIcon,
-  IonImg
+  IonIcon
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
@@ -24,7 +23,8 @@ import { chevronBackOutline, volumeHighOutline } from 'ionicons/icons';
     IonBackButton,
     IonButton,
     IonIcon,
-    CommonModule
+    CommonModule,
+    RouterModule
   ]
 })
 export class Entrena2Page implements OnInit {
@@ -58,6 +58,6 @@ export class Entrena2Page implements OnInit {
   }
 
   continue(path: string) {
-    this.router.navigateByUrl(path);     // o this.router.navigate([path])
+    this.router.navigateByUrl(path);
   }
 }

@@ -4,7 +4,7 @@
   --text-sub: #6b7280;
   --dashed: #8bd0ff;
 
-  /* CTA azul (misma estética onboarding) */
+  /* CTA azul */
   --primary: #93c5fd;
   --primary-pressed: #7bb3fb;
 }
@@ -47,21 +47,19 @@
   ion-icon { font-size: 20px; color: #2b6cb0; }
 }
 
-/* Imagen superior */
+/* Video principal */
 .hero {
   width: 100%;
-  display: grid;
-  place-items: center;
+  display: flex;
+  justify-content: center;
   margin: 8px 0 14px;
-
-  ion-img { width: 180px; height: auto; }
 }
 
 .hero-video {
-  width: 180px;        /* igual que antes la imagen */
-  max-width: 100%;
+  width: 100%;           /* ocupa todo el ancho disponible */
+  max-width: 360px;      /* control de tamaño en pantallas grandes */
   border-radius: 14px;
-  background: #000;    /* por si no hay poster */
+  background: #000;
   box-shadow: 0 8px 22px rgba(15,23,42,.06);
 }
 
@@ -104,5 +102,5 @@
 /* Responsive */
 @media (max-width: 330px) {
   .viewport { padding: 22px 16px 24px; }
-  .hero ion-img { width: 160px; }
+  .hero-video { max-width: 100%; }
 }

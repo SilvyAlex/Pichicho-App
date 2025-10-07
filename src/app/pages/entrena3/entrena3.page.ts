@@ -6,47 +6,55 @@ import {
   IonButtons,
   IonBackButton,
   IonButton,
-  IonIcon,
-  IonImg
+  IonIcon
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import {
-  chevronBackOutline,
-  volumeHighOutline,
-  cameraOutline
-} from 'ionicons/icons';
+import { chevronBackOutline, volumeHighOutline, cameraOutline } from 'ionicons/icons';
+import { FirebaseService } from '../../services/firebase';
+import { SessionService } from '../../services/session';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-entrena3',
   templateUrl: './entrena3.page.html',
   styleUrls: ['./entrena3.page.scss'],
   standalone: true,
-  imports: [IonContent,
+  imports: [
+    IonContent,
     IonButtons,
     IonBackButton,
     IonButton,
     IonIcon,
-    //IonImg,
     CommonModule,
-    FormsModule]
+    FormsModule
+  ]
 })
 export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
-  userName = 'Mary';
-  petName  = 'Pelusa';
+  userName = '';
+  petName = '';
 
-  @ViewChild('video')  videoRef!: ElementRef<HTMLVideoElement>;
+  @ViewChild('video') videoRef!: ElementRef<HTMLVideoElement>;
   @ViewChild('canvas') canvasRef!: ElementRef<HTMLCanvasElement>;
 
   private stream: MediaStream | null = null;
+  isStreaming = false;
+  photoDataUrl: string | null = null;
 
-  isStreaming = false;       // cámara encendida
-  photoDataUrl: string | null = null; // foto capturada
-
-  constructor() {
+  constructor(
+    private firebaseSvc: FirebaseService,
+    private session: SessionService,
+    private router: Router
+  ) {
     addIcons({ chevronBackOutline, volumeHighOutline, cameraOutline });
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    const profile = this.session.snapshot;
+    if (profile) {
+      this.userName = profile.nombreNino;
+      this.petName = profile.nombrePerro;
+    }
+  }
 
   async ngAfterViewInit() {
     await this.startCamera();
@@ -56,20 +64,15 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
     this.stopCamera();
   }
 
-  /** Enciende la cámara (trasera si está disponible) */
+  /** Enciende la cámara */
   async startCamera() {
     try {
-      if (!navigator.mediaDevices?.getUserMedia) {
-        console.warn('getUserMedia no disponible');
-        return;
-      }
       this.stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: 'environment' } },
         audio: false
       });
       const video = this.videoRef?.nativeElement;
       if (!video) return;
-
       video.srcObject = this.stream;
       await video.play();
       this.isStreaming = true;
@@ -88,10 +91,9 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
     this.isStreaming = false;
   }
 
-  /** Dispara o rehace la foto según el estado */
+  /** Tomar o rehacer foto */
   async onShutter() {
     if (this.photoDataUrl) {
-      // Repetir: borrar foto y reactivar cámara
       this.photoDataUrl = null;
       await this.startCamera();
       return;
@@ -99,7 +101,7 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
     this.takePhoto();
   }
 
-  /** Captura la imagen del video en un canvas */
+  /** Captura en canvas */
   takePhoto() {
     const video = this.videoRef?.nativeElement;
     const canvas = this.canvasRef?.nativeElement;
@@ -115,12 +117,40 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
 
     ctx.drawImage(video, 0, 0, w, h);
     this.photoDataUrl = canvas.toDataURL('image/jpeg', 0.92);
-
-    // apagar cámara para liberar recursos
     this.stopCamera();
   }
 
-  /** Lee el texto con Web Speech API (si existe) */
+  /** Guarda evidencia en Firebase bajo evidenciasEntrenamiento */
+  async saveEvidence() {
+    if (!this.photoDataUrl) return;
+    const profile = this.session.snapshot;
+    if (!profile) return;
+
+    try {
+      // 1️⃣ Subir foto al Storage
+      const fotoUrl = await this.firebaseSvc.uploadEvidencePhoto(
+        this.photoDataUrl,
+        profile.nombrePerro
+      );
+
+      // 2️⃣ Guardar evidencia en Firestore bajo evidenciasEntrenamiento
+      await this.firebaseSvc.addEvidenceDate(profile.id, 'entrenamiento', fotoUrl);
+
+      // 3️⃣ Actualizar puntos locales
+      const nuevosPuntos = (profile.puntos || 0) + 10;
+      await this.session.setProfile({
+        ...profile,
+        puntos: nuevosPuntos
+      });
+
+      console.log('✅ Evidencia de entrenamiento guardada correctamente');
+      this.router.navigateByUrl('/home');
+    } catch (err) {
+      console.error('❌ Error al guardar evidencia de entrenamiento:', err);
+    }
+  }
+
+  /** Reproduce el audio */
   speakCard() {
     const text = `¡Qué bien lo hicieron! Ahora toma una foto de ${this.petName}.`;
     try {
@@ -131,6 +161,6 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
         synth.cancel();
         synth.speak(utter);
       }
-    } catch { /* no-op */ }
+    } catch {}
   }
 }
