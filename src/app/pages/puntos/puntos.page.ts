@@ -66,24 +66,23 @@ export class PuntosPage implements OnInit {
   /** 📊 Cargar progreso diario */
   async loadProgress(profileId: string) {
     try {
-      // 🔹 Obtenemos el perfil actual
       const profile = this.session.snapshot;
       if (!profile) return;
 
-      // 🔹 Puntos totales actuales
+      // 🔹 Obtener puntos del perfil
       const puntos = profile.puntos || 0;
 
-      // 🔹 Calcular progreso diario (máx 45 puntos)
+      // 🔹 Calcular progreso diario (máximo 45 puntos)
       this.puntosHoy = Math.min(puntos, 45);
       this.porcentaje = Math.round((this.puntosHoy / 45) * 100);
 
-      // Si no hay puntos, deja todo en 0
+      // 🔹 Si no hay puntos, deja todo en 0
       if (!this.puntosHoy) this.porcentaje = 0;
 
       // 🔹 Anima el donut
       this.animateTo(this.porcentaje, 900);
 
-      // 🔹 Genera barras semanales (vacías si no hay datos)
+      // 🔹 Genera las barras semanales (día actual dinámico)
       this.dayValues = this.generateWeekBars(this.porcentaje);
 
     } catch (err) {
@@ -106,11 +105,19 @@ export class PuntosPage implements OnInit {
     requestAnimationFrame(step);
   }
 
-  /** 📅 Generar valores para las barras semanales */
+  /** 📅 Generar valores para las barras semanales (día real) */
   private generateWeekBars(todayPercent: number): number[] {
-    // Simula una semana: 6 días previos vacíos o 0, último = progreso de hoy
-    const days = new Array(6).fill(0); // vacíos
-    days.push(todayPercent); // día actual
+    const days = new Array(7).fill(0);
+
+    // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
+    const dayIndex = new Date().getDay();
+
+    // Ajustar para que lunes sea el índice 0, domingo el 6
+    const adjustedIndex = dayIndex === 0 ? 6 : dayIndex - 1;
+
+    // Asignar el progreso actual en el día correcto
+    days[adjustedIndex] = todayPercent;
+
     return days;
   }
 
