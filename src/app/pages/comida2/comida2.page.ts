@@ -43,7 +43,7 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
   photoDataUrl: string | null = null;
 
   constructor(
-    private firebase: FirebaseService,
+    private firebaseSvc: FirebaseService,
     private session: SessionService,
     private router: Router
   ) {
@@ -67,7 +67,6 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
     this.stopCamera();
   }
 
-  /** Enciende la cámara */
   async startCamera() {
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
@@ -76,7 +75,6 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
       });
       const video = this.videoRef?.nativeElement;
       if (!video) return;
-
       video.srcObject = this.stream;
       await video.play();
       this.isStreaming = true;
@@ -86,7 +84,6 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /** Apaga la cámara */
   stopCamera() {
     if (this.stream) {
       this.stream.getTracks().forEach(t => t.stop());
@@ -95,7 +92,6 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
     this.isStreaming = false;
   }
 
-  /** Tomar o rehacer foto */
   async onShutter() {
     if (this.photoDataUrl) {
       this.photoDataUrl = null;
@@ -105,7 +101,6 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
     this.takePhoto();
   }
 
-  /** Capturar en canvas */
   takePhoto() {
     const video = this.videoRef?.nativeElement;
     const canvas = this.canvasRef?.nativeElement;
@@ -113,35 +108,38 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
 
     const w = video.videoWidth || 720;
     const h = video.videoHeight || 1280;
-
     canvas.width = w;
     canvas.height = h;
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
     ctx.drawImage(video, 0, 0, w, h);
     this.photoDataUrl = canvas.toDataURL('image/jpeg', 0.92);
-
     this.stopCamera();
   }
 
-  /** Guardar evidencia (igual que baño) */
+  /** Guardar evidencia de comida */
   async saveEvidence() {
     if (!this.photoDataUrl || !this.profileId) return;
 
+    const profile = this.session.snapshot;
+    if (!profile) return;
+
     try {
-      const fotoUrl = await this.firebase.uploadEvidencePhoto(this.photoDataUrl, this.petName);
-      await this.firebase.addEvidenceDate(this.profileId, 'comida', fotoUrl);
+      const fotoUrl = await this.firebaseSvc.uploadEvidencePhoto(this.photoDataUrl, this.petName);
+      await this.firebaseSvc.addEvidenceDate(this.profileId, 'comida', fotoUrl);
+
+      // 🧮 Actualizar puntos locales
+      const nuevosPuntos = (profile.puntos || 0) + 5;
+      await this.session.setProfile({ ...profile, puntos: nuevosPuntos });
 
       console.log('✅ Evidencia de comida guardada correctamente');
       this.router.navigateByUrl('/home');
-
     } catch (err) {
       console.error('❌ Error al guardar evidencia de comida:', err);
     }
   }
 
-  /** Texto leído */
   speakCard() {
     const text = `¡Qué bien lo hicieron! Ahora toma una foto de ${this.petName}.`;
     try {

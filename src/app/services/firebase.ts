@@ -1,5 +1,14 @@
 import { Injectable } from '@angular/core';
-import { Firestore, collection, addDoc, serverTimestamp, doc, updateDoc, getDoc, arrayUnion } from '@angular/fire/firestore';
+import {
+  Firestore,
+  collection,
+  addDoc,
+  serverTimestamp,
+  doc,
+  updateDoc,
+  getDoc,
+  arrayUnion
+} from '@angular/fire/firestore';
 import { ref, uploadString, getDownloadURL, Storage } from '@angular/fire/storage';
 
 export interface RegistroPayload {
@@ -103,14 +112,31 @@ export class FirebaseService {
     if (!snap.exists()) return;
 
     const data = snap.data() as any;
-    const nuevosPuntos = (data.puntos || 0) + 10;
 
-    // Determinar la colección según tipo
+    // 🧮 Determinar puntos y colección según el tipo
+    let puntosExtra = 0;
     let field = 'evidencias';
-    if (tipo === 'comida') field = 'evidenciasComida';
-    else if (tipo === 'paseo') field = 'evidenciasPaseo';
-    else if (tipo === 'entrenamiento') field = 'evidenciasEntrenamiento';
 
+    switch (tipo) {
+      case 'comida':
+        field = 'evidenciasComida';
+        puntosExtra = 5;
+        break;
+      case 'paseo':
+        field = 'evidenciasPaseo';
+        puntosExtra = 10;
+        break;
+      case 'entrenamiento':
+        field = 'evidenciasEntrenamiento';
+        puntosExtra = 15;
+        break;
+      default:
+        field = 'evidencias';
+    }
+
+    const nuevosPuntos = (data.puntos || 0) + puntosExtra;
+
+    // 📸 Guardar evidencia y sumar puntos
     await updateDoc(refDoc, {
       [field]: arrayUnion({
         foto: fotoUrl,

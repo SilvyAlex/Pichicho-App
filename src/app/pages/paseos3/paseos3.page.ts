@@ -131,16 +131,13 @@ async saveEvidence() {
   if (!profile) return;
 
   try {
-    // 1️⃣ Subir foto al Storage
     const fotoUrl = await this.firebaseSvc.uploadEvidencePhoto(
       this.photoDataUrl,
       profile.nombrePerro
     );
 
-    // 2️⃣ Guardar evidencia tipo 'paseo' en Firestore
     await this.firebaseSvc.addEvidenceDate(profile.id, 'paseo', fotoUrl);
 
-    // 3️⃣ Actualizar sesión local (solo puntos)
     const nuevosPuntos = (profile.puntos || 0) + 10;
     await this.session.setProfile({
       ...profile,

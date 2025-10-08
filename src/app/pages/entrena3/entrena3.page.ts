@@ -122,33 +122,30 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
 
   /** Guarda evidencia en Firebase bajo evidenciasEntrenamiento */
   async saveEvidence() {
-    if (!this.photoDataUrl) return;
-    const profile = this.session.snapshot;
-    if (!profile) return;
+  if (!this.photoDataUrl) return;
+  const profile = this.session.snapshot;
+  if (!profile) return;
 
-    try {
-      // 1️⃣ Subir foto al Storage
-      const fotoUrl = await this.firebaseSvc.uploadEvidencePhoto(
-        this.photoDataUrl,
-        profile.nombrePerro
-      );
+  try {
+    const fotoUrl = await this.firebaseSvc.uploadEvidencePhoto(
+      this.photoDataUrl,
+      profile.nombrePerro
+    );
 
-      // 2️⃣ Guardar evidencia en Firestore bajo evidenciasEntrenamiento
-      await this.firebaseSvc.addEvidenceDate(profile.id, 'entrenamiento', fotoUrl);
+    await this.firebaseSvc.addEvidenceDate(profile.id, 'entrenamiento', fotoUrl);
 
-      // 3️⃣ Actualizar puntos locales
-      const nuevosPuntos = (profile.puntos || 0) + 10;
-      await this.session.setProfile({
-        ...profile,
-        puntos: nuevosPuntos
-      });
+    const nuevosPuntos = (profile.puntos || 0) + 15;
+    await this.session.setProfile({
+      ...profile,
+      puntos: nuevosPuntos
+    });
 
-      console.log('✅ Evidencia de entrenamiento guardada correctamente');
-      this.router.navigateByUrl('/home');
-    } catch (err) {
-      console.error('❌ Error al guardar evidencia de entrenamiento:', err);
-    }
+    console.log('✅ Evidencia de entrenamiento guardada correctamente');
+    this.router.navigateByUrl('/home');
+  } catch (err) {
+    console.error('❌ Error al guardar evidencia de entrenamiento:', err);
   }
+}
 
   /** Reproduce el audio */
   speakCard() {
