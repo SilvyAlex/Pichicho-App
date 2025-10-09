@@ -1,12 +1,12 @@
-<ion-content fullscreen="true" class="onboard-content">
+<ion-content *ngIf="data" fullscreen="true" class="onboard-content">
   <div class="viewport">
     <!-- Header -->
     <div class="header-bar">
       <ion-buttons slot="start">
-        <ion-back-button defaultHref="/" text="" icon="chevron-back-outline"></ion-back-button>
+        <ion-back-button defaultHref="/entrena1" icon="chevron-back-outline"></ion-back-button>
       </ion-buttons>
 
-      <h1 class="title">Entrenamiento</h1>
+      <h1 class="title">{{ data.titulo }}</h1>
 
       <ion-buttons slot="end">
         <ion-button class="audio-btn" aria-label="Audio" (click)="speakCard()">
@@ -17,37 +17,37 @@
 
     <!-- Video -->
     <div class="hero">
-      <video class="hero-video"
+      <video
+        class="hero-video"
         autoplay
         muted
         loop
         playsinline
         preload="metadata"
-        [attr.poster]="'assets/images/entrena-poster.png'">
-        <source src="/src/assets/images/dog sit.mp4" type="video/mp4" />
+        [attr.poster]="'assets/images/entrena-poster.png'"
+      >
+        <source [src]="data.videoUrl" type="video/mp4" />
         Tu navegador no soporta video.
       </video>
     </div>
 
     <!-- Tarjeta punteada con instrucciones -->
     <div class="dashed-card">
-      <p class="line">Dile su nombre con voz alegre.</p>
-      <p class="line">
-        Cuando venga hacia ti,<br />
-        dale una galletita 🍪 y<br />
-        muchas caricias.
-      </p>
+      <p class="line">{{ data.descripcion }}</p>
 
-      <p class="strong">
-        ¡Repite esto varias<br />
-        veces hasta que<br />
-        entienda!
-      </p>
+      <ol class="steps-list" *ngIf="data.pasos && data.pasos.length">
+        <li *ngFor="let paso of data.pasos">{{ paso }}</li>
+      </ol>
     </div>
 
     <!-- CTA -->
-    <ion-button class="cta" expand="block" size="large" (click)="continue('/entrena3')">
+    <ion-button class="cta" expand="block" (click)="continue('/entrena3')">
       Entrenamiento terminado
     </ion-button>
   </div>
+</ion-content>
+
+<!-- Si aún no se cargan datos -->
+<ion-content *ngIf="!data">
+  <p style="text-align:center; margin-top:40px;">Cargando entrenamiento...</p>
 </ion-content>

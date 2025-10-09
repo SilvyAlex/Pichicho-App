@@ -7,7 +7,8 @@ import {
   doc,
   updateDoc,
   getDoc,
-  arrayUnion
+  arrayUnion,
+  getDocs
 } from '@angular/fire/firestore';
 import { ref, uploadString, getDownloadURL, Storage } from '@angular/fire/storage';
 
@@ -46,7 +47,7 @@ export class FirebaseService {
     return await getDownloadURL(storageRef);
   }
 
-  /** 📝 Guardar registro inicial (perfil del niño y perrito) */
+  /** 📝 Guardar registro inicial */
   async saveRegistro(data: Omit<RegistroPayload, 'foto'> & { fotoUrl?: string | null }) {
     const colRef = collection(this.firestore, 'registros');
     return await addDoc(colRef, {
@@ -105,15 +106,13 @@ export class FirebaseService {
     return { banos: [] };
   }
 
-  /** 🐾 Guardar evidencia tipo foto (Comida, Paseo, Entrenamiento, etc.) */
+  /** 🐾 Guardar evidencia tipo foto */
   async addEvidenceDate(profileId: string, tipo: string, fotoUrl: string) {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
     if (!snap.exists()) return;
 
     const data = snap.data() as any;
-
-    // 🧮 Determinar puntos y colección según el tipo
     let puntosExtra = 0;
     let field = 'evidencias';
 
@@ -136,7 +135,6 @@ export class FirebaseService {
 
     const nuevosPuntos = (data.puntos || 0) + puntosExtra;
 
-    // 📸 Guardar evidencia y sumar puntos
     await updateDoc(refDoc, {
       [field]: arrayUnion({
         foto: fotoUrl,
@@ -147,7 +145,7 @@ export class FirebaseService {
     });
   }
 
-  /** ➕ Agregar una vacuna al historial */
+  /** ➕ Agregar vacuna */
   async addVaccine(profileId: string, vacuna: { tipo: string; fechaVacunacion: string; fechaRefuerzo: string }) {
     const refDoc = doc(this.firestore, 'registros', profileId);
     await updateDoc(refDoc, {
@@ -165,5 +163,22 @@ export class FirebaseService {
       return data.vacunas || [];
     }
     return [];
+  }
+
+  /** 📘 Obtener entrenamiento por ID */
+  async getEntrenamientoById(id: string): Promise<any | null> {
+    const refDoc = doc(this.firestore, 'entrenamientos', id);
+    const snap = await getDoc(refDoc);
+    if (snap.exists()) {
+      return snap.data();
+    }
+    return null;
+  }
+
+  /** 📚 Obtener todos los entrenamientos */
+  async getEntrenamientos(): Promise<any[]> {
+    const colRef = collection(this.firestore, 'entrenamientos');
+    const snapshot = await getDocs(colRef);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   }
 }

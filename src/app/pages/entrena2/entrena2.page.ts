@@ -1,14 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, RouterModule, Router } from '@angular/router';
+import { FirebaseService } from '../../services/firebase';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
-import {
-  IonContent,
-  IonButtons,
-  IonBackButton,
-  IonButton,
-  IonIcon
-} from '@ionic/angular/standalone';
-
+import { IonContent, IonButtons, IonBackButton, IonButton, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { chevronBackOutline, volumeHighOutline } from 'ionicons/icons';
 
@@ -18,43 +12,47 @@ import { chevronBackOutline, volumeHighOutline } from 'ionicons/icons';
   styleUrls: ['./entrena2.page.scss'],
   standalone: true,
   imports: [
+    CommonModule,
+    RouterModule,
     IonContent,
     IonButtons,
     IonBackButton,
     IonButton,
-    IonIcon,
-    CommonModule,
-    RouterModule
+    IonIcon
   ]
 })
 export class Entrena2Page implements OnInit {
 
-  petName = 'Pelusa';
+  data: any = null;
 
-  constructor(private router: Router) {
+  constructor(
+    private route: ActivatedRoute,
+    private firebase: FirebaseService,
+    private router: Router
+  ) {
     addIcons({ chevronBackOutline, volumeHighOutline });
   }
 
-  ngOnInit() {}
+  async ngOnInit() {
+    const entrenamientoId = this.route.snapshot.paramMap.get('id');
+    console.log('Entrenamiento cargado:', entrenamientoId);
 
-  speakCard() {
-    const text =
-      `Dile su nombre con voz alegre. Cuando venga hacia ti, ` +
-      `dale una galletita y muchas caricias. Repite esto varias veces hasta que entienda.`;
-    try {
-      const synth = (window as any).speechSynthesis;
-      if (synth) {
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'es-ES';
-        synth.cancel();
-        synth.speak(u);
-      }
-    } catch {}
+    if (entrenamientoId) {
+      this.data = await this.firebase.getEntrenamientoById(entrenamientoId);
+      console.log('Datos del entrenamiento:', this.data);
+    }
   }
 
-  finishTraining() {
-    console.log('Entrenamiento terminado');
-    // Aquí puedes navegar o sumar puntos
+  speakCard() {
+    if (!this.data) return;
+    const text = `${this.data.descripcion}. ${this.data.pasos?.join('. ') || ''}`;
+    const synth = (window as any).speechSynthesis;
+    if (synth) {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'es-ES';
+      synth.cancel();
+      synth.speak(u);
+    }
   }
 
   continue(path: string) {

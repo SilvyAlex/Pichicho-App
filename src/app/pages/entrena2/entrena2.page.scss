@@ -3,8 +3,6 @@
   --text-main: #111827;
   --text-sub: #6b7280;
   --dashed: #8bd0ff;
-
-  /* CTA azul */
   --primary: #93c5fd;
   --primary-pressed: #7bb3fb;
 }
@@ -37,14 +35,25 @@
   justify-content: space-between;
   margin-bottom: 8px;
 }
-.title { margin: 0; font-size: 18px; font-weight: 700; color: var(--text-main); }
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+}
 
 .audio-btn {
   --background: #eaf2ff;
-  width: 42px; height: 42px; border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
   border: 2px solid #dbeafe;
   --box-shadow: none;
-  ion-icon { font-size: 20px; color: #2b6cb0; }
+
+  ion-icon {
+    font-size: 20px;
+    color: #2b6cb0;
+  }
 }
 
 /* Video principal */
@@ -56,11 +65,11 @@
 }
 
 .hero-video {
-  width: 100%;           /* ocupa todo el ancho disponible */
-  max-width: 360px;      /* control de tamaño en pantallas grandes */
+  width: 100%;
+  max-width: 360px;
   border-radius: 14px;
   background: #000;
-  box-shadow: 0 8px 22px rgba(15,23,42,.06);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
 }
 
 /* Tarjeta punteada */
@@ -79,13 +88,19 @@
     font-size: 14px;
     line-height: 1.35;
   }
+}
 
-  .strong {
-    margin: 6px 0 0;
-    color: var(--text-main);
-    font-size: 18px;
-    font-weight: 800;
-    line-height: 1.2;
+/* Lista de pasos */
+.steps-list {
+  text-align: left;
+  margin: 10px 0 0;
+  padding-left: 24px;
+  color: var(--text-main);
+  font-size: 14px;
+  line-height: 1.4;
+
+  li {
+    margin-bottom: 6px;
   }
 }
 
@@ -101,6 +116,10 @@
 
 /* Responsive */
 @media (max-width: 330px) {
-  .viewport { padding: 22px 16px 24px; }
-  .hero-video { max-width: 100%; }
+  .viewport {
+    padding: 22px 16px 24px;
+  }
+  .hero-video {
+    max-width: 100%;
+  }
 }

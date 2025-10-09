@@ -34,22 +34,20 @@
       </ion-button>
     </div>
 
-    <!-- Cards horizontales -->
+    <!-- Cards horizontales dinámicas -->
     <div #scroller class="cards-scroller">
       <button
         class="card"
         *ngFor="let a of activities; let i = index"
-        (click)="continue('/entrena2')"
-        [class.active]="i === selected"
-        aria-pressed="{{ i === selected ? 'true' : 'false' }}"
+        (click)="continue(a.id)"
       >
         <div class="media">
-          <ion-img src="assets/images/perrosdefault.png" alt="Perrito entrenando"></ion-img>
+          <ion-img [src]="a.img || 'assets/images/perrosdefault.png'"></ion-img>
         </div>
 
         <div class="meta">
-          <div class="title">{{ a.title }}</div>
-          <div class="sub">{{ a.subtitle }}</div>
+          <div class="title">{{ a.titulo }}</div>
+          <div class="sub">{{ a.descripcion }}</div>
         </div>
       </button>
     </div>
