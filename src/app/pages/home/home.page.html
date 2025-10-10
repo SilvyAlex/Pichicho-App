@@ -1,26 +1,27 @@
 <ion-content class="page white" [forceOverscroll]="false" fullscreen>
   <div class="wrap">
     <div class="hello">Hola {{ (profile$ | async)?.nombreNino || '...' }}</div>
-    <h1 class="title">¿Cómo está {{ (profile$ | async)?.nombrePerro || 'tu pelusa' }}<br/>hoy?</h1>
+    <h1 class="title">¿Cómo está {{ (profile$ | async)?.nombrePerro || 'tu pelusa' }}<br />hoy?</h1>
 
     <!-- Card de estado -->
     <section class="status-card">
       <div class="status-left">
         <div class="row">
-          <span class="dot ok"></span><span class="label">Comida</span>
-          <span class="count">2/2</span>
+          <span class="dot" [ngClass]="{ ok: progreso.comida.done === 2, warn: progreso.comida.done < 2 }"></span>
+          <span class="label">Comida</span>
+          <span class="count">{{ progreso.comida.done }}/{{ progreso.comida.total }}</span>
         </div>
         <div class="row">
           <span class="dot ok"></span><span class="label">Paseos</span>
-          <span class="count">2/2</span>
+          <span class="count">{{ progreso.paseos.done }}/{{ progreso.paseos.total }}</span>
         </div>
         <div class="row">
           <span class="dot warn"></span><span class="label">Entrenamiento</span>
-          <span class="count">1/2</span>
+          <span class="count">{{ progreso.entreno.done }}/{{ progreso.entreno.total }}</span>
         </div>
         <div class="health">
           <span class="heart">❤</span><span class="muted">Good</span>
-          <span class="muted">{{progreso.score}}%</span>
+          <span class="muted">{{ progreso.score }}%</span>
         </div>
       </div>
       <div class="pet-circle">🐶</div>
@@ -32,24 +33,24 @@
       <ion-icon name="chevron-forward-outline" class="chev"></ion-icon>
     </div>
 
-    <div class="pill pill-blue" role="button" tabindex="0" (click)="continue('/comida1')" >
+    <div class="pill pill-blue" role="button" tabindex="0" (click)="continue('/comida1')">
       <div class="emoji">🦴</div>
       <div class="bonus-text">Comida</div>
-      <div class="pill-count">2/2</div>
+      <div class="pill-count">{{ progreso.comida.done }}/{{ progreso.comida.total }}</div>
       <div class="pill-caret">›</div>
     </div>
 
-    <div class="pill pill-orange" role="button" tabindex="0"(click)="continue('/paseos1')">
+    <div class="pill pill-orange" role="button" tabindex="0" (click)="continue('/paseos1')">
       <div class="emoji">🐾</div>
       <div class="bonus-text">Paseos</div>
-      <div class="pill-count">1/2</div>
+      <div class="pill-count">{{ progreso.paseos.done }}/{{ progreso.paseos.total }}</div>
       <div class="pill-caret">›</div>
     </div>
 
-    <div class="pill pill-salmon" role="button" tabindex="0"(click)="continue('/entrena1')">
+    <div class="pill pill-salmon" role="button" tabindex="0" (click)="continue('/entrena1')">
       <div class="emoji">🐶</div>
       <div class="bonus-text">Entrenamientos</div>
-      <div class="pill-count">1/2</div>
+      <div class="pill-count">{{ progreso.entreno.done }}/{{ progreso.entreno.total }}</div>
       <div class="pill-caret">›</div>
     </div>
 
@@ -101,7 +102,7 @@
     <div style="height:120px"></div>
   </div>
 
-  <!-- Barra inferior fija personalizada -->
+  <!-- Barra inferior -->
   <nav class="bottom-bar">
     <a class="tab active" href="#">
       <ion-icon name="home-outline"></ion-icon>

@@ -23,17 +23,21 @@
         <h2 class="scoops">{{feeding.grams}} g</h2>
         <p class="note">de croquetas para estar fuerte y feliz</p>
         <p class="note small">Edad humana: {{feeding.edadHumana}} | Paseo: {{feeding.paseo}} min</p>
-
       </div>
 
-      <!-- Segment -->
+      <!-- Segment original conservado -->
       <div class="section-label">Tiempo para darle de comer</div>
-      <ion-segment mode="ios" [value]="time" (ionChange)="handleSegmentChange($event)" class="day-night">
+      <ion-segment
+        mode="ios"
+        [value]="time"
+        class="day-night"
+        disabled="true"
+      >
         <ion-segment-button value="dia">
           <ion-label>Día</ion-label>
         </ion-segment-button>
         <ion-segment-button value="noche">
-          <ion-label>Noche</ion-label>
+          <ion-label>Tarde</ion-label>
         </ion-segment-button>
       </ion-segment>
 
@@ -43,9 +47,31 @@
       </div>
 
       <!-- CTA -->
-      <ion-button size="large" expand="block" class="cta" (click)="continue('/comida2')">
-        ¡Darle de comer!
+      <ion-button
+        size="large"
+        expand="block"
+        class="cta"
+        [disabled]="isDisabled"
+        (click)="feedDog()"
+      >
+        {{
+          progress === 2
+            ? '✅ Ya completaste las comidas de hoy'
+            : '¡Darle de comer!'
+        }}
       </ion-button>
+
+      <!-- Progreso -->
+      <p class="note small" style="text-align:center; margin-top:8px;">
+        Progreso diario: {{progress}} / 2
+      </p>
+
+      <!-- Mensaje de horario -->
+      <div *ngIf="currentPeriod === 'none'" style="margin-top: 10px; text-align:center;">
+        <p class="note small">
+          ⏰ No es hora de comida ahora (Mañana: 4am–11am | Tarde: 12pm–10pm)
+        </p>
+      </div>
     </div>
   </div>
 </ion-content>

@@ -38,7 +38,7 @@ export class FirebaseService {
     return await getDownloadURL(storageRef);
   }
 
-  /** 📸 Subir foto de evidencia */
+  /** 📸 Subir foto de evidencia (alimentación, paseo, etc.) */
   async uploadEvidencePhoto(dataUrl: string, nombrePerro: string): Promise<string> {
     const safeName = (nombrePerro || 'peludito').trim().replace(/\s+/g, '_').toLowerCase();
     const filePath = `evidencias/${safeName}_${Date.now()}.jpg`;
@@ -47,7 +47,7 @@ export class FirebaseService {
     return await getDownloadURL(storageRef);
   }
 
-  /** 📝 Guardar registro inicial */
+  /** 📝 Guardar registro inicial del perfil */
   async saveRegistro(data: Omit<RegistroPayload, 'foto'> & { fotoUrl?: string | null }) {
     const colRef = collection(this.firestore, 'registros');
     return await addDoc(colRef, {
@@ -55,17 +55,17 @@ export class FirebaseService {
       createdAt: serverTimestamp(),
       puntos: 0,
       evidencias: [],
-      ultimoBano: null,
-      proximoBano: null,
-      banos: [],
       evidenciasComida: [],
       evidenciasPaseo: [],
       evidenciasEntrenamiento: [],
+      banos: [],
+      ultimoBano: null,
+      proximoBano: null,
       vacunas: []
     });
   }
 
-  /** 🔄 Actualizar fechas de baño */
+  /** 💧 Actualizar fechas de baño */
   async updateBathDates(profileId: string, ultimo: Date, proximo: Date) {
     const refDoc = doc(this.firestore, 'registros', profileId);
     await updateDoc(refDoc, {
@@ -75,7 +75,7 @@ export class FirebaseService {
     });
   }
 
-  /** ➕ Agregar una fecha al historial de baños */
+  /** ➕ Agregar una nueva fecha de baño */
   async addBathDate(profileId: string, fecha: Date, proximo: Date) {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
@@ -106,7 +106,7 @@ export class FirebaseService {
     return { banos: [] };
   }
 
-  /** 🐾 Guardar evidencia tipo foto */
+  /** 🐾 Guardar evidencia de tipo (comida, paseo, entrenamiento) */
   async addEvidenceDate(profileId: string, tipo: string, fotoUrl: string) {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
@@ -145,7 +145,67 @@ export class FirebaseService {
     });
   }
 
-  /** ➕ Agregar vacuna */
+  /** 📅 Obtener progreso diario de comida */
+  async getDailyFeedStatus(profileId: string): Promise<{ morningFed: boolean; eveningFed: boolean }> {
+    const refDoc = doc(this.firestore, 'registros', profileId);
+    const snap = await getDoc(refDoc);
+    if (!snap.exists()) return { morningFed: false, eveningFed: false };
+
+    const data = snap.data() as any;
+    const today = new Date().toDateString();
+
+    const evidencias = (data.evidenciasComida || []).filter((e: any) => {
+      const fecha = e.fecha?.toDate ? e.fecha.toDate() : new Date(e.fecha);
+      return fecha.toDateString() === today;
+    });
+
+    const morningFed = evidencias.some((e: any) => {
+      const hour = (e.fecha?.toDate ? e.fecha.toDate() : new Date(e.fecha)).getHours();
+      return hour >= 4 && hour < 12;
+    });
+
+    const eveningFed = evidencias.some((e: any) => {
+      const hour = (e.fecha?.toDate ? e.fecha.toDate() : new Date(e.fecha)).getHours();
+      return hour >= 12 && hour < 22;
+    });
+
+    return { morningFed, eveningFed };
+  }
+
+  /** 🐾 Obtener progreso diario de paseos (solo los de HOY) */
+  async getDailyWalkStatus(profileId: string): Promise<{ morningWalked: boolean; eveningWalked: boolean }> {
+    const refDoc = doc(this.firestore, 'registros', profileId);
+    const snap = await getDoc(refDoc);
+    if (!snap.exists()) return { morningWalked: false, eveningWalked: false };
+
+    const data = snap.data() as any;
+    const evidencias = (data.evidenciasPaseo || []).map((e: any) => {
+      if (e.fecha?.toDate) return e.fecha.toDate();
+      return new Date(e.fecha);
+    });
+
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
+    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+
+    let morningWalked = false;
+    let eveningWalked = false;
+
+    for (const ev of evidencias) {
+      const fecha = new Date(ev);
+      if (fecha >= todayStart && fecha <= todayEnd) {
+        const hour = fecha.getHours();
+        if (hour >= 4 && hour < 12) morningWalked = true;
+        if (hour >= 12 && hour < 22) eveningWalked = true;
+      }
+    }
+
+    return { morningWalked, eveningWalked };
+  }
+
+
+
+  /** 💉 Agregar vacuna */
   async addVaccine(profileId: string, vacuna: { tipo: string; fechaVacunacion: string; fechaRefuerzo: string }) {
     const refDoc = doc(this.firestore, 'registros', profileId);
     await updateDoc(refDoc, {

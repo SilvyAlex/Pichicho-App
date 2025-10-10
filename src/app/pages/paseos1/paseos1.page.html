@@ -32,9 +32,9 @@
         </p>
       </div>
 
-      <!-- Segmento Día / Tarde -->
+      <!-- Segmento Día / Tarde (no interactivo) -->
       <div class="section-label">Tiempo para pasear a {{petName}}</div>
-      <ion-segment mode="ios" [value]="time" (ionChange)="handleSegmentChange($event)" class="day-night">
+      <ion-segment mode="ios" [value]="time" class="day-night" disabled="true">
         <ion-segment-button value="dia">
           <ion-label>Día</ion-label>
         </ion-segment-button>
@@ -45,14 +45,35 @@
 
       <!-- Imagen -->
       <div class="dog">
-        <!-- Coloca tu imagen en src/assets/images/perro-paseo.png -->
-        <ion-img src="assets/images/Artboard 1.png" alt="Perrito entrenando"></ion-img>
+        <ion-img src="assets/images/Artboard 1.png" alt="Perrito paseando"></ion-img>
       </div>
 
       <!-- CTA -->
-      <ion-button size="large" expand="block" class="cta" (click)="continue('/paseos2')">
-        Empezar paseo
+      <ion-button
+        size="large"
+        expand="block"
+        class="cta"
+        [disabled]="isDisabled"
+        (click)="walkDog()"
+      >
+        {{
+          progress === 2
+            ? '✅ Ya completaste los paseos de hoy'
+            : 'Empezar paseo'
+        }}
       </ion-button>
+
+      <!-- Progreso -->
+      <p class="note small" style="text-align:center; margin-top:8px;">
+        Progreso diario: {{progress}} / 2
+      </p>
+
+      <!-- Fuera de horario -->
+      <div *ngIf="currentPeriod === 'none'" style="text-align:center; margin-top:10px;">
+        <p class="note small">
+          ⏰ No es hora de paseo ahora (Mañana: 4am–11am | Tarde: 12pm–10pm)
+        </p>
+      </div>
     </div>
   </div>
 </ion-content>
