@@ -1,26 +1,49 @@
 <ion-content class="page white" [forceOverscroll]="false" fullscreen>
   <div class="wrap">
     <div class="hello">Hola {{ (profile$ | async)?.nombreNino || '...' }}</div>
-    <h1 class="title">¿Cómo está {{ (profile$ | async)?.nombrePerro || 'tu pelusa' }}<br />hoy?</h1>
+    <h1 class="title">
+      ¿Cómo está {{ (profile$ | async)?.nombrePerro || 'tu pelusa' }}<br />hoy?
+    </h1>
 
     <!-- Card de estado -->
     <section class="status-card">
       <div class="status-left">
         <div class="row">
-          <span class="dot" [ngClass]="{ ok: progreso.comida.done === 2, warn: progreso.comida.done < 2 }"></span>
+          <span
+            class="dot"
+            [ngClass]="{
+              ok: progreso.comida.done === 2,
+              warn: progreso.comida.done < 2
+            }"
+          ></span>
           <span class="label">Comida</span>
           <span class="count">{{ progreso.comida.done }}/{{ progreso.comida.total }}</span>
         </div>
         <div class="row">
-          <span class="dot ok"></span><span class="label">Paseos</span>
+          <span
+            class="dot"
+            [ngClass]="{
+              ok: progreso.paseos.done === 2,
+              warn: progreso.paseos.done < 2
+            }"
+          ></span>
+          <span class="label">Paseos</span>
           <span class="count">{{ progreso.paseos.done }}/{{ progreso.paseos.total }}</span>
         </div>
         <div class="row">
-          <span class="dot warn"></span><span class="label">Entrenamiento</span>
+          <span
+            class="dot"
+            [ngClass]="{
+              ok: progreso.entreno.done === 1,
+              warn: progreso.entreno.done < 1
+            }"
+          ></span>
+          <span class="label">Entrenamiento</span>
           <span class="count">{{ progreso.entreno.done }}/{{ progreso.entreno.total }}</span>
         </div>
         <div class="health">
-          <span class="heart">❤</span><span class="muted">Good</span>
+          <span class="heart">❤</span>
+          <span class="muted">Good</span>
           <span class="muted">{{ progreso.score }}%</span>
         </div>
       </div>
@@ -79,8 +102,8 @@
         <div class="bonus-text">Limpieza</div>
       </div>
       <div class="bonus-right">
-        <!-- ✅ Muestra el círculo verde si el perro fue bañado hoy -->
-        <span class="check-dot" *ngIf="progreso.limpieza.done === 1">
+        <!-- ✅ Círculo verde si hay al menos un baño -->
+        <span class="check-dot" *ngIf="progreso.limpieza && progreso.limpieza.done === 1">
           <ion-icon name="checkmark-outline"></ion-icon>
         </span>
         <span class="chev-white">›</span>
@@ -93,15 +116,15 @@
         <div class="bonus-text">Vacunas</div>
       </div>
       <div class="bonus-right">
-        <span class="check-dot" *ngIf="false">
+        <!-- ✅ Círculo verde si hay al menos una vacuna -->
+        <span class="check-dot" *ngIf="progreso.vacunas && progreso.vacunas.done === 1">
           <ion-icon name="checkmark-outline"></ion-icon>
         </span>
         <span class="chev-white">›</span>
       </div>
     </div>
 
-
-    <div style="height:120px"></div>
+    <div style="height: 120px"></div>
   </div>
 
   <!-- Barra inferior -->

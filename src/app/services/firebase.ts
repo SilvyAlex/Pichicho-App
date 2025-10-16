@@ -30,7 +30,6 @@ export class FirebaseService {
   // 🐾 PERFIL Y SUBIDA DE FOTOS
   // --------------------------------------------------------
 
-  /** 📸 Subir foto de perfil */
   async uploadProfilePhoto(dataUrl: string, nombrePerro: string): Promise<string> {
     const safeName = (nombrePerro || 'peludito').trim().replace(/\s+/g, '_').toLowerCase();
     const filePath = `registros/${safeName}_${Date.now()}.jpg`;
@@ -39,7 +38,6 @@ export class FirebaseService {
     return await getDownloadURL(storageRef);
   }
 
-  /** 📸 Subir foto de evidencia (alimentación, paseo, entrenamiento) */
   async uploadEvidencePhoto(dataUrl: string, nombrePerro: string): Promise<string> {
     const safeName = (nombrePerro || 'peludito').trim().replace(/\s+/g, '_').toLowerCase();
     const filePath = `evidencias/${safeName}_${Date.now()}.jpg`;
@@ -48,7 +46,6 @@ export class FirebaseService {
     return await getDownloadURL(storageRef);
   }
 
-  /** 📝 Guardar registro inicial del perfil */
   async saveRegistro(data: Omit<RegistroPayload, 'foto'> & { fotoUrl?: string | null }) {
     const colRef = collection(this.firestore, 'registros');
     return await addDoc(colRef, {
@@ -67,10 +64,9 @@ export class FirebaseService {
   }
 
   // --------------------------------------------------------
-  // 🛁 BAÑOS (LIMPIEZA)
+  // 🛁 LIMPIEZA (BAÑOS)
   // --------------------------------------------------------
 
-  /** 💧 Actualizar fechas de baño */
   async updateBathDates(profileId: string, ultimo: Date, proximo: Date) {
     const refDoc = doc(this.firestore, 'registros', profileId);
     await updateDoc(refDoc, {
@@ -80,7 +76,6 @@ export class FirebaseService {
     });
   }
 
-  /** ➕ Agregar una nueva fecha de baño (normalizada sin hora) */
   async addBathDate(profileId: string, fecha: Date, proximo: Date) {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
@@ -90,7 +85,6 @@ export class FirebaseService {
       banos = (data.banos || []).map((f: any) => (f.toDate ? f.toDate() : new Date(f)));
     }
 
-    // 🧩 Normalizar la fecha a medianoche local
     const normalizada = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
 
     banos.push(normalizada);
@@ -102,7 +96,6 @@ export class FirebaseService {
     });
   }
 
-  /** 📖 Obtener historial de baños */
   async getBathHistory(profileId: string): Promise<{ banos: Date[]; proximoBano?: Date }> {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
@@ -116,22 +109,48 @@ export class FirebaseService {
     return { banos: [] };
   }
 
-  /** ✅ Verificar si el perro fue bañado hoy (para mostrar check verde en Home) */
-  async getDailyBathStatus(profileId: string): Promise<{ bathedToday: boolean }> {
+  /** ✅ Detectar si existe al menos un baño registrado */
+  async getBathStatus(profileId: string): Promise<{ hasBath: boolean }> {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
-    if (!snap.exists()) return { bathedToday: false };
+    if (!snap.exists()) return { hasBath: false };
 
     const data = snap.data() as any;
-    const banos = (data.banos || []).map((b: any) => (b.toDate ? b.toDate() : new Date(b)));
+    const banos = data.banos || [];
+    return { hasBath: banos.length > 0 };
+  }
 
-    const today = new Date();
-    const todayStr = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toDateString();
+  // --------------------------------------------------------
+  // 💉 VACUNAS
+  // --------------------------------------------------------
 
-    // 🟢 Compara solo por día (ignorando hora y zona)
-    const bathedToday = banos.some((b: Date) => b.toDateString() === todayStr);
+  async addVaccine(profileId: string, vacuna: { tipo: string; fechaVacunacion: string; fechaRefuerzo: string }) {
+    const refDoc = doc(this.firestore, 'registros', profileId);
+    await updateDoc(refDoc, {
+      vacunas: arrayUnion(vacuna),
+      updatedAt: serverTimestamp()
+    });
+  }
 
-    return { bathedToday };
+  async getVaccineHistory(profileId: string): Promise<any[]> {
+    const refDoc = doc(this.firestore, 'registros', profileId);
+    const snap = await getDoc(refDoc);
+    if (snap.exists()) {
+      const data = snap.data() as any;
+      return data.vacunas || [];
+    }
+    return [];
+  }
+
+  /** ✅ Detectar si existe al menos una vacuna registrada */
+  async getVaccineStatus(profileId: string): Promise<{ hasVaccine: boolean }> {
+    const refDoc = doc(this.firestore, 'registros', profileId);
+    const snap = await getDoc(refDoc);
+    if (!snap.exists()) return { hasVaccine: false };
+
+    const data = snap.data() as any;
+    const vacunas = data.vacunas || [];
+    return { hasVaccine: vacunas.length > 0 };
   }
 
   // --------------------------------------------------------
@@ -261,28 +280,6 @@ export class FirebaseService {
     const evidenciaHoy = evidencias.find((f: any) => f.fecha >= todayStart && f.fecha <= todayEnd);
 
     return { trainedToday: !!evidenciaHoy, activityId: evidenciaHoy?.actividadId || null };
-  }
-
-  // --------------------------------------------------------
-  // 💉 VACUNAS
-  // --------------------------------------------------------
-
-  async addVaccine(profileId: string, vacuna: { tipo: string; fechaVacunacion: string; fechaRefuerzo: string }) {
-    const refDoc = doc(this.firestore, 'registros', profileId);
-    await updateDoc(refDoc, {
-      vacunas: arrayUnion(vacuna),
-      updatedAt: serverTimestamp()
-    });
-  }
-
-  async getVaccineHistory(profileId: string): Promise<any[]> {
-    const refDoc = doc(this.firestore, 'registros', profileId);
-    const snap = await getDoc(refDoc);
-    if (snap.exists()) {
-      const data = snap.data() as any;
-      return data.vacunas || [];
-    }
-    return [];
   }
 
   // --------------------------------------------------------

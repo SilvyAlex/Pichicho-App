@@ -3,7 +3,12 @@ import { CommonModule } from '@angular/common';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { Router } from '@angular/router';
-import { checkmarkOutline, homeOutline, heartOutline, personOutline } from 'ionicons/icons';
+import {
+  checkmarkOutline,
+  homeOutline,
+  heartOutline,
+  personOutline
+} from 'ionicons/icons';
 import { SessionService } from '../../services/session';
 import { FirebaseService } from '../../services/firebase';
 import { Observable } from 'rxjs';
@@ -25,6 +30,7 @@ export class HomePage implements OnInit {
     paseos: { done: 0, total: 2 },
     entreno: { done: 0, total: 1 },
     limpieza: { done: 0 },
+    vacunas: { done: 0 }, // ✅ agregado
     score: 0
   };
 
@@ -46,11 +52,10 @@ export class HomePage implements OnInit {
   }
 
   ionViewWillEnter() {
-  if (this.profileId) {
-    this.loadProgress();
+    if (this.profileId) {
+      this.loadProgress();
+    }
   }
-}
-
 
   /** 🔁 Cargar progreso desde Firebase */
   async loadProgress() {
@@ -68,11 +73,15 @@ export class HomePage implements OnInit {
     const { trainedToday } = await this.firebase.getDailyTrainingStatus(this.profileId);
     this.progreso.entreno.done = trainedToday ? 1 : 0;
 
-    // 🛁 Limpieza (nuevo)
-    const { bathedToday } = await this.firebase.getDailyBathStatus(this.profileId);
-    this.progreso.limpieza = { done: bathedToday ? 1 : 0 };
+    // 🛁 Limpieza (si existe al menos un baño)
+    const { hasBath } = await this.firebase.getBathStatus(this.profileId);
+    this.progreso.limpieza.done = hasBath ? 1 : 0;
 
-    // 📊 Puntaje total (solo de las 3 principales)
+    // 💉 Vacunas (si existe al menos una vacuna)
+    const { hasVaccine } = await this.firebase.getVaccineStatus(this.profileId);
+    this.progreso.vacunas.done = hasVaccine ? 1 : 0;
+
+    // 📊 Puntaje total (sin incluir limpieza ni vacunas)
     const totalActividades = 3;
     const promedio =
       (this.progreso.comida.done / this.progreso.comida.total +
