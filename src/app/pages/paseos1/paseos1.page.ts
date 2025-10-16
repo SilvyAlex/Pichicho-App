@@ -78,7 +78,7 @@ export class Paseos1Page implements OnInit {
     await this.loadDailyWalkStatus();
   }
 
-  /** 🔍 Detectar horario y fijar segmento */
+  /** 🔍 Detectar horario */
   detectPeriod() {
     const hour = new Date().getHours();
     if (hour >= 4 && hour < 12) {
@@ -101,6 +101,7 @@ export class Paseos1Page implements OnInit {
     this.eveningWalked = eveningWalked;
     this.progress = [morningWalked, eveningWalked].filter(Boolean).length;
 
+    // Deshabilitar botón si ya se hizo el paseo correspondiente
     if (
       (this.currentPeriod === 'morning' && this.morningWalked) ||
       (this.currentPeriod === 'evening' && this.eveningWalked) ||
@@ -112,7 +113,7 @@ export class Paseos1Page implements OnInit {
     }
   }
 
-  /** 🚶 Acción: registrar paseo */
+  /** 🚶 Registrar paseo */
   async walkDog() {
     if (this.isDisabled) return;
     await this.firebase.addEvidenceDate(this.profileId, 'paseo', '');
@@ -120,7 +121,7 @@ export class Paseos1Page implements OnInit {
     await this.loadDailyWalkStatus();
   }
 
-  /** 🔊 Texto con voz */
+  /** 🔊 Reproducir audio */
   speakCard() {
     const text = `Vamos a caminar con ${this.petName}. Recuerda que los paseos lo mantienen sano y contento. ¡También es tu momento para moverte y divertirte!`;
     const synth = (window as any).speechSynthesis;

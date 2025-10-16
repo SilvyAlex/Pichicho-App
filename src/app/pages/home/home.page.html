@@ -66,7 +66,7 @@
         <div class="bonus-text">Historias</div>
       </div>
       <div class="bonus-right">
-        <span class="check-dot">
+        <span class="check-dot" *ngIf="false">
           <ion-icon name="checkmark-outline"></ion-icon>
         </span>
         <span class="chev-white">›</span>
@@ -79,7 +79,8 @@
         <div class="bonus-text">Limpieza</div>
       </div>
       <div class="bonus-right">
-        <span class="check-dot">
+        <!-- ✅ Muestra el círculo verde si el perro fue bañado hoy -->
+        <span class="check-dot" *ngIf="progreso.limpieza.done === 1">
           <ion-icon name="checkmark-outline"></ion-icon>
         </span>
         <span class="chev-white">›</span>
@@ -92,12 +93,13 @@
         <div class="bonus-text">Vacunas</div>
       </div>
       <div class="bonus-right">
-        <span class="check-dot">
+        <span class="check-dot" *ngIf="false">
           <ion-icon name="checkmark-outline"></ion-icon>
         </span>
         <span class="chev-white">›</span>
       </div>
     </div>
+
 
     <div style="height:120px"></div>
   </div>

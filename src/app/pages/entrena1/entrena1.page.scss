@@ -4,7 +4,7 @@
   --text-sub: #6b7280;
   --dashed: #8bd0ff;
 
-  --green: #22c55e;          /* borde activo / badge */
+  --green: #22c55e; /* Verde éxito */
   --card-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
 }
 
@@ -37,13 +37,23 @@
   margin-bottom: 8px;
   color: var(--text-main);
 }
-.title { margin: 0; font-size: 18px; font-weight: 700; color: var(--text-main); }
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+}
 
 .audio-btn {
   --background: #eaf2ff;
-  width: 42px; height: 42px; border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
   border: 2px solid #dbeafe;
-  ion-icon { font-size: 20px; color: #2b6cb0; }
+  ion-icon {
+    font-size: 20px;
+    color: #2b6cb0;
+  }
 }
 
 /* Dog top */
@@ -53,7 +63,10 @@
   place-items: center;
   margin: 2px 0 8px;
 
-  ion-img { width: 148px; height: auto; }
+  ion-img {
+    width: 148px;
+    height: auto;
+  }
 }
 
 /* Dashed info card */
@@ -73,10 +86,21 @@
     color: var(--text-main);
     line-height: 1.25;
   }
+
   .note {
     margin: 0;
     color: var(--text-sub);
     font-size: 14px;
+  }
+
+  /* ✅ Progreso verde cuando se completa */
+  .note.small {
+    transition: color 0.3s ease;
+  }
+
+  .note.small.green {
+    color: var(--green);
+    font-weight: 600;
   }
 }
 
@@ -128,6 +152,12 @@
   position: relative;
   text-align: left;
   cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 
   .media ion-img {
     width: 80%;
@@ -135,35 +165,37 @@
     object-fit: cover;
     border-radius: 14px;
     background: #f1f5f9;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
   }
 
   .meta .title {
     font-size: 14px;
     font-weight: 700;
     color: var(--text-main);
+    transition: color 0.3s ease;
   }
+
   .meta .sub {
     font-size: 12px;
     color: var(--text-sub);
     margin-top: 2px;
   }
+}
 
-  /* estado activo */
-  &.active {
-    border: 2px solid var(--green);
-    box-shadow: 0 10px 20px rgba(34, 197, 94, 0.15);
+/* ✅ Card completada (borde verde alrededor) */
+.card.completed {
+  border: 2.5px solid var(--green);
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.35);
+  transform: scale(1.02);
+}
 
-    .badge {
-      position: absolute;
-      right: 10px;
-      top: -10px;
-      width: 20px;
-      height: 20px;
-      background: var(--green);
-      border-radius: 50%;
-      box-shadow: 0 4px 10px rgba(34, 197, 94, 0.35);
-    }
-  }
+.card.completed .meta .title {
+  color: var(--green);
+}
+
+.card.completed .media ion-img {
+  border: 2px solid var(--green);
 }
 
 /* Tip card inferior */
@@ -180,12 +212,17 @@
   margin-top: 8px;
 
   .icon {
-    width: 28px; height: 28px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: #f1f5f9;
-    display: grid; place-items: center;
+    display: grid;
+    place-items: center;
 
-    ion-icon { font-size: 16px; color: #64748b; }
+    ion-icon {
+      font-size: 16px;
+      color: #64748b;
+    }
   }
 
   .tip-text {
@@ -196,6 +233,10 @@
 
 /* Responsive */
 @media (max-width: 330px) {
-  .cards-scroller { grid-auto-columns: 78%; }
-  .dog-top ion-img { width: 136px; }
+  .cards-scroller {
+    grid-auto-columns: 78%;
+  }
+  .dog-top ion-img {
+    width: 136px;
+  }
 }

@@ -3,13 +3,15 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import {
-  IonContent, IonButtons, IonBackButton, IonButton, IonIcon, IonImg
+  IonContent, IonButtons, IonBackButton, IonButton, IonIcon, IonImg, ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   chevronBackOutline, volumeHighOutline, chevronForwardOutline, constructOutline
 } from 'ionicons/icons';
 import { FirebaseService } from '../../services/firebase';
+import { SessionService } from '../../services/session';
+import { Profile } from '../../models/profile.model';
 
 @Component({
   selector: 'app-entrena1',
@@ -23,18 +25,42 @@ import { FirebaseService } from '../../services/firebase';
 })
 export class Entrena1Page implements OnInit {
 
-  petName = 'Pelusa';
+  petName = '';
   activities: any[] = [];
-  selected = 0;
+  trainedToday = false;
+  progress = 0;
+  profileId = '';
+  completedActivityId: string | null = null;
+
   @ViewChild('scroller') scrollerRef!: ElementRef<HTMLDivElement>;
 
-  constructor(private router: Router, private firebase: FirebaseService) {
+  constructor(
+    private router: Router,
+    private firebase: FirebaseService,
+    private session: SessionService,
+    private toastCtrl: ToastController
+  ) {
     addIcons({ chevronBackOutline, volumeHighOutline, chevronForwardOutline, constructOutline });
   }
 
   async ngOnInit() {
-    // 🚀 Cargar entrenamientos desde Firebase
+    const profile: Profile | null = this.session.snapshot;
+    if (profile) {
+      this.petName = profile.nombrePerro;
+      this.profileId = profile.id!;
+    }
+
     this.activities = await this.firebase.getEntrenamientos();
+    await this.loadDailyTrainingStatus();
+  }
+
+  /** 📅 Verificar si ya entrenó hoy */
+  async loadDailyTrainingStatus() {
+    if (!this.profileId) return;
+    const { trainedToday, activityId } = await this.firebase.getDailyTrainingStatus(this.profileId);
+    this.trainedToday = trainedToday;
+    this.completedActivityId = activityId || null;
+    this.progress = trainedToday ? 1 : 0;
   }
 
   speakCard() {
@@ -54,7 +80,20 @@ export class Entrena1Page implements OnInit {
     el.scrollBy({ left: 220, behavior: 'smooth' });
   }
 
-  continue(entrenamientoId: string) {
-    this.router.navigate(['/entrena2', entrenamientoId]);
+  async continue(entrenamientoId: string) {
+    if (this.trainedToday) {
+      await this.showToast('✅ Ya completaste el entrenamiento de hoy');
+      return;
+    }
+    this.router.navigate(['/entrena3', entrenamientoId]);
+  }
+
+  async showToast(msg: string) {
+    const toast = await this.toastCtrl.create({
+      message: msg,
+      duration: 2000,
+      position: 'bottom'
+    });
+    await toast.present();
   }
 }

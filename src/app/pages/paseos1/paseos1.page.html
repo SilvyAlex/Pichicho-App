@@ -17,7 +17,6 @@
 
     <!-- Contenido -->
     <div class="center-wrap">
-      <!-- Tarjeta punteada -->
       <div class="dashed-card">
         <p class="hello">¡Vamos a caminar con {{petName}}!</p>
         <p class="note">
@@ -32,7 +31,6 @@
         </p>
       </div>
 
-      <!-- Segmento Día / Tarde (no interactivo) -->
       <div class="section-label">Tiempo para pasear a {{petName}}</div>
       <ion-segment mode="ios" [value]="time" class="day-night" disabled="true">
         <ion-segment-button value="dia">
@@ -43,12 +41,10 @@
         </ion-segment-button>
       </ion-segment>
 
-      <!-- Imagen -->
       <div class="dog">
         <ion-img src="assets/images/Artboard 1.png" alt="Perrito paseando"></ion-img>
       </div>
 
-      <!-- CTA -->
       <ion-button
         size="large"
         expand="block"
@@ -56,19 +52,13 @@
         [disabled]="isDisabled"
         (click)="walkDog()"
       >
-        {{
-          progress === 2
-            ? '✅ Ya completaste los paseos de hoy'
-            : 'Empezar paseo'
-        }}
+        {{ progress === 2 ? '✅ Ya completaste los paseos de hoy' : 'Empezar paseo' }}
       </ion-button>
 
-      <!-- Progreso -->
       <p class="note small" style="text-align:center; margin-top:8px;">
         Progreso diario: {{progress}} / 2
       </p>
 
-      <!-- Fuera de horario -->
       <div *ngIf="currentPeriod === 'none'" style="text-align:center; margin-top:10px;">
         <p class="note small">
           ⏰ No es hora de paseo ahora (Mañana: 4am–11am | Tarde: 12pm–10pm)
