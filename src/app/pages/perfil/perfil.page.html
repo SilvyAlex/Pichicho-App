@@ -1,38 +1,73 @@
-
-<ion-content [fullscreen]="true" class="white">
+<ion-content class="page white" [forceOverscroll]="false" fullscreen>
   <div class="wrap">
-    <!-- Encabezado -->
-    <div class="owner">{{ userName }}</div>
+    <!-- ===== Espacio superior y título ===== -->
+    <div class="hello-space"></div>
+    <h1 class="title">Perfil de {{ petName || 'tu mascota' }}</h1>
 
-    <div class="avatar-ring">
-      <img [src]="petPhoto || 'assets/images/default-dog.png'" class="avatar" alt="Foto de mascota">
+    <!-- ===== Foto principal de la mascota ===== -->
+    <div class="avatar-ring" (click)="openFullImage(petPhoto)">
+      <img
+        [src]="'assets/images/PerroDefault.png'"
+        class="avatar"
+        alt="Foto de mascota"
+      />
     </div>
 
-    <div class="pet-name">{{ petName }}</div>
-    <div class="pet-level">Nivel {{ petLevel }}</div>
+    <div class="pet-name">{{ userName }}</div>
 
-    <!-- Galería de evidencias -->
+    <!-- ===== Galería de evidencias ===== -->
+    <div class="section-head">
+      <div class="section-title">Galería de evidencias</div>
+    </div>
+
     <div class="gallery-grid" *ngIf="allPhotos.length > 0; else emptyGallery">
-      <div *ngFor="let photo of allPhotos" class="photo-card">
-        <img [src]="photo" alt="Evidencia de {{ petName }}">
+      <div
+        *ngFor="let photo of allPhotos"
+        class="photo-card"
+        (click)="openFullImage(photo)"
+      >
+        <img [src]="photo" alt="Evidencia de {{ petName }}" />
       </div>
     </div>
 
     <ng-template #emptyGallery>
       <p class="no-photos">Aún no tienes evidencias registradas 🐾</p>
     </ng-template>
+
+    <div style="height: 120px"></div>
   </div>
 
-  <!-- Barra inferior -->
-  <div class="bottom-bar">
-    <a routerLink="/home" class="tab">
+  <!-- ===== Modal de imagen ampliada ===== -->
+  <div class="image-modal" *ngIf="selectedImage">
+    <img [src]="selectedImage" alt="Imagen ampliada" />
+    <ion-icon
+      name="close-outline"
+      class="close-btn"
+      (click)="closeImage()"
+    ></ion-icon>
+    <ion-icon
+      name="download-outline"
+      class="download-btn"
+      (click)="downloadImage(selectedImage)"
+    ></ion-icon>
+  </div>
+
+  <!-- ===== Barra inferior ===== -->
+  <nav class="bottom-bar">
+    <div class="tab" (click)="goTo('/home')">
       <ion-icon name="home-outline"></ion-icon>
       <span>Inicio</span>
-    </a>
+    </div>
 
-    <a routerLink="/perfil" class="tab active">
-      <ion-icon name="person-circle-outline"></ion-icon>
+    <div class="tab" (click)="goTo('/puntos')">
+      <ion-icon name="heart-outline"></ion-icon>
+      <span>Puntos</span>
+    </div>
+
+    <div class="tab active" (click)="goTo('/perfil')">
+      <ion-icon name="person-outline"></ion-icon>
       <span>Perfil</span>
-    </a>
-  </div>
+    </div>
+  </nav>
+
 </ion-content>
