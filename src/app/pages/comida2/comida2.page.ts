@@ -134,7 +134,12 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
       await this.session.setProfile({ ...profile, puntos: nuevosPuntos });
 
       console.log('✅ Evidencia de comida guardada correctamente');
-      this.router.navigateByUrl('/home');
+
+      // ✅ Pequeña pausa antes de volver al Home para que Firebase termine de escribir
+      setTimeout(() => {
+        this.router.navigateByUrl('/home');
+      }, 800);
+
     } catch (err) {
       console.error('❌ Error al guardar evidencia de comida:', err);
     }

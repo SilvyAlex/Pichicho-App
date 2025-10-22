@@ -101,7 +101,6 @@ export class Paseos1Page implements OnInit {
     this.eveningWalked = eveningWalked;
     this.progress = [morningWalked, eveningWalked].filter(Boolean).length;
 
-    // Deshabilitar botón si ya se hizo el paseo correspondiente
     if (
       (this.currentPeriod === 'morning' && this.morningWalked) ||
       (this.currentPeriod === 'evening' && this.eveningWalked) ||
@@ -113,12 +112,13 @@ export class Paseos1Page implements OnInit {
     }
   }
 
-  /** 🚶 Registrar paseo */
+  /** 🚶 Iniciar paseo (redirige a Paseos2) */
   async walkDog() {
     if (this.isDisabled) return;
-    await this.firebase.addEvidenceDate(this.profileId, 'paseo', '');
-    await this.showToast(`¡${this.petName} está feliz después de su paseo! 🐾`);
-    await this.loadDailyWalkStatus();
+
+    await this.showToast(`¡${this.petName} está listo para su paseo! 🐾`);
+    // 👇 Aquí solo se navega, no se guarda evidencia
+    this.router.navigateByUrl('/paseos2');
   }
 
   /** 🔊 Reproducir audio */

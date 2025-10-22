@@ -22,7 +22,9 @@
     <div class="dashed-card">
       <h3 class="headline">¡Hora de enseñarle trucos a {{petName}}!</h3>
       <p class="note">Escoge qué quieres practicar hoy</p>
-      <p class="note small" style="margin-top:6px;">Progreso diario: {{progress}} / 1</p>
+      <p class="note small" [class.green]="progress === 1" style="margin-top:6px;">
+        Progreso diario: {{progress}} / 1
+      </p>
     </div>
 
     <!-- Título de sección -->
@@ -38,7 +40,7 @@
       <button
         class="card"
         *ngFor="let a of activities"
-        [disabled]="trainedToday"
+        [disabled]="trainedToday && completedActivityId !== a.id"
         (click)="continue(a.id)"
         [class.completed]="completedActivityId === a.id"
       >
@@ -50,9 +52,6 @@
           <div class="title">{{ a.titulo }}</div>
           <div class="sub">{{ a.descripcion }}</div>
         </div>
-
-        <!-- círculo verde -->
-        <div *ngIf="completedActivityId === a.id" class="completed-circle"></div>
       </button>
     </div>
 
@@ -61,7 +60,9 @@
       <div class="icon">
         <ion-icon name="construct-outline"></ion-icon>
       </div>
-      <div class="tip-text">Recuerda premiarlo por un buen trabajo 🦴</div>
+      <div class="tip-text">
+        Recuerda premiarlo por un buen trabajo 🦴
+      </div>
     </div>
   </div>
 </ion-content>

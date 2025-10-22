@@ -109,7 +109,6 @@ export class FirebaseService {
     return { banos: [] };
   }
 
-  /** ✅ Detectar si existe al menos un baño registrado */
   async getBathStatus(profileId: string): Promise<{ hasBath: boolean }> {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
@@ -142,7 +141,6 @@ export class FirebaseService {
     return [];
   }
 
-  /** ✅ Detectar si existe al menos una vacuna registrada */
   async getVaccineStatus(profileId: string): Promise<{ hasVaccine: boolean }> {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
@@ -280,6 +278,25 @@ export class FirebaseService {
     const evidenciaHoy = evidencias.find((f: any) => f.fecha >= todayStart && f.fecha <= todayEnd);
 
     return { trainedToday: !!evidenciaHoy, activityId: evidenciaHoy?.actividadId || null };
+  }
+
+  /** ✅ Guardar entrenamiento completado */
+  async addTrainingEvidence(profileId: string, actividadId: string) {
+    const refDoc = doc(this.firestore, 'registros', profileId);
+    const snap = await getDoc(refDoc);
+    if (!snap.exists()) return;
+
+    const data = snap.data() as any;
+    const nuevosPuntos = (data.puntos || 0) + 15;
+
+    await updateDoc(refDoc, {
+      evidenciasEntrenamiento: arrayUnion({
+        actividadId,
+        fecha: new Date()
+      }),
+      puntos: nuevosPuntos,
+      updatedAt: serverTimestamp()
+    });
   }
 
   // --------------------------------------------------------

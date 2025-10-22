@@ -14,7 +14,6 @@ import { chevronBackOutline, volumeHighOutline, cameraOutline } from 'ionicons/i
 import { FirebaseService } from '../../services/firebase';
 import { SessionService } from '../../services/session';
 import { Profile } from '../../models/profile.model';
-import { Firestore, doc, updateDoc, arrayUnion } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 
 @Component({
@@ -35,6 +34,7 @@ import { Router } from '@angular/router';
 export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
   userName = '';
   petName = '';
+  profileId: string | null = null;
 
   @ViewChild('video') videoRef!: ElementRef<HTMLVideoElement>;
   @ViewChild('canvas') canvasRef!: ElementRef<HTMLCanvasElement>;
@@ -46,7 +46,6 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private firebaseSvc: FirebaseService,
     private session: SessionService,
-    private firestore: Firestore,
     private router: Router
   ) {
     addIcons({ chevronBackOutline, volumeHighOutline, cameraOutline });
@@ -57,6 +56,7 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
     if (profile) {
       this.userName = profile.nombreNino;
       this.petName = profile.nombrePerro;
+      this.profileId = profile.id!;
     }
   }
 
@@ -68,7 +68,6 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
     this.stopCamera();
   }
 
-  /** Enciende la cámara */
   async startCamera() {
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
@@ -86,7 +85,6 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /** Apaga la cámara */
   stopCamera() {
     if (this.stream) {
       this.stream.getTracks().forEach(t => t.stop());
@@ -95,7 +93,6 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
     this.isStreaming = false;
   }
 
-  /** Tomar o rehacer foto */
   async onShutter() {
     if (this.photoDataUrl) {
       this.photoDataUrl = null;
@@ -105,7 +102,6 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
     this.takePhoto();
   }
 
-  /** Captura en canvas */
   takePhoto() {
     const video = this.videoRef?.nativeElement;
     const canvas = this.canvasRef?.nativeElement;
@@ -124,36 +120,33 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
     this.stopCamera();
   }
 
-  /** Guardar evidencia (Paseo) */
-async saveEvidence() {
-  if (!this.photoDataUrl) return;
-  const profile = this.session.snapshot;
-  if (!profile) return;
+  /** 💾 Guardar evidencia del paseo */
+  async saveEvidence() {
+    if (!this.photoDataUrl || !this.profileId) return;
 
-  try {
-    const fotoUrl = await this.firebaseSvc.uploadEvidencePhoto(
-      this.photoDataUrl,
-      profile.nombrePerro
-    );
+    const profile = this.session.snapshot;
+    if (!profile) return;
 
-    await this.firebaseSvc.addEvidenceDate(profile.id, 'paseo', fotoUrl);
+    try {
+      const fotoUrl = await this.firebaseSvc.uploadEvidencePhoto(this.photoDataUrl, this.petName);
+      await this.firebaseSvc.addEvidenceDate(this.profileId, 'paseo', fotoUrl);
 
-    const nuevosPuntos = (profile.puntos || 0) + 10;
-    await this.session.setProfile({
-      ...profile,
-      puntos: nuevosPuntos
-    });
+      // 🧮 Actualizar puntos locales
+      const nuevosPuntos = (profile.puntos || 0) + 10;
+      await this.session.setProfile({ ...profile, puntos: nuevosPuntos });
 
-    console.log('✅ Evidencia de paseo guardada correctamente');
-    this.router.navigateByUrl('/home');
-  } catch (err) {
-    console.error('❌ Error al guardar evidencia de paseo:', err);
+      console.log('✅ Evidencia de paseo guardada correctamente');
+
+      // Esperar breve para que Firebase procese y Home se actualice
+      setTimeout(() => {
+        this.router.navigateByUrl('/home');
+      }, 800);
+
+    } catch (err) {
+      console.error('❌ Error al guardar evidencia de paseo:', err);
+    }
   }
-}
 
-
-
-  /** Reproduce el audio */
   speakCard() {
     const text = `¡Qué bien lo hicieron! Ahora toma una foto de ${this.petName}.`;
     try {

@@ -120,9 +120,12 @@ export class Comida1Page implements OnInit {
   /** 🦴 Acción alimentar */
   async feedDog() {
     if (this.isDisabled) return;
-    await this.firebase.addEvidenceDate(this.profileId, 'comida', '');
+
+    // Mostrar mensaje motivador
     await this.showToast(`¡${this.petName} está feliz y comiendo! 🦴`);
-    await this.loadDailyFeedStatus();
+
+    // Redirigir a Comida2 para tomar la foto
+    this.router.navigateByUrl('/comida2');
   }
 
   /** 🎙️ Voz */
