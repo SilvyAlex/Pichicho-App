@@ -67,31 +67,23 @@ export class FirebaseService {
   // 🛁 LIMPIEZA (BAÑOS)
   // --------------------------------------------------------
 
-  async updateBathDates(profileId: string, ultimo: Date, proximo: Date) {
-    const refDoc = doc(this.firestore, 'registros', profileId);
-    await updateDoc(refDoc, {
-      ultimoBano: ultimo,
-      proximoBano: proximo,
-      updatedAt: serverTimestamp()
-    });
-  }
-
   async addBathDate(profileId: string, fecha: Date, proximo: Date) {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
-    let banos: Date[] = [];
-    if (snap.exists()) {
-      const data = snap.data() as any;
-      banos = (data.banos || []).map((f: any) => (f.toDate ? f.toDate() : new Date(f)));
-    }
+    if (!snap.exists()) return;
+
+    const data = snap.data() as any;
+    const banos = (data.banos || []).map((f: any) => (f.toDate ? f.toDate() : new Date(f)));
 
     const normalizada = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
-
     banos.push(normalizada);
+
+    const nuevosPuntos = (data.puntos || 0) + 10; // 💧 +10 puntos
 
     await updateDoc(refDoc, {
       banos,
       proximoBano: proximo,
+      puntos: nuevosPuntos,
       updatedAt: serverTimestamp()
     });
   }
@@ -99,14 +91,13 @@ export class FirebaseService {
   async getBathHistory(profileId: string): Promise<{ banos: Date[]; proximoBano?: Date }> {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
-    if (snap.exists()) {
-      const data = snap.data() as any;
-      return {
-        banos: (data.banos || []).map((f: any) => (f.toDate ? f.toDate() : new Date(f))),
-        proximoBano: data.proximoBano?.toDate?.()
-      };
-    }
-    return { banos: [] };
+    if (!snap.exists()) return { banos: [] };
+
+    const data = snap.data() as any;
+    return {
+      banos: (data.banos || []).map((f: any) => (f.toDate ? f.toDate() : new Date(f))),
+      proximoBano: data.proximoBano?.toDate?.()
+    };
   }
 
   async getBathStatus(profileId: string): Promise<{ hasBath: boolean }> {
@@ -115,8 +106,7 @@ export class FirebaseService {
     if (!snap.exists()) return { hasBath: false };
 
     const data = snap.data() as any;
-    const banos = data.banos || [];
-    return { hasBath: banos.length > 0 };
+    return { hasBath: (data.banos || []).length > 0 };
   }
 
   // --------------------------------------------------------
@@ -125,8 +115,15 @@ export class FirebaseService {
 
   async addVaccine(profileId: string, vacuna: { tipo: string; fechaVacunacion: string; fechaRefuerzo: string }) {
     const refDoc = doc(this.firestore, 'registros', profileId);
+    const snap = await getDoc(refDoc);
+    if (!snap.exists()) return;
+
+    const data = snap.data() as any;
+    const nuevosPuntos = (data.puntos || 0) + 10; // 💉 +10 puntos
+
     await updateDoc(refDoc, {
       vacunas: arrayUnion(vacuna),
+      puntos: nuevosPuntos,
       updatedAt: serverTimestamp()
     });
   }
@@ -134,21 +131,16 @@ export class FirebaseService {
   async getVaccineHistory(profileId: string): Promise<any[]> {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
-    if (snap.exists()) {
-      const data = snap.data() as any;
-      return data.vacunas || [];
-    }
-    return [];
+    if (!snap.exists()) return [];
+    return (snap.data() as any).vacunas || [];
   }
 
   async getVaccineStatus(profileId: string): Promise<{ hasVaccine: boolean }> {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
     if (!snap.exists()) return { hasVaccine: false };
-
     const data = snap.data() as any;
-    const vacunas = data.vacunas || [];
-    return { hasVaccine: vacunas.length > 0 };
+    return { hasVaccine: (data.vacunas || []).length > 0 };
   }
 
   // --------------------------------------------------------
@@ -159,8 +151,8 @@ export class FirebaseService {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
     if (!snap.exists()) return;
-
     const data = snap.data() as any;
+
     let puntosExtra = 0;
     let field = 'evidencias';
 
@@ -177,17 +169,12 @@ export class FirebaseService {
         field = 'evidenciasEntrenamiento';
         puntosExtra = 15;
         break;
-      default:
-        field = 'evidencias';
     }
 
     const nuevosPuntos = (data.puntos || 0) + puntosExtra;
 
     await updateDoc(refDoc, {
-      [field]: arrayUnion({
-        foto: fotoUrl,
-        fecha: new Date()
-      }),
+      [field]: arrayUnion({ foto: fotoUrl, fecha: new Date() }),
       puntos: nuevosPuntos,
       updatedAt: serverTimestamp()
     });
@@ -197,27 +184,27 @@ export class FirebaseService {
   // 🍗 COMIDA
   // --------------------------------------------------------
 
-  async getDailyFeedStatus(profileId: string): Promise<{ morningFed: boolean; eveningFed: boolean }> {
+  async getDailyFeedStatus(profileId: string, date: Date = new Date()): Promise<{ morningFed: boolean; eveningFed: boolean }> {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
     if (!snap.exists()) return { morningFed: false, eveningFed: false };
 
     const data = snap.data() as any;
-    const today = new Date().toDateString();
+    const target = date.toDateString();
 
     const evidencias = (data.evidenciasComida || []).filter((e: any) => {
       const fecha = e.fecha?.toDate ? e.fecha.toDate() : new Date(e.fecha);
-      return fecha.toDateString() === today;
+      return fecha.toDateString() === target;
     });
 
     const morningFed = evidencias.some((e: any) => {
-      const hour = (e.fecha?.toDate ? e.fecha.toDate() : new Date(e.fecha)).getHours();
-      return hour >= 4 && hour < 12;
+      const h = (e.fecha?.toDate ? e.fecha.toDate() : new Date(e.fecha)).getHours();
+      return h >= 4 && h < 12;
     });
 
     const eveningFed = evidencias.some((e: any) => {
-      const hour = (e.fecha?.toDate ? e.fecha.toDate() : new Date(e.fecha)).getHours();
-      return hour >= 12 && hour < 22;
+      const h = (e.fecha?.toDate ? e.fecha.toDate() : new Date(e.fecha)).getHours();
+      return h >= 12 && h < 22;
     });
 
     return { morningFed, eveningFed };
@@ -227,7 +214,7 @@ export class FirebaseService {
   // 🐾 PASEOS
   // --------------------------------------------------------
 
-  async getDailyWalkStatus(profileId: string): Promise<{ morningWalked: boolean; eveningWalked: boolean }> {
+  async getDailyWalkStatus(profileId: string, date: Date = new Date()): Promise<{ morningWalked: boolean; eveningWalked: boolean }> {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
     if (!snap.exists()) return { morningWalked: false, eveningWalked: false };
@@ -237,9 +224,8 @@ export class FirebaseService {
       e.fecha?.toDate ? e.fecha.toDate() : new Date(e.fecha)
     );
 
-    const today = new Date();
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
-    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+    const todayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
+    const todayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59);
 
     let morningWalked = false;
     let eveningWalked = false;
@@ -247,9 +233,9 @@ export class FirebaseService {
     for (const ev of evidencias) {
       const fecha = new Date(ev);
       if (fecha >= todayStart && fecha <= todayEnd) {
-        const hour = fecha.getHours();
-        if (hour >= 4 && hour < 12) morningWalked = true;
-        if (hour >= 12 && hour < 22) eveningWalked = true;
+        const h = fecha.getHours();
+        if (h >= 4 && h < 12) morningWalked = true;
+        if (h >= 12 && h < 22) eveningWalked = true;
       }
     }
 
@@ -260,7 +246,7 @@ export class FirebaseService {
   // 🎮 ENTRENAMIENTOS
   // --------------------------------------------------------
 
-  async getDailyTrainingStatus(profileId: string): Promise<{ trainedToday: boolean; activityId?: string }> {
+  async getDailyTrainingStatus(profileId: string, date: Date = new Date()): Promise<{ trainedToday: boolean; activityId?: string }> {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
     if (!snap.exists()) return { trainedToday: false };
@@ -271,16 +257,14 @@ export class FirebaseService {
       actividadId: e.actividadId || null
     }));
 
-    const today = new Date();
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
-    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+    const todayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
+    const todayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59);
 
     const evidenciaHoy = evidencias.find((f: any) => f.fecha >= todayStart && f.fecha <= todayEnd);
 
     return { trainedToday: !!evidenciaHoy, activityId: evidenciaHoy?.actividadId || null };
   }
 
-  /** ✅ Guardar entrenamiento completado */
   async addTrainingEvidence(profileId: string, actividadId: string) {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
@@ -290,10 +274,7 @@ export class FirebaseService {
     const nuevosPuntos = (data.puntos || 0) + 15;
 
     await updateDoc(refDoc, {
-      evidenciasEntrenamiento: arrayUnion({
-        actividadId,
-        fecha: new Date()
-      }),
+      evidenciasEntrenamiento: arrayUnion({ actividadId, fecha: new Date() }),
       puntos: nuevosPuntos,
       updatedAt: serverTimestamp()
     });

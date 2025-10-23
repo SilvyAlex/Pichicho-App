@@ -131,3 +131,12 @@ ion-content.page { --background: #ffffff !important;
 body, .ion-page, ion-content {
   background:#ffffff !important;
 }
+
+/* 🌟 Línea de bonus debajo del porcentaje */
+.bonus-line {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #22c55e; /* verde alegre */
+  font-weight: 600;
+}
+

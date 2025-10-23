@@ -46,7 +46,13 @@
           <span class="muted">Good</span>
           <span class="muted">{{ progreso.score }}%</span>
         </div>
+
+        <!-- 🌟 Bonus visible -->
+        <div class="bonus-line" *ngIf="progreso.bonus > 0">
+          <span class="muted">+{{ progreso.bonus }}% por acciones extra 🛁💉</span>
+        </div>
       </div>
+
       <div class="pet-circle">🐶</div>
     </section>
 

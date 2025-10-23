@@ -9,7 +9,6 @@ import {
   heartOutline,
   personOutline
 } from 'ionicons/icons';
-
 import { FirebaseService } from '../../services/firebase';
 import { SessionService } from '../../services/session';
 
@@ -23,11 +22,9 @@ import { SessionService } from '../../services/session';
 export class PuntosPage implements OnInit {
 
   petName = '';
-  puntosHoy = 0;
-  porcentaje = 0;
-
-  // Donut visual
-  shown = 0;
+  porcentajeSemanal = 0;        // 🔸 porcentaje del donut (toda la semana)
+  colorActual = '#22c55e';
+  shown = 0;                    // animación del donut
   radius = 62;
   stroke = 14;
 
@@ -38,15 +35,14 @@ export class PuntosPage implements OnInit {
   get center() { return this.radius + this.stroke; }
   get circumference() { return 2 * Math.PI * this.radius; }
   get dashOffset() { return this.circumference * (1 - this.shown / 100); }
-
   get endAngle() { return (this.shown / 100) * 2 * Math.PI - Math.PI / 2; }
   get endX() { return this.center + this.radius * Math.cos(this.endAngle); }
   get endY() { return this.center + this.radius * Math.sin(this.endAngle); }
 
-  // Barras por día (lunes a domingo)
+  // 📊 barras semanales
   dayLabels = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
-  dayValues: number[] = [];
-  dayColors = ['#f97316','#60a5fa','#d946ef','#38bdf8','#94a3b8','#34d399','#34d399'];
+  dayValues: number[] = new Array(7).fill(0);
+  dayColors: string[] = new Array(7).fill('#e5e7eb');
 
   constructor(
     private firebase: FirebaseService,
@@ -58,39 +54,85 @@ export class PuntosPage implements OnInit {
   async ngOnInit() {
     const profile = this.session.snapshot;
     if (!profile) return;
-
     this.petName = profile.nombrePerro;
-    await this.loadProgress(profile.id);
+    await this.loadWeeklyProgress(profile.id);
   }
 
-  /** 📊 Cargar progreso diario */
-  async loadProgress(profileId: string) {
+  /** 📅 Calcula el progreso total de la semana */
+  async loadWeeklyProgress(profileId: string) {
+    const today = new Date();
+    const startOfWeek = this.getMonday(today);
+    const dailyPercents: number[] = [];
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startOfWeek);
+      date.setDate(startOfWeek.getDate() + i);
+      const percent = await this.getDayPerformance(profileId, date);
+      dailyPercents.push(percent);
+    }
+
+    // 🔸 Total semanal (suma de los 7 días / 7)
+    const totalSemanal = dailyPercents.reduce((a, b) => a + b, 0) / 7;
+    this.porcentajeSemanal = Math.round(totalSemanal);
+
+    // 🔸 color según rango del total semanal
+    if (this.porcentajeSemanal <= 45) this.colorActual = '#ef4444';
+    else if (this.porcentajeSemanal <= 79) this.colorActual = '#facc15';
+    else this.colorActual = '#22c55e';
+
+    // 🔸 animar donut
+    this.animateTo(this.porcentajeSemanal, 900);
+
+    // 🔸 actualizar barras (día actual en color, resto neutro si no hay datos)
+    this.dayValues = dailyPercents;
+    this.dayColors = dailyPercents.map(v =>
+      v <= 45 ? '#ef4444' : v <= 79 ? '#facc15' : '#22c55e'
+    );
+  }
+
+  /** 📈 Porcentaje de un día individual */
+  private async getDayPerformance(profileId: string, date: Date): Promise<number> {
     try {
-      const profile = this.session.snapshot;
-      if (!profile) return;
+      const feed = await this.firebase.getDailyFeedStatus(profileId, date);
+      const walk = await this.firebase.getDailyWalkStatus(profileId, date);
+      const train = await this.firebase.getDailyTrainingStatus(profileId, date);
 
-      // 🔹 Obtener puntos del perfil
-      const puntos = profile.puntos || 0;
+      const comidaDone = [feed.morningFed, feed.eveningFed].filter(Boolean).length;
+      const paseosDone = [walk.morningWalked, walk.eveningWalked].filter(Boolean).length;
+      const entrenoDone = train.trainedToday ? 1 : 0;
 
-      // 🔹 Calcular progreso diario (máximo 45 puntos)
-      this.puntosHoy = Math.min(puntos, 45);
-      this.porcentaje = Math.round((this.puntosHoy / 45) * 100);
+      let base = ((comidaDone / 2) + (paseosDone / 2) + (entrenoDone / 1)) / 3 * 100;
 
-      // 🔹 Si no hay puntos, deja todo en 0
-      if (!this.puntosHoy) this.porcentaje = 0;
+      // 🔸 bonus solo si es hoy
+      const today = new Date();
+      if (this.sameDate(today, date)) {
+        const { hasBath } = await this.firebase.getBathStatus(profileId);
+        const { hasVaccine } = await this.firebase.getVaccineStatus(profileId);
+        const bonus = (hasBath ? 5 : 0) + (hasVaccine ? 5 : 0);
+        base = Math.min(base + bonus, 100);
+      }
 
-      // 🔹 Anima el donut
-      this.animateTo(this.porcentaje, 900);
-
-      // 🔹 Genera las barras semanales (día actual dinámico)
-      this.dayValues = this.generateWeekBars(this.porcentaje);
-
-    } catch (err) {
-      console.error('Error al cargar progreso:', err);
+      return base;
+    } catch {
+      return 0;
     }
   }
 
-  /** 🎨 Animación suave del donut */
+  /** 📅 lunes de la semana actual */
+  private getMonday(d: Date): Date {
+    const date = new Date(d);
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(date.setDate(diff));
+  }
+
+  private sameDate(a: Date, b: Date) {
+    return a.getFullYear() === b.getFullYear() &&
+           a.getMonth() === b.getMonth() &&
+           a.getDate() === b.getDate();
+  }
+
+  /** 🎨 animación del donut */
   private animateTo(value: number, duration = 800) {
     const start = performance.now();
     const from = this.shown;
@@ -103,38 +145,5 @@ export class PuntosPage implements OnInit {
       if (p < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
-  }
-
-  /** 📅 Generar valores para las barras semanales (día real) */
-  private generateWeekBars(todayPercent: number): number[] {
-    const days = new Array(7).fill(0);
-
-    // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
-    const dayIndex = new Date().getDay();
-
-    // Ajustar para que lunes sea el índice 0, domingo el 6
-    const adjustedIndex = dayIndex === 0 ? 6 : dayIndex - 1;
-
-    // Asignar el progreso actual en el día correcto
-    days[adjustedIndex] = todayPercent;
-
-    return days;
-  }
-
-  /** 🗣️ Texto hablado */
-  speakCard() {
-    const text = this.porcentaje > 0
-      ? `Mira tu progreso. Tienes un ${this.porcentaje}% de responsabilidad hoy. ¡Sigue así!`
-      : `Aún no has registrado actividades hoy. ¡Recuerda alimentar, pasear y entrenar a ${this.petName}!`;
-
-    try {
-      const synth = (window as any).speechSynthesis;
-      if (synth) {
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = 'es-ES';
-        synth.cancel();
-        synth.speak(utter);
-      }
-    } catch {}
   }
 }

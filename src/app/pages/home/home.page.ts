@@ -30,8 +30,9 @@ export class HomePage implements OnInit {
     paseos: { done: 0, total: 2 },
     entreno: { done: 0, total: 1 },
     limpieza: { done: 0 },
-    vacunas: { done: 0 }, // ✅ agregado
-    score: 0
+    vacunas: { done: 0 },
+    score: 0,
+    bonus: 0 // 🌟 nuevo campo para mostrar bonus
   };
 
   constructor(
@@ -57,7 +58,7 @@ export class HomePage implements OnInit {
     }
   }
 
-  /** 🔁 Cargar progreso desde Firebase */
+  /** 🔁 Cargar progreso y calcular bonus semanal */
   async loadProgress() {
     if (!this.profileId) return;
 
@@ -73,22 +74,41 @@ export class HomePage implements OnInit {
     const { trainedToday } = await this.firebase.getDailyTrainingStatus(this.profileId);
     this.progreso.entreno.done = trainedToday ? 1 : 0;
 
-    // 🛁 Limpieza (si existe al menos un baño)
+    // 🛁 Limpieza
     const { hasBath } = await this.firebase.getBathStatus(this.profileId);
     this.progreso.limpieza.done = hasBath ? 1 : 0;
 
-    // 💉 Vacunas (si existe al menos una vacuna)
+    // 💉 Vacunas
     const { hasVaccine } = await this.firebase.getVaccineStatus(this.profileId);
     this.progreso.vacunas.done = hasVaccine ? 1 : 0;
 
-    // 📊 Puntaje total (sin incluir limpieza ni vacunas)
+    // -----------------------------------------------
+    // 📊 Cálculo principal (3 actividades diarias)
+    // -----------------------------------------------
     const totalActividades = 3;
     const promedio =
       (this.progreso.comida.done / this.progreso.comida.total +
         this.progreso.paseos.done / this.progreso.paseos.total +
         this.progreso.entreno.done / this.progreso.entreno.total) / totalActividades;
 
-    this.progreso.score = Math.round(promedio * 100);
+    let baseScore = promedio * 100;
+
+    // -----------------------------------------------
+    // 🌟 BONUS semanal (limpieza + vacunas)
+    // -----------------------------------------------
+    // Cada acción especial completada = +5% (máx +10%)
+    const bonusCount =
+      (this.progreso.limpieza.done ? 1 : 0) +
+      (this.progreso.vacunas.done ? 1 : 0);
+
+    const bonus = Math.min(bonusCount * 5, 10); // máx +10%
+    this.progreso.bonus = bonus;
+
+    // -----------------------------------------------
+    // 🧮 Puntaje final con bonus (máx 100%)
+    // -----------------------------------------------
+    const total = Math.min(baseScore + bonus, 100);
+    this.progreso.score = Math.round(total);
   }
 
   /** Navegar entre pantallas */
