@@ -17,13 +17,13 @@
 
     <!-- Perrito -->
     <div class="dog-top">
-      <ion-img src="assets/images/Artboard 1.png" alt="Perrito entrenando"></ion-img>>
+      <ion-img src="assets/images/Artboard 1.png" alt="Perrito bañándose"></ion-img>
     </div>
 
     <!-- Tarjeta -->
     <div class="dashed-card">
       <p class="note">
-        ¡Hora de planear el baño de {{petName}}!<br />
+        ¡Hora de planear el baño de <b>{{ petName || 'tu perrito' }}</b>!<br />
         Los perritos necesitan un baño al menos <b>una vez al mes</b> para estar limpios y sanos.
       </p>
       <h3 class="cta-title">Marca el día que fue su<br />último baño.</h3>
@@ -41,22 +41,29 @@
       </div>
 
       <div class="week-head">
-        <div>DOM</div><div>LUN</div><div>MAR</div><div>MIÉ</div><div>JUE</div><div>VIE</div><div>SÁB</div>
+        <div>DOM</div>
+        <div>LUN</div>
+        <div>MAR</div>
+        <div>MIÉ</div>
+        <div>JUE</div>
+        <div>VIE</div>
+        <div>SÁB</div>
       </div>
 
       <div class="grid">
         <ng-container *ngFor="let w of weeks">
           <div class="row">
-            <button
-              *ngFor="let d of w"
-              class="day"
-              [class.out]="!d.inMonth"
-              [class.selected]="d.selected"
-              [class.est]="d.est"
-              (click)="selectDay(d)"
-              [disabled]="!d.inMonth">
-              <span>{{ d.dayNum }}</span>
-            </button>
+            <ng-container *ngFor="let d of w">
+              <button
+                class="day"
+                [class.out]="!d.inMonth"
+                [class.selected]="d.selected"
+                [class.est]="d.est"
+                (click)="selectDay(d)"
+                [disabled]="!d.inMonth">
+                <span>{{ d.dayNum }}</span>
+              </button>
+            </ng-container>
           </div>
         </ng-container>
       </div>

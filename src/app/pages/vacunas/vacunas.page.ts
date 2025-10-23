@@ -7,11 +7,8 @@ import {
   IonBackButton,
   IonButton,
   IonIcon,
-  IonItem,
-  IonLabel,
   IonSelect,
   IonSelectOption,
-  IonImg,
   IonInput
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -19,7 +16,7 @@ import {
   chevronBackOutline,
   volumeHighOutline,
   addOutline,
-  checkmarkOutline
+  saveOutline
 } from 'ionicons/icons';
 
 import { FirebaseService } from '../../services/firebase';
@@ -30,7 +27,8 @@ interface VaccineRecord {
   tipo: string | null;
   fechaVacunacion: string | null;
   fechaRefuerzo: string | null;
-  saved?: boolean; // si ya fue guardado en Firebase
+  saved?: boolean;
+  justSaved?: boolean;
 }
 
 @Component({
@@ -44,8 +42,6 @@ interface VaccineRecord {
     IonBackButton,
     IonButton,
     IonIcon,
-    IonItem,
-    IonLabel,
     IonSelect,
     IonSelectOption,
     IonInput,
@@ -67,7 +63,7 @@ export class VacunasPage implements OnInit {
     'Polivalente (Quíntuple/Séxtuple)'
   ];
 
-  vaccineList: VaccineRecord[] = []; // array dinámico
+  vaccineList: VaccineRecord[] = [];
   profileId: string | null = null;
 
   constructor(
@@ -79,7 +75,7 @@ export class VacunasPage implements OnInit {
       chevronBackOutline,
       volumeHighOutline,
       addOutline,
-      checkmarkOutline
+      saveOutline
     });
   }
 
@@ -93,14 +89,12 @@ export class VacunasPage implements OnInit {
     }
   }
 
-  /** Cargar historial existente */
   async loadVaccineHistory() {
     if (!this.profileId) return;
     const vacunas = await this.firebaseSvc.getVaccineHistory(this.profileId);
     this.vaccineList = vacunas.map(v => ({ ...v, saved: true }));
   }
 
-  /** Agregar un nuevo formulario de vacuna vacío */
   addRecord() {
     this.vaccineList.push({
       tipo: null,
@@ -110,7 +104,6 @@ export class VacunasPage implements OnInit {
     });
   }
 
-  /** Guardar una vacuna específica */
   async saveVaccine(vacuna: VaccineRecord, index: number) {
     if (!this.profileId) return;
 
@@ -127,15 +120,18 @@ export class VacunasPage implements OnInit {
       });
 
       vacuna.saved = true;
+      vacuna.justSaved = true;
       this.vaccineList[index] = { ...vacuna };
-      this.showToast('💉 Vacuna registrada correctamente.', 'success');
+
+      setTimeout(() => (vacuna.justSaved = false), 1200);
+
+      this.showToast('💾 Vacuna guardada correctamente.', 'success');
     } catch (err) {
       console.error(err);
       this.showToast('Error al guardar vacuna.', 'danger');
     }
   }
 
-  /** Voz guía */
   speakCard() {
     const text = `${this.petName} necesita sus vacunas. Marca cuál fue la vacuna que recibió, la fecha en que se la pusieron y el día de su refuerzo.`;
     try {
@@ -149,7 +145,6 @@ export class VacunasPage implements OnInit {
     } catch {}
   }
 
-  /** Mensaje visual */
   async showToast(message: string, color: string) {
     const toast = await this.toastCtrl.create({
       message,

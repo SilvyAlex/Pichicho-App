@@ -22,7 +22,7 @@ interface DayCell {
   inMonth: boolean;
   dayNum: number | '';
   selected?: boolean;
-  est?: boolean; // estimado para próximo baño
+  est?: boolean;
 }
 
 @Component({
@@ -44,20 +44,16 @@ interface DayCell {
 })
 export class LimpiezaPage implements OnInit {
 
-  petName = 'Pelusa';
+  petName = ''; // ← ahora se toma del perfil
+  profileId: string | null = null;
 
-  // Mes mostrado (1er día del mes actual)
   monthDate = new Date();
-
-  // Historial de baños (todas las fechas marcadas en amarillo)
   banos: Date[] = [];
   proximoBano: Date | null = null;
-  profileId: string | null = null;
 
   weeks: DayCell[][] = [];
   monthLabel = '';
 
-  // Popup
   isConfirmOpen = false;
   pendingCell: DayCell | null = null;
   confirmMessage = '';
@@ -76,21 +72,28 @@ export class LimpiezaPage implements OnInit {
   }
 
   async ngOnInit() {
-    this.confirmMessage = `¿Has bañado a ${this.petName}?`;
-    this.rebuild();
-
-    // ⚡ Recuperar profileId desde la sesión
+    // Recuperar perfil actual
     const profile = this.session.snapshot;
     if (profile) {
       this.profileId = profile.id;
+      this.petName = profile.nombrePerro || 'tu perrito';
+
+      // Actualizar mensaje de confirmación
+      this.confirmMessage = `¿Has bañado a ${this.petName}?`;
+
+      // Cargar historial desde Firebase
       const data = await this.firebase.getBathHistory(profile.id);
       this.banos = data.banos;
       this.proximoBano = data.proximoBano || null;
-      this.rebuild();
+    } else {
+      this.petName = 'tu perrito';
+      this.confirmMessage = `¿Has bañado a tu perrito?`;
     }
+
+    this.rebuild();
   }
 
-  /** Construye la grilla del mes y aplica selección/estimados */
+  /** Construye el calendario con baños y estimaciones */
   private rebuild() {
     this.monthLabel = this.monthDate.toLocaleDateString('es-ES', {
       month: 'long', year: 'numeric'
@@ -100,7 +103,7 @@ export class LimpiezaPage implements OnInit {
     const month = this.monthDate.getMonth();
 
     const firstOfMonth = new Date(year, month, 1);
-    const startDow = firstOfMonth.getDay(); // 0=Dom..6=Sáb
+    const startDow = firstOfMonth.getDay();
     const startDate = new Date(year, month, 1 - startDow);
 
     const cells: DayCell[] = [];
@@ -111,45 +114,51 @@ export class LimpiezaPage implements OnInit {
       cells.push({ date: d, inMonth, dayNum: inMonth ? d.getDate() : '' });
     }
 
-    // Pintar todos los baños en amarillo
+    // Pintar baños anteriores
     cells.forEach(c => {
       c.selected = this.banos.some(b => this.sameDate(c.date, b));
     });
 
-    // Pintar estimados solo desde el último baño
+    // Pintar estimados
     if (this.banos.length > 0) {
       const ultimo = this.banos[this.banos.length - 1];
       const estStart = this.addDays(ultimo, 28);
-      const estEnd   = this.addDays(ultimo, 30);
-      cells.forEach(c => { c.est = c.inMonth && this.inRange(c.date, estStart, estEnd); });
+      const estEnd = this.addDays(ultimo, 30);
+      cells.forEach(c => {
+        c.est = c.inMonth && this.inRange(c.date, estStart, estEnd);
+      });
     } else {
       cells.forEach(c => c.est = false);
     }
 
-    // A semanas
+    // Dividir en semanas
     this.weeks = [];
     for (let i = 0; i < 6; i++) this.weeks.push(cells.slice(i * 7, i * 7 + 7));
   }
 
-  // Helpers
   private sameDate(a: Date, b: Date) {
     return a.getFullYear() === b.getFullYear()
-        && a.getMonth() === b.getMonth()
-        && a.getDate() === b.getDate();
+      && a.getMonth() === b.getMonth()
+      && a.getDate() === b.getDate();
   }
-  private addDays(d: Date, n: number) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
+
+  private addDays(d: Date, n: number) {
+    const r = new Date(d);
+    r.setDate(r.getDate() + n);
+    return r;
+  }
+
   private inRange(d: Date, a: Date, b: Date) {
-    const t  = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const t = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
     const ta = new Date(a.getFullYear(), a.getMonth(), a.getDate()).getTime();
     const tb = new Date(b.getFullYear(), b.getMonth(), b.getDate()).getTime();
     return t >= ta && t <= tb && d.getMonth() === this.monthDate.getMonth();
   }
 
-  // UI
   selectDay(cell: DayCell) {
     if (!cell.inMonth || !cell.dayNum) return;
     this.pendingCell = cell;
-    this.isConfirmOpen = true; // abrir confirmación
+    this.isConfirmOpen = true;
   }
 
   async confirmSelect() {
@@ -157,15 +166,13 @@ export class LimpiezaPage implements OnInit {
 
     const nuevaFecha = new Date(this.pendingCell.date);
 
-    // Evitar duplicados (si ya existe en el historial)
+    // Evitar duplicados
     if (!this.banos.some(b => this.sameDate(b, nuevaFecha))) {
       this.banos.push(nuevaFecha);
     }
 
-    // Próximo baño calculado desde la última fecha
     this.proximoBano = this.addDays(nuevaFecha, 30);
 
-    // Guardar en Firebase (acumulando historial)
     await this.firebase.addBathDate(this.profileId, nuevaFecha, this.proximoBano);
 
     this.pendingCell = null;

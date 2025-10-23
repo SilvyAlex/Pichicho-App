@@ -2,18 +2,18 @@
   <div class="wrap">
     <!-- ===== Espacio superior y título ===== -->
     <div class="hello-space"></div>
-    <h1 class="title">Perfil de {{ petName || 'tu mascota' }}</h1>
+    <h1 class="title">Perfil de {{ userName || 'tu mascota' }}</h1>
 
     <!-- ===== Foto principal de la mascota ===== -->
     <div class="avatar-ring" (click)="openFullImage(petPhoto)">
       <img
-        [src]="'assets/images/PerroDefault.png'"
+        [src]="'assets/images/SiDog.png'"
         class="avatar"
         alt="Foto de mascota"
       />
     </div>
 
-    <div class="pet-name">{{ userName }}</div>
+    <div class="pet-level-badge">{{ petName }} 🐾</div>
 
     <!-- ===== Galería de evidencias ===== -->
     <div class="section-head">
@@ -69,5 +69,4 @@
       <span>Perfil</span>
     </div>
   </nav>
-
 </ion-content>

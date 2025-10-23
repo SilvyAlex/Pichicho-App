@@ -8,6 +8,7 @@ import {
   IonBackButton,
   IonButton,
   IonIcon,
+  IonImg
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
@@ -29,7 +30,8 @@ import { FeedingService, FeedingResult } from '../../services/feeding.service';
     IonButton,
     IonIcon,
     CommonModule,
-    FormsModule
+    FormsModule,
+    IonImg
   ]
 })
 export class Paseos2Page implements OnInit, OnDestroy {

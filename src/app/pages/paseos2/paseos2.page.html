@@ -15,33 +15,60 @@
       </ion-buttons>
     </div>
 
-    <!-- Texto superior -->
-    <div class="helper-top">¡Paseo en curso!</div>
+    <!-- Contenido -->
+    <div class="center-wrap">
+      <div class="dashed-card">
+        <p class="hello">¡Vamos a caminar con {{ petName || 'tu perrito' }}!</p>
+        <p class="note">
+          Recuerda que los paseos lo mantienen<br />
+          sano y contento.
+        </p>
 
-    <!-- Reloj -->
-    <div class="timer-wrap">
-      <div class="timer-circle">
-        <div class="time">{{ displayTime }}</div>
+        <p class="strong">
+          ¡También es tu<br />
+          <b>momento para</b><br />
+          <b>moverte y divertirte!</b>
+        </p>
       </div>
-      <div class="shadow"></div>
-    </div>
 
-    <!-- Tarjeta -->
-    <div class="dashed-card">
-      <p class="note">
-        Aprovecha este tiempo para<br />
-        que explore y juegue.
-      </p>
-      <p class="strong">
-        ¡No olvides recoger<br />
-        sus desechos con una<br />
-        fundita!
+      <!-- Temporizador grande -->
+      <div class="timer-wrap">
+        <div class="timer-circle">
+          <div class="time">{{ displayTime }}</div>
+        </div>
+        <div class="shadow"></div>
+      </div>
+
+      <!-- Etiqueta centrada -->
+      <div class="section-label">Tiempo para pasear a {{ petName || 'tu perrito' }}</div>
+
+      <!-- “Segmento” visual simple (sin dependencias) -->
+      <div class="pill-segment" aria-label="Periodo del día">
+        <span class="pill active">Día</span>
+        <span class="pill">Tarde</span>
+      </div>
+
+      <!-- Ilustración -->
+      <div class="dog">
+        <ion-img src="assets/images/SiDog.png" alt="Perrito paseando"></ion-img>
+      </div>
+
+
+      <!-- CTA: Terminar paseo (usa onEndPress del TS) -->
+      <ion-button
+        size="large"
+        expand="block"
+        class="cta"
+        (click)="onEndPress()"
+        [disabled]="finished"
+      >
+        {{ finished ? '✅ Paseo finalizado' : 'Terminar paseo' }}
+      </ion-button>
+
+      <!-- Nota de seguridad -->
+      <p class="note warning" style="text-align:center; margin-top:14px;">
+        🦮 Si tu perro es muy grande, pasea con un adulto.
       </p>
     </div>
-
-    <!-- CTA -->
-    <ion-button size="large" expand="block" class="cta" (click)="continue('/paseos3')">
-      {{ finished ? '¡Paseo terminado!' : '¡Terminar paseo!' }}
-    </ion-button>
   </div>
 </ion-content>

@@ -26,45 +26,53 @@
     <div class="section-title">Historial de Vacunación</div>
 
     <!-- Lista de vacunas -->
-    <div *ngFor="let v of vaccineList; let i = index" class="form-dashed">
-      <ion-item class="clean" lines="none">
-        <ion-label position="stacked">Tipo</ion-label>
+    <div
+      *ngFor="let v of vaccineList; let i = index"
+      class="form-dashed"
+      [ngClass]="{ saved: v.saved, 'highlight-saved': v.justSaved }"
+    >
+      <!-- Tipo de vacuna -->
+      <div class="field-group">
+        <label class="field-label">Tipo de vacuna</label>
         <ion-select
           interface="popover"
           placeholder="Elige la vacuna"
           [(ngModel)]="v.tipo"
           [disabled]="!!v.saved"
-          class="field-select">
+          class="field-select"
+        >
           <ion-select-option *ngFor="let tipo of vacunas" [value]="tipo">{{ tipo }}</ion-select-option>
         </ion-select>
-      </ion-item>
+      </div>
 
+      <!-- Fechas -->
       <div class="row-2">
-        <ion-item class="clean" lines="none">
-          <ion-label position="stacked">Fecha Vacunación</ion-label>
+        <div class="field-group">
+          <label class="field-label">Fecha de vacunación</label>
           <ion-input
             type="date"
             [(ngModel)]="v.fechaVacunacion"
             [disabled]="!!v.saved"
-            class="field-input">
-          </ion-input>
-        </ion-item>
+            class="field-input"
+          ></ion-input>
+        </div>
 
-        <ion-item class="clean" lines="none">
-          <ion-label position="stacked">Fecha Refuerzo</ion-label>
+        <div class="field-group">
+          <label class="field-label">Fecha de refuerzo</label>
           <ion-input
             type="date"
             [(ngModel)]="v.fechaRefuerzo"
             [disabled]="!!v.saved"
-            class="field-input">
-          </ion-input>
-        </ion-item>
+            class="field-input"
+          ></ion-input>
+        </div>
       </div>
 
-      <!-- Botón guardar (✔️) solo si no está guardado -->
+      <!-- Botón guardar -->
       <div class="save-wrap" *ngIf="!v.saved">
-        <ion-button color="success" shape="round" (click)="saveVaccine(v, i)">
-          <ion-icon name="checkmark-outline"></ion-icon>
+        <ion-button class="save-btn" color="success" shape="round" (click)="saveVaccine(v, i)">
+          <ion-icon slot="start" name="save-outline"></ion-icon>
+          Guardar
         </ion-button>
       </div>
     </div>

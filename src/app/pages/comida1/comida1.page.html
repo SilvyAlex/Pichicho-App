@@ -22,7 +22,6 @@
         <p class="subtitle">Hoy necesita:</p>
         <h2 class="scoops">{{feeding.grams}} g</h2>
         <p class="note">de croquetas para estar fuerte y feliz</p>
-        <p class="note small">Edad humana: {{feeding.edadHumana}} | Paseo: {{feeding.paseo}} min</p>
       </div>
 
       <!-- Segment original conservado -->
@@ -61,10 +60,7 @@
         }}
       </ion-button>
 
-      <!-- Progreso -->
-      <p class="note small" style="text-align:center; margin-top:8px;">
-        Progreso diario: {{progress}} / 2
-      </p>
+      
 
       <!-- Mensaje de horario -->
       <div *ngIf="currentPeriod === 'none'" style="margin-top: 10px; text-align:center;">
