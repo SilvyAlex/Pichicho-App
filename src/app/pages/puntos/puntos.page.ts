@@ -22,15 +22,20 @@ import { SessionService } from '../../services/session';
 export class PuntosPage implements OnInit {
 
   petName = '';
-  porcentajeSemanal = 0;        // 🔸 porcentaje del donut (toda la semana)
+  porcentajeSemanal = 0;
+  porcentajeHoy = 0; // 🔸 nuevo: porcentaje del día actual
   colorActual = '#22c55e';
-  shown = 0;                    // animación del donut
+  shown = 0;
   radius = 62;
   stroke = 14;
 
   gradStrokeId = 'gStroke' + Math.random().toString(36).slice(2);
   gradTrackId  = 'gTrack'  + Math.random().toString(36).slice(2);
   glowId       = 'fGlow'   + Math.random().toString(36).slice(2);
+
+  // 🔸 propiedades para feedback visual
+  feedbackMessage = '';
+  feedbackMedia = ''; // puede ser imagen o video
 
   get center() { return this.radius + this.stroke; }
   get circumference() { return 2 * Math.PI * this.radius; }
@@ -39,7 +44,6 @@ export class PuntosPage implements OnInit {
   get endX() { return this.center + this.radius * Math.cos(this.endAngle); }
   get endY() { return this.center + this.radius * Math.sin(this.endAngle); }
 
-  // 📊 barras semanales
   dayLabels = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
   dayValues: number[] = new Array(7).fill(0);
   dayColors: string[] = new Array(7).fill('#e5e7eb');
@@ -69,28 +73,41 @@ export class PuntosPage implements OnInit {
       date.setDate(startOfWeek.getDate() + i);
       const percent = await this.getDayPerformance(profileId, date);
       dailyPercents.push(percent);
+
+      // guarda el porcentaje del día actual
+      if (this.sameDate(today, date)) this.porcentajeHoy = percent;
     }
 
-    // 🔸 Total semanal (suma de los 7 días / 7)
     const totalSemanal = dailyPercents.reduce((a, b) => a + b, 0) / 7;
     this.porcentajeSemanal = Math.round(totalSemanal);
 
-    // 🔸 color según rango del total semanal
+    // 🔸 color del donut
     if (this.porcentajeSemanal <= 45) this.colorActual = '#ef4444';
     else if (this.porcentajeSemanal <= 79) this.colorActual = '#facc15';
     else this.colorActual = '#22c55e';
 
-    // 🔸 animar donut
     this.animateTo(this.porcentajeSemanal, 900);
 
-    // 🔸 actualizar barras (día actual en color, resto neutro si no hay datos)
     this.dayValues = dailyPercents;
     this.dayColors = dailyPercents.map(v =>
       v <= 45 ? '#ef4444' : v <= 79 ? '#facc15' : '#22c55e'
     );
+
+    // 🔸 actualizar feedback visual
+    this.updateFeedback();
   }
 
-  /** 📈 Porcentaje de un día individual */
+  /** 💬 Cambia el mensaje e imagen/video según porcentaje del día */
+  updateFeedback() {
+    if (this.porcentajeHoy < 50) {
+      this.feedbackMessage = 'Debes prestarle más atención a tu mascota para que esté feliz 🐾';
+      this.feedbackMedia = 'assets/images/NoDog.png'; // video o gif triste
+    } else {
+      this.feedbackMessage = '¡Tu mascota está feliz! Buen trabajo 🎉';
+      this.feedbackMedia = 'assets/images/SiDog.png'; // video o gif feliz
+    }
+  }
+
   private async getDayPerformance(profileId: string, date: Date): Promise<number> {
     try {
       const feed = await this.firebase.getDailyFeedStatus(profileId, date);
@@ -103,7 +120,6 @@ export class PuntosPage implements OnInit {
 
       let base = ((comidaDone / 2) + (paseosDone / 2) + (entrenoDone / 1)) / 3 * 100;
 
-      // 🔸 bonus solo si es hoy
       const today = new Date();
       if (this.sameDate(today, date)) {
         const { hasBath } = await this.firebase.getBathStatus(profileId);
@@ -111,14 +127,12 @@ export class PuntosPage implements OnInit {
         const bonus = (hasBath ? 5 : 0) + (hasVaccine ? 5 : 0);
         base = Math.min(base + bonus, 100);
       }
-
       return base;
     } catch {
       return 0;
     }
   }
 
-  /** 📅 lunes de la semana actual */
   private getMonday(d: Date): Date {
     const date = new Date(d);
     const day = date.getDay();
@@ -132,13 +146,11 @@ export class PuntosPage implements OnInit {
            a.getDate() === b.getDate();
   }
 
-  /** 🎨 animación del donut */
   private animateTo(value: number, duration = 800) {
     const start = performance.now();
     const from = this.shown;
     const delta = value - from;
     const ease = (t: number) => 1 - Math.pow(1 - t, 3);
-
     const step = (now: number) => {
       const p = Math.min(1, (now - start) / duration);
       this.shown = +(from + delta * ease(p)).toFixed(1);

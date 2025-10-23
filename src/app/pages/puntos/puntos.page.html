@@ -76,12 +76,19 @@
       </div>
     </div>
 
-    <!-- Tarjeta -->
+    <!-- Tarjeta de retroalimentación -->
     <div class="dashed-card">
-      <h3 class="headline">¡Increíble!</h3>
-      <p class="note">Eres un cuidador experto<br>{{petName}} está feliz contigo</p>
+      <h3 class="headline">{{ porcentajeHoy < 50 ? '¡Ups!' : '¡Increíble!' }}</h3>
+      <p class="note">{{ feedbackMessage }}</p>
+
       <div class="dog">
-        <ion-img src="assets/images/Artboard 1.png" alt="Perrito feliz"></ion-img>
+
+        <!-- Si es imagen -->
+        <ion-img *ngIf="!feedbackMedia.endsWith('.mp4')" 
+                 [src]="feedbackMedia" 
+                 alt="Estado de mascota"
+                 class="dog-image">
+        </ion-img>
       </div>
     </div>
   </div>
