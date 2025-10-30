@@ -7,7 +7,7 @@
     <!-- ===== Foto principal de la mascota ===== -->
     <div class="avatar-ring" (click)="openFullImage(petPhoto)">
       <img
-        [src]="'assets/images/SiDog.png'"
+        [src]="petPhoto || 'assets/images/default-dog.png'"
         class="avatar"
         alt="Foto de mascota"
       />

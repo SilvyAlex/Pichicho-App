@@ -20,6 +20,7 @@ export interface RegistroPayload {
   edad: number;
   correoAdulto: string;
   foto?: string | null;
+  fotoPerfil?: string | null; // 👈 nuevo campo más claro
 }
 
 @Injectable({ providedIn: 'root' })
@@ -46,7 +47,11 @@ export class FirebaseService {
     return await getDownloadURL(storageRef);
   }
 
-  async saveRegistro(data: Omit<RegistroPayload, 'foto'> & { fotoUrl?: string | null }) {
+  // --------------------------------------------------------
+  // 🧾 REGISTRO DEL PERFIL
+  // --------------------------------------------------------
+
+  async saveRegistro(data: Omit<RegistroPayload, 'foto'> & { fotoPerfil?: string | null }) {
     const colRef = collection(this.firestore, 'registros');
     return await addDoc(colRef, {
       ...data,

@@ -52,9 +52,10 @@ export class PerfilPage implements OnInit {
     this.userName = profile.nombreNino;
     this.petName = profile.nombrePerro;
     this.petPhoto =
+      (profile as any)?.fotoPerfil ||
       (profile as any)?.fotoUrl ||
-      (profile as any)?.foto ||
-      'assets/images/default-dog.png';
+      'assets/images/SiDog.png';
+
 
     this.petLevel = this.calculateLevel(profile.puntos || 0);
 

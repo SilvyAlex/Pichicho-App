@@ -62,7 +62,7 @@ export class Paseos2Page implements OnInit, OnDestroy {
       this.petName = profile.nombrePerro;
       this.feeding = this.feedingSvc.calculate(profile);
 
-      // Tiempo recomendado de paseo en minutos
+      // Tiempo recomendado de paseo en minutos convertido a segundos
       this.durationSec = this.feeding.paseo * 60;
       this.remainingSec = this.durationSec;
       this.updateDisplay();
@@ -107,6 +107,11 @@ export class Paseos2Page implements OnInit, OnDestroy {
     this.clearTimer();
     this.finished = true;
     console.log('Paseo finalizado');
+
+    // 🔹 Navegar automáticamente a la siguiente vista
+    setTimeout(() => {
+      this.router.navigateByUrl('/paseos3');
+    }, 1000);
   }
 
   speakCard() {
@@ -119,7 +124,9 @@ export class Paseos2Page implements OnInit, OnDestroy {
         synth.cancel();
         synth.speak(u);
       }
-    } catch { /* no-op */ }
+    } catch {
+      // no-op
+    }
   }
 
   onEndPress() {

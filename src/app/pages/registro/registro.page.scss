@@ -47,7 +47,10 @@
   display: grid;
   place-items: center;
   background: #eef1f4;
-  ion-icon { font-size: 44px; color: #9aa3af; }
+  ion-icon {
+    font-size: 44px;
+    color: #9aa3af;
+  }
 }
 .add-badge {
   position: absolute;
@@ -63,18 +66,21 @@
   line-height: 1;
   display: grid;
   place-items: center;
-  box-shadow: 0 6px 14px rgba(0,0,0,.18);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
   cursor: pointer;
 }
 
 /* Campos */
-.field { --background: transparent; margin: 12px 0; }
+.field {
+  --background: transparent;
+  margin: 12px 0;
+}
 
 /* Pregunta (label) y respuesta con mismo color/tamaño */
 .q-label {
   display: block;
   margin-bottom: 8px;
-  color: #111827;      /* negro */
+  color: #111827; /* negro */
   font-size: 16px;
   font-weight: 600;
 }
@@ -83,18 +89,18 @@
 .control-box {
   width: 100%;
   background: #ffffff;
-  border: 1px solid #b8bdc6;  /* gris oscuro suave */
+  border: 1px solid #b8bdc6; /* gris oscuro suave */
   border-radius: 12px;
   padding: 10px 12px;
   display: grid;
   align-items: center;
+  transition: border-color 0.2s ease-in-out;
 }
 
-/* Texto de respuesta y placeholders */
 .control-box ion-input,
 .control-box ion-select {
   width: 100%;
-  color: #111827;             /* mismo color del label */
+  color: #111827; /* mismo color del label */
   font-size: 16px;
   --padding-top: 6px;
   --padding-bottom: 6px;
@@ -103,13 +109,40 @@
 }
 
 /* Enfoque accesible */
-.control-box:focus-within { border-color: #9aa3af; }
+.control-box:focus-within {
+  border-color: #9aa3af;
+}
+
+/* Errores de validación */
+.error {
+  color: #ff4d4d;
+  font-size: 13px;
+  margin: 4px 0 8px 6px;
+  font-weight: 500;
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 /* Espacio antes del botón */
-.spacer { height: 12px; }
+.spacer {
+  height: 12px;
+}
 
 /* Botón CTA */
-.cta-wrap { display: grid; place-items: center; }
+.cta-wrap {
+  display: grid;
+  place-items: center;
+}
 .cta {
   width: 100%;
   max-width: 280px;
@@ -121,6 +154,9 @@
   --color: #6b4e1d;
   --box-shadow: none;
   font-weight: 800;
-  letter-spacing: .2px;
+  letter-spacing: 0.2px;
 }
-.cta[disabled] { opacity: .85; filter: saturate(.8); }
+.cta[disabled] {
+  opacity: 0.85;
+  filter: saturate(0.8);
+}
