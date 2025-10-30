@@ -3,7 +3,7 @@
     <h1 class="title">Registro</h1>
     <p class="subtitle">🎉 ¡Vamos a conocerte a ti y a tu perrito!</p>
 
-    <!-- Avatar con badge + -->
+    <!-- 🐶 Avatar con badge + -->
     <div class="avatar-wrap">
       <div class="avatar-box">
         <ion-avatar class="avatar-xl" *ngIf="photoDataUrl; else emptyAvatar">
@@ -23,99 +23,121 @@
       <input type="file" accept="image/*" #fileInput hidden (change)="onFileSelected($event)" />
 
       <!-- ⚠️ Error debajo del avatar -->
-      <div class="error" *ngIf="form.get('foto')?.invalid && form.get('foto')?.touched">
+      <div class="error" *ngIf="form?.get('foto')?.invalid && form?.get('foto')?.touched">
         📸 Debes subir una foto de tu peludito
       </div>
     </div>
 
-    <!-- FORM -->
+    <!-- 📋 FORM -->
     <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
 
-      <!-- Niño -->
+      <!-- 👦 Niño -->
       <ion-item lines="none" class="field">
         <ion-label position="stacked" class="q-label">¿Cómo te llamas, pequeño cuidador?</ion-label>
         <div class="control-box">
-          <ion-input formControlName="nombreNino" type="text" placeholder="Escribe tu nombre"></ion-input>
+          <ion-input
+            formControlName="nombreNino"
+            type="text"
+            placeholder="Escribe tu nombre">
+          </ion-input>
         </div>
       </ion-item>
-      <div class="error" *ngIf="form.get('nombreNino')?.invalid && form.get('nombreNino')?.touched">
-        Este campo es obligatorio
+      <div class="error" *ngIf="form?.get('nombreNino')?.invalid && form?.get('nombreNino')?.touched">
+        ✏️ Este campo es obligatorio
       </div>
 
-      <!-- Perrito -->
+      <!-- 🐕 Perrito -->
       <ion-item lines="none" class="field">
         <ion-label position="stacked" class="q-label">¿Cómo se llama tu peludito? 🐕</ion-label>
         <div class="control-box">
-          <ion-input formControlName="nombrePerro" type="text" placeholder="Nombre de tu perrito"></ion-input>
+          <ion-input
+            formControlName="nombrePerro"
+            type="text"
+            placeholder="Nombre de tu perrito">
+          </ion-input>
         </div>
       </ion-item>
-      <div class="error" *ngIf="form.get('nombrePerro')?.invalid && form.get('nombrePerro')?.touched">
-      Escribe el nombre de tu perrito
+      <div class="error" *ngIf="form?.get('nombrePerro')?.invalid && form?.get('nombrePerro')?.touched">
+        🐾 Escribe el nombre de tu perrito
       </div>
 
-      <!-- Peso -->
+      <!-- ⚖️ Peso -->
       <ion-item lines="none" class="field">
         <ion-label position="stacked" class="q-label">¿Y cuánto pesa? 🐾</ion-label>
         <div class="control-box">
-          <ion-select interface="popover" placeholder="Elige el peso" formControlName="peso">
+          <ion-select
+            interface="popover"
+            placeholder="Elige el peso"
+            formControlName="peso">
             <ion-select-option *ngFor="let p of pesos" [value]="p">{{ p }}</ion-select-option>
           </ion-select>
         </div>
       </ion-item>
-      <div class="error" *ngIf="form.get('peso')?.invalid && form.get('peso')?.touched">
+      <div class="error" *ngIf="form?.get('peso')?.invalid && form?.get('peso')?.touched">
         ⚖️ Selecciona el peso de tu perrito
       </div>
 
-      <!-- Raza -->
+      <!-- 🐩 Raza -->
       <ion-item lines="none" class="field">
         <ion-label position="stacked" class="q-label">¿Qué raza es tu perrito? 🐶</ion-label>
         <div class="control-box">
-          <ion-select interface="popover" placeholder="Elige la raza" formControlName="raza">
+          <ion-select
+            interface="popover"
+            placeholder="Elige la raza"
+            formControlName="raza">
             <ion-select-option *ngFor="let r of razas" [value]="r">{{ r }}</ion-select-option>
           </ion-select>
         </div>
       </ion-item>
-      <div class="error" *ngIf="form.get('raza')?.invalid && form.get('raza')?.touched">
+      <div class="error" *ngIf="form?.get('raza')?.invalid && form?.get('raza')?.touched">
         🐕‍🦺 Debes seleccionar una raza
       </div>
 
-      <!-- Edad -->
+      <!-- 🎂 Edad -->
       <ion-item lines="none" class="field">
         <ion-label position="stacked" class="q-label">¿Qué edad tiene tu peludito? (En años humanos)</ion-label>
         <div class="control-box">
-          <ion-select interface="popover" placeholder="Elige edad" formControlName="edad">
+          <ion-select
+            interface="popover"
+            placeholder="Elige edad"
+            formControlName="edad">
             <ion-select-option *ngFor="let e of edades" [value]="e">{{ e }}</ion-select-option>
           </ion-select>
         </div>
       </ion-item>
-      <div class="error" *ngIf="form.get('edad')?.invalid && form.get('edad')?.touched">
+      <div class="error" *ngIf="form?.get('edad')?.invalid && form?.get('edad')?.touched">
         🎂 Indica la edad de tu peludito
       </div>
 
-      <!-- Correo -->
+      <!-- 📧 Correo -->
       <ion-item lines="none" class="field">
         <ion-label position="stacked" class="q-label">Correo de tu adulto responsable 📧</ion-label>
         <div class="control-box">
-          <ion-input formControlName="correoAdulto" type="email" placeholder="Email"></ion-input>
+          <ion-input
+            formControlName="correoAdulto"
+            type="email"
+            placeholder="nombre@dominio.com">
+          </ion-input>
         </div>
       </ion-item>
-      <div class="error" *ngIf="form.get('correoAdulto')?.touched && form.get('correoAdulto')?.invalid">
-        <ng-container *ngIf="form.get('correoAdulto')?.hasError('required')">
+      <div class="error" *ngIf="form?.get('correoAdulto')?.touched && form?.get('correoAdulto')?.invalid">
+        <ng-container *ngIf="form?.get('correoAdulto')?.hasError('required')">
           📩 Este campo es obligatorio
         </ng-container>
-        <ng-container *ngIf="form.get('correoAdulto')?.hasError('pattern')">
+        <ng-container *ngIf="form?.get('correoAdulto')?.hasError('pattern')">
           ⚠️ El correo no tiene un formato válido (ejemplo: nombre@dominio.com)
         </ng-container>
       </div>
 
-      <!-- Espacio antes del botón -->
+      <!-- 🌟 Espacio antes del botón -->
       <div class="spacer"></div>
 
-      <!-- CTA -->
+      <!-- 🟠 Botón CTA -->
       <div class="cta-wrap">
-        <ion-button type="submit" class="cta" [disabled]="form.invalid">
+        <ion-button type="submit" class="cta" [disabled]="!form || form.invalid">
           Registrarse
         </ion-button>
+
       </div>
     </form>
   </div>
