@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, RouterModule, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FirebaseService } from '../../services/firebase';
 import { CommonModule } from '@angular/common';
 import { IonContent, IonButtons, IonBackButton, IonButton, IonIcon } from '@ionic/angular/standalone';
+import { AlertController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { chevronBackOutline, volumeHighOutline } from 'ionicons/icons';
 
@@ -24,22 +25,21 @@ import { chevronBackOutline, volumeHighOutline } from 'ionicons/icons';
 export class Entrena2Page implements OnInit {
 
   data: any = null;
+  profileId = localStorage.getItem('profileId') || '';
 
   constructor(
     private route: ActivatedRoute,
     private firebase: FirebaseService,
-    private router: Router
+    private router: Router,
+    private alertCtrl: AlertController
   ) {
     addIcons({ chevronBackOutline, volumeHighOutline });
   }
 
   async ngOnInit() {
     const entrenamientoId = this.route.snapshot.paramMap.get('id');
-    console.log('Entrenamiento cargado:', entrenamientoId);
-
     if (entrenamientoId) {
       this.data = await this.firebase.getEntrenamientoById(entrenamientoId);
-      console.log('Datos del entrenamiento:', this.data);
     }
   }
 
@@ -55,7 +55,24 @@ export class Entrena2Page implements OnInit {
     }
   }
 
-  continue(path: string) {
-    this.router.navigateByUrl(path);
+  async finishTraining() {
+    if (!this.profileId || !this.data) return;
+
+    await this.firebase.addTrainingEvidence(this.profileId, this.data.id || 'sin_id');
+
+    const alert = await this.alertCtrl.create({
+      header: '¡Buen trabajo!',
+      message: 'Has completado el entrenamiento de hoy y ganaste 15 puntos 🦴',
+      buttons: [
+        {
+          text: 'Aceptar',
+          handler: () => {
+            this.router.navigate(['/entrena1']);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 }

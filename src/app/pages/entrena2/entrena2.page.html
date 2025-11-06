@@ -1,6 +1,5 @@
 <ion-content *ngIf="data" fullscreen="true" class="onboard-content">
   <div class="viewport">
-    <!-- Header -->
     <div class="header-bar">
       <ion-buttons slot="start">
         <ion-back-button defaultHref="/entrena1" icon="chevron-back-outline"></ion-back-button>
@@ -15,7 +14,6 @@
       </ion-buttons>
     </div>
 
-    <!-- Video -->
     <div class="hero">
       <video
         class="hero-video"
@@ -31,7 +29,6 @@
       </video>
     </div>
 
-    <!-- Tarjeta punteada con instrucciones -->
     <div class="dashed-card">
       <p class="line">{{ data.descripcion }}</p>
 
@@ -40,14 +37,12 @@
       </ol>
     </div>
 
-    <!-- CTA -->
-    <ion-button class="cta" expand="block" (click)="continue('/entrena3')">
+    <ion-button class="cta" expand="block" (click)="finishTraining()">
       Entrenamiento terminado
     </ion-button>
   </div>
 </ion-content>
 
-<!-- Si aún no se cargan datos -->
 <ion-content *ngIf="!data">
   <p style="text-align:center; margin-top:40px;">Cargando entrenamiento...</p>
 </ion-content>

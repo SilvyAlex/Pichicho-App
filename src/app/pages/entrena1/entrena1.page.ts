@@ -40,16 +40,11 @@ export class Entrena1Page implements OnInit {
   }
 
   async ngOnInit() {
-    // 1️⃣ Cargar todos los entrenamientos desde Firebase
     this.activities = await this.firebase.getEntrenamientos();
-    console.log('Entrenamientos cargados:', this.activities);
-
-    // 2️⃣ Revisar si el niño ya completó un entrenamiento hoy
     await this.checkTrainingStatus();
   }
 
   async ionViewWillEnter() {
-    // Se actualiza cuando vuelve desde entrena2
     await this.checkTrainingStatus();
   }
 
@@ -59,7 +54,6 @@ export class Entrena1Page implements OnInit {
     this.trainedToday = status.trainedToday;
     this.completedActivityId = status.activityId || null;
     this.progress = status.trainedToday ? 1 : 0;
-    console.log('Estado entrenamiento diario:', status);
   }
 
   speakCard() {
@@ -80,7 +74,6 @@ export class Entrena1Page implements OnInit {
 
   continue(id: string) {
     if (!this.trainedToday) {
-      console.log('Navegando a entrenamiento con ID:', id);
       this.router.navigate(['/entrena2', id]);
     }
   }

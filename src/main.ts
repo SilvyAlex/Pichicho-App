@@ -26,4 +26,4 @@ bootstrapApplication(AppComponent, {
     provideFirestore(() => getFirestore()),
     provideStorage(() => getStorage()),
   ],
-}).catch(err => console.error(err));
+}).catch(err => console.error('Error al iniciar app:',err));

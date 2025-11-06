@@ -22,9 +22,6 @@
     <div class="dashed-card">
       <h3 class="headline">¡Hora de enseñarle trucos a {{petName}}!</h3>
       <p class="note">Escoge qué quieres practicar hoy</p>
-      <p class="note small" [class.green]="progress === 1" style="margin-top:6px;">
-        Progreso diario: {{progress}} / 1
-      </p>
     </div>
 
     <!-- Título de sección -->
@@ -50,7 +47,9 @@
 
         <div class="meta">
           <div class="title">{{ a.titulo }}</div>
-          <div class="sub">{{ a.descripcion }}</div>
+          <div class="sub">
+            {{ trainedToday && completedActivityId === a.id ? 'Completado hoy 🎉' : a.descripcion }}
+          </div>
         </div>
       </button>
     </div>

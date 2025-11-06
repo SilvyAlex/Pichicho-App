@@ -9,7 +9,12 @@ import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 })
 export class AppComponent {
   constructor(private session: SessionService) {}
-  ngOnInit() {
-    this.session.load();    // ← carga perfil guardado (si existe)
+  async ngOnInit() {
+    try {
+      await this.session.load(); // lo haces async para esperar sin bloquear
+      console.log('Sesión cargada correctamente');
+    } catch (err) {
+      console.warn('Error al cargar sesión:', err);
+    }
   }
 }
