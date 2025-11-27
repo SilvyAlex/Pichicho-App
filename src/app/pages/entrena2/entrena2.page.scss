@@ -35,6 +35,7 @@
   justify-content: space-between;
   margin-bottom: 8px;
 }
+
 .title {
   margin: 0;
   font-size: 18px;
@@ -42,12 +43,23 @@
   color: var(--text-main);
 }
 
+/* Flecha back con misma estética que el resto */
+.back-btn {
+  --color: #111827;
+  --icon-font-size: 22px;
+  --min-width: 32px;
+  --padding-start: 0;
+  --padding-end: 4px;
+}
+
+/* Botón de audio */
 .audio-btn {
   --background: #eaf2ff;
   width: 42px;
   height: 42px;
   border-radius: 50%;
   border: 2px solid #dbeafe;
+
   ion-icon {
     font-size: 20px;
     color: #2b6cb0;

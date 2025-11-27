@@ -1,10 +1,25 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonButtons, IonBackButton, IonButton, IonIcon, IonImg } from '@ionic/angular/standalone';
+import {
+  IonContent,
+  IonButtons,
+  IonBackButton,
+  IonButton,
+  IonIcon,
+  IonImg
+} from '@ionic/angular/standalone';
 import { Router, RouterModule } from '@angular/router';
 import { FirebaseService } from '../../services/firebase';
 import { addIcons } from 'ionicons';
-import { chevronBackOutline, volumeHighOutline, chevronForwardOutline, constructOutline } from 'ionicons/icons';
+import {
+  chevronBackOutline,
+  volumeHighOutline,
+  chevronForwardOutline,
+  constructOutline
+} from 'ionicons/icons';
+
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
+import { Capacitor } from '@capacitor/core';
 
 @Component({
   selector: 'app-entrena1',
@@ -36,7 +51,12 @@ export class Entrena1Page implements OnInit {
     private firebase: FirebaseService,
     private router: Router
   ) {
-    addIcons({ chevronBackOutline, volumeHighOutline, chevronForwardOutline, constructOutline });
+    addIcons({
+      chevronBackOutline,
+      volumeHighOutline,
+      chevronForwardOutline,
+      constructOutline
+    });
   }
 
   async ngOnInit() {
@@ -56,13 +76,27 @@ export class Entrena1Page implements OnInit {
     this.progress = status.trainedToday ? 1 : 0;
   }
 
-  speakCard() {
-    const synth = (window as any).speechSynthesis;
-    if (synth) {
-      const u = new SpeechSynthesisUtterance('Escoge un entrenamiento para tu mascota.');
-      u.lang = 'es-ES';
-      synth.cancel();
-      synth.speak(u);
+  /** 🔊 Botón de audio de la pantalla */
+  async speakCard() {
+    const text = `Entrenamiento. Hora de enseñarle trucos a ${this.petName}. 
+Escoge qué quieres practicar hoy. Recuerda premiarlo por un buen trabajo.`;
+    await this.speak(text);
+  }
+
+  /** 👉 Cuando el niño toca una actividad */
+  async onActivityClick(a: any) {
+    // Si está deshabilitada, no hacemos nada
+    if (this.trainedToday && this.completedActivityId !== a.id) {
+      return;
+    }
+
+    // Decir el nombre del entrenamiento
+    const nombre = a?.titulo || 'actividad';
+    await this.speak(nombre);
+
+    // Solo navega si aún no ha entrenado hoy
+    if (!this.trainedToday) {
+      this.router.navigate(['/entrena2', a.id]);
     }
   }
 
@@ -72,9 +106,43 @@ export class Entrena1Page implements OnInit {
     }
   }
 
-  continue(id: string) {
-    if (!this.trainedToday) {
-      this.router.navigate(['/entrena2', id]);
+  /** 🔊 Función genérica para hablar (web + APK) */
+  private async speak(text: string) {
+    if (!text) return;
+
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      const hasWebSpeech =
+        'speechSynthesis' in window &&
+        typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
+
+      if (!hasWebSpeech) {
+        console.warn('SpeechSynthesis no está disponible en este navegador.');
+        return;
+      }
+
+      (window as any).speechSynthesis.cancel();
+
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'es-ES';
+      u.rate = 0.95;
+
+      (window as any).speechSynthesis.speak(u);
+    } else {
+      try {
+        await TextToSpeech.stop();
+        await TextToSpeech.speak({
+          text,
+          lang: 'es-ES',
+          rate: 0.95,
+          pitch: 1.0,
+          volume: 1.0,
+          category: 'ambient'
+        });
+      } catch (err) {
+        console.error('Error al usar TextToSpeech:', err);
+      }
     }
   }
 }

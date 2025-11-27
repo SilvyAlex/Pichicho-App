@@ -27,6 +27,9 @@ import { SessionService } from '../../services/session';
 import { Router } from '@angular/router';
 import { Profile } from '../../models/profile.model';
 
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
+import { Capacitor } from '@capacitor/core';
+
 @Component({
   selector: 'app-entrena3',
   templateUrl: './entrena3.page.html',
@@ -203,25 +206,64 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /** 🔊 Audio */
-  speakCard() {
+  /** 🔊 Audio (web + APK) */
+  async speakCard() {
     const text = this.trainedToday
-      ? `¡Excelente! Ya registraste el entrenamiento de hoy.`
+      ? '¡Excelente! Ya registraste el entrenamiento de hoy.'
       : `¡Qué bien lo hicieron! Ahora toma una foto de ${this.petName}.`;
-    try {
-      const synth = (window as any).speechSynthesis;
-      if (synth) {
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = 'es-ES';
-        synth.cancel();
-        synth.speak(utter);
+
+    await this.speak(text);
+  }
+
+  /** 🔊 Función genérica para hablar */
+  private async speak(text: string) {
+    if (!text) return;
+
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      // Web Speech API (navegador)
+      const hasWebSpeech =
+        'speechSynthesis' in window &&
+        typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
+
+      if (!hasWebSpeech) {
+        console.warn('SpeechSynthesis no está disponible en este navegador.');
+        return;
       }
-    } catch {}
+
+      (window as any).speechSynthesis.cancel();
+
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'es-ES';
+      utter.rate = 0.95;
+
+      (window as any).speechSynthesis.speak(utter);
+    } else {
+      // Plugin nativo para APK
+      try {
+        await TextToSpeech.stop();
+        await TextToSpeech.speak({
+          text,
+          lang: 'es-ES',
+          rate: 0.95,
+          pitch: 1.0,
+          volume: 1.0,
+          category: 'ambient'
+        });
+      } catch (err) {
+        console.error('Error al usar TextToSpeech:', err);
+      }
+    }
   }
 
   /** 💬 Toast helper */
   private async showToast(message: string) {
-    const t = await this.toastCtrl.create({ message, duration: 2000, position: 'bottom' });
+    const t = await this.toastCtrl.create({
+      message,
+      duration: 2000,
+      position: 'bottom'
+    });
     await t.present();
   }
 }

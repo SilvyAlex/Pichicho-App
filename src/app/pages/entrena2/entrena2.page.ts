@@ -2,10 +2,19 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FirebaseService } from '../../services/firebase';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonButtons, IonBackButton, IonButton, IonIcon } from '@ionic/angular/standalone';
+import {
+  IonContent,
+  IonButtons,
+  IonBackButton,
+  IonButton,
+  IonIcon
+} from '@ionic/angular/standalone';
 import { AlertController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { chevronBackOutline, volumeHighOutline } from 'ionicons/icons';
+
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
+import { Capacitor } from '@capacitor/core';
 
 @Component({
   selector: 'app-entrena2',
@@ -23,7 +32,6 @@ import { chevronBackOutline, volumeHighOutline } from 'ionicons/icons';
   ]
 })
 export class Entrena2Page implements OnInit {
-
   data: any = null;
   profileId = localStorage.getItem('profileId') || '';
 
@@ -43,22 +51,74 @@ export class Entrena2Page implements OnInit {
     }
   }
 
-  speakCard() {
+  /** 🔊 Botón de audio: título + descripción + pasos */
+  async speakCard() {
     if (!this.data) return;
-    const text = `${this.data.descripcion}. ${this.data.pasos?.join('. ') || ''}`;
-    const synth = (window as any).speechSynthesis;
-    if (synth) {
+
+    const titulo = this.data.titulo ? `Entrenamiento: ${this.data.titulo}.` : '';
+    const descripcion = this.data.descripcion || '';
+
+    let pasosText = '';
+    if (Array.isArray(this.data.pasos) && this.data.pasos.length) {
+      pasosText =
+        'Sigue estos pasos: ' +
+        this.data.pasos
+          .map((p: string, i: number) => `Paso ${i + 1}: ${p}`)
+          .join('. ');
+    }
+
+    const text = [titulo, descripcion, pasosText].filter(Boolean).join(' ');
+
+    await this.speak(text);
+  }
+
+  /** 🔊 Función genérica para hablar (web + nativo) */
+  private async speak(text: string) {
+    if (!text) return;
+
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      const hasWebSpeech =
+        'speechSynthesis' in window &&
+        typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
+
+      if (!hasWebSpeech) {
+        console.warn('SpeechSynthesis no está disponible en este navegador.');
+        return;
+      }
+
+      (window as any).speechSynthesis.cancel();
+
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'es-ES';
-      synth.cancel();
-      synth.speak(u);
+      u.rate = 0.95;
+
+      (window as any).speechSynthesis.speak(u);
+    } else {
+      try {
+        await TextToSpeech.stop();
+        await TextToSpeech.speak({
+          text,
+          lang: 'es-ES',
+          rate: 0.95,
+          pitch: 1.0,
+          volume: 1.0,   // volumen alto para APK
+          category: 'ambient'
+        });
+      } catch (err) {
+        console.error('Error al usar TextToSpeech:', err);
+      }
     }
   }
 
   async finishTraining() {
     if (!this.profileId || !this.data) return;
 
-    await this.firebase.addTrainingEvidence(this.profileId, this.data.id || 'sin_id');
+    await this.firebase.addTrainingEvidence(
+      this.profileId,
+      this.data.id || 'sin_id'
+    );
 
     const alert = await this.alertCtrl.create({
       header: '¡Buen trabajo!',

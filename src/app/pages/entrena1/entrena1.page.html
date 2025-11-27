@@ -38,7 +38,7 @@
         class="card"
         *ngFor="let a of activities"
         [disabled]="trainedToday && completedActivityId !== a.id"
-        (click)="continue(a.id)"
+        (click)="onActivityClick(a)"
         [class.completed]="completedActivityId === a.id"
       >
         <div class="media">

@@ -2,7 +2,12 @@
   <div class="viewport">
     <div class="header-bar">
       <ion-buttons slot="start">
-        <ion-back-button defaultHref="/entrena1" icon="chevron-back-outline"></ion-back-button>
+        <ion-back-button
+          class="back-btn"
+          defaultHref="/entrena1"
+          text=""
+          icon="chevron-back-outline">
+        </ion-back-button>
       </ion-buttons>
 
       <h1 class="title">{{ data.titulo }}</h1>
@@ -22,8 +27,7 @@
         loop
         playsinline
         preload="metadata"
-        [attr.poster]="'assets/images/entrena-poster.png'"
-      >
+        [attr.poster]="'assets/images/entrena-poster.png'">
         <source [src]="data.videoUrl" type="video/mp4" />
         Tu navegador no soporta video.
       </video>
