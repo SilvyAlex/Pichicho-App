@@ -2,7 +2,9 @@
 .registro-content {
   --background: #ffffff;
   background: #ffffff;
-  --padding-top: 16px;
+
+  /* Solo respetamos la safe area arriba */
+  --padding-top: var(--ion-safe-area-top, 0px);
   --padding-start: 16px;
   --padding-end: 16px;
   --padding-bottom: 24px;
@@ -13,6 +15,11 @@
   margin: 0 auto;
 }
 
+/* Espacio extra antes del título (recuerda el <div class="top-spacer"></div> en el HTML) */
+.top-spacer {
+  height: 40px; /* puedes subir/bajar este valor si quieres más o menos espacio */
+}
+
 /* Títulos */
 .title {
   font-size: 28px;
@@ -20,6 +27,7 @@
   margin: 0 0 4px;
   color: #111827;
 }
+
 .subtitle {
   margin: 0 0 18px;
   color: #6b7280;
@@ -32,26 +40,47 @@
   place-items: center;
   margin: 8px 0 18px;
 }
+
 .avatar-box {
   position: relative;
   width: 112px;
   height: 112px;
 }
-.avatar-xl {
+
+/* Avatar circular (host) */
+ion-avatar.avatar-xl {
   width: 112px;
   height: 112px;
+  border-radius: 50% !important;
   --border-radius: 50%;
   overflow: hidden;
+  display: block;
 }
-.placeholder {
-  display: grid;
-  place-items: center;
+
+/* Contenido del avatar siempre redondo */
+ion-avatar.avatar-xl img,
+ion-avatar.avatar-xl ion-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* Placeholder circular */
+ion-avatar.avatar-xl.placeholder {
   background: #eef1f4;
-  ion-icon {
-    font-size: 44px;
-    color: #9aa3af;
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50% !important;
 }
+
+ion-avatar.avatar-xl.placeholder ion-icon {
+  font-size: 44px;
+  color: #9aa3af;
+}
+
+/* Botón verde con “+” */
 .add-badge {
   position: absolute;
   right: -2px;
@@ -143,6 +172,7 @@
   display: grid;
   place-items: center;
 }
+
 .cta {
   width: 100%;
   max-width: 280px;
@@ -156,6 +186,7 @@
   font-weight: 800;
   letter-spacing: 0.2px;
 }
+
 .cta[disabled] {
   opacity: 0.85;
   filter: saturate(0.8);

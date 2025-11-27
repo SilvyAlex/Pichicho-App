@@ -1,13 +1,14 @@
 <ion-content fullscreen="true" class="onboard-content">
   <div class="viewport">
+
     <!-- Botón de audio redondo -->
     <div class="audio-wrap">
-      <ion-button class="audio-btn" aria-label="Audio" (click)="speakCurrentSlide()">
+      <ion-button class="audio-btn" aria-label="Audio" (click)="enableAudio()">
         <ion-icon name="volume-high-outline"></ion-icon>
       </ion-button>
     </div>
 
-    <!-- Swiper (Web Component) -->
+    <!-- Swiper -->
     <swiper-container
       #swiper
       class="slides"
@@ -41,13 +42,13 @@
           <img src="assets/images/Artboard 3.png" alt="Pichicho" class="dog-hero" />
           <div class="text-block">
             <p data-read="title">Completa retos, responde preguntas y conviértete en</p>
-            <h2 data-read="desc">El mejor cuidador de mascotas del mundo!</h2>
+            <h2 data-read="desc">¡El mejor cuidador de mascotas del mundo!</h2>
           </div>
         </div>
       </swiper-slide>
     </swiper-container>
 
-    <!-- Footer: dots + botón -->
+    <!-- Footer -->
     <div class="footer-wrap">
       <div class="footer-inner">
         <div class="dots" aria-label="Paginación">
@@ -65,5 +66,6 @@
         </ion-button>
       </div>
     </div>
+
   </div>
 </ion-content>

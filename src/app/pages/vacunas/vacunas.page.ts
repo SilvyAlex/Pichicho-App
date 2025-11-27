@@ -22,6 +22,8 @@ import {
 import { FirebaseService } from '../../services/firebase';
 import { SessionService } from '../../services/session';
 import { ToastController } from '@ionic/angular';
+import { Capacitor } from '@capacitor/core';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
 
 interface VaccineRecord {
   tipo: string | null;
@@ -132,17 +134,53 @@ export class VacunasPage implements OnInit {
     }
   }
 
-  speakCard() {
+  async speakCard() {
     const text = `${this.petName} necesita sus vacunas. Marca cuál fue la vacuna que recibió, la fecha en que se la pusieron y el día de su refuerzo.`;
-    try {
-      const synth = (window as any).speechSynthesis;
-      if (synth) {
+
+    if (!text.trim()) return;
+
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      // ===== Entorno web (localhost / navegador) → Web Speech API =====
+      const hasWebSpeech =
+        'speechSynthesis' in window &&
+        typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
+
+      if (!hasWebSpeech) {
+        console.warn('SpeechSynthesis no está disponible en este navegador.');
+        return;
+      }
+
+      try {
+        const synth = (window as any).speechSynthesis;
+        synth.cancel();
+
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = 'es-ES';
-        synth.cancel();
+        utter.rate = 0.95;
+
         synth.speak(utter);
+      } catch (e) {
+        console.warn('No se pudo reproducir la locución:', e);
       }
-    } catch {}
+    } else {
+      // ===== APK (Android / iOS) → Plugin nativo de TTS =====
+      try {
+        await TextToSpeech.stop();
+
+        await TextToSpeech.speak({
+          text,
+          lang: 'es-ES',
+          rate: 0.95,
+          pitch: 1.0,
+          volume: 1.0,
+          category: 'ambient',
+        });
+      } catch (err) {
+        console.error('Error al usar TextToSpeech:', err);
+      }
+    }
   }
 
   async showToast(message: string, color: string) {

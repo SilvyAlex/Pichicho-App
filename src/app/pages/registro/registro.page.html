@@ -1,5 +1,6 @@
-<ion-content [fullscreen]="true" class="registro-content">
+<ion-content class="registro-content">
   <div class="form-container">
+    <div class="top-spacer"></div>
     <h1 class="title">Registro</h1>
     <p class="subtitle">🎉 ¡Vamos a conocerte a ti y a tu perrito!</p>
 
@@ -21,11 +22,7 @@
       </div>
 
       <input type="file" accept="image/*" #fileInput hidden (change)="onFileSelected($event)" />
-
-      <!-- ⚠️ Error debajo del avatar -->
-      <div class="error" *ngIf="form?.get('foto')?.invalid && form?.get('foto')?.touched">
-        📸 Debes subir una foto de tu peludito
-      </div>
+      <!-- ❌ Ya no mostramos error de foto obligatoria -->
     </div>
 
     <!-- 📋 FORM -->
@@ -63,7 +60,7 @@
 
       <!-- ⚖️ Peso -->
       <ion-item lines="none" class="field">
-        <ion-label position="stacked" class="q-label">¿Y cuánto pesa? 🐾</ion-label>
+        <ion-label position="stacked" class="q-label">¿Y cuánto pesa? 🐾 (en kilogramos)</ion-label>
         <div class="control-box">
           <ion-select
             interface="popover"
@@ -137,7 +134,6 @@
         <ion-button type="submit" class="cta" [disabled]="!form || form.invalid">
           Registrarse
         </ion-button>
-
       </div>
     </form>
   </div>

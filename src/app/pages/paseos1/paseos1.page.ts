@@ -24,6 +24,8 @@ import {
 import { SessionService } from '../../services/session';
 import { FirebaseService } from '../../services/firebase';
 import { Profile } from '../../models/profile.model';
+import { Capacitor } from '@capacitor/core';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
 
 type WalkTime = 'dia' | 'tarde';
 
@@ -122,14 +124,57 @@ export class Paseos1Page implements OnInit {
   }
 
   /** 🔊 Reproducir audio */
-  speakCard() {
-    const text = `Vamos a caminar con ${this.petName}. Recuerda que los paseos lo mantienen sano y contento. ¡También es tu momento para moverte y divertirte!`;
-    const synth = (window as any).speechSynthesis;
-    if (synth) {
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = 'es-ES';
-      synth.cancel();
-      synth.speak(utter);
+  async speakCard() {
+    let text = `Vamos a caminar con ${this.petName}. Recuerda que los paseos lo mantienen sano y contento. También es tu momento para moverte y divertirte.`;
+
+    if (this.currentPeriod === 'none') {
+      text +=
+        ' En este momento no es hora de paseo. Los horarios son: por la mañana de cuatro a once, y por la tarde de doce del día a diez de la noche.';
+    }
+
+    if (!text.trim()) return;
+
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      // ===== Web (localhost / navegador) → Web Speech API =====
+      const hasWebSpeech =
+        'speechSynthesis' in window &&
+        typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
+
+      if (!hasWebSpeech) {
+        console.warn('SpeechSynthesis no está disponible en este navegador.');
+        return;
+      }
+
+      try {
+        const synth = (window as any).speechSynthesis;
+        synth.cancel();
+
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'es-ES';
+        utter.rate = 0.95;
+
+        synth.speak(utter);
+      } catch (e) {
+        console.warn('No se pudo reproducir la locución:', e);
+      }
+    } else {
+      // ===== APK (Android / iOS) → Plugin nativo de TTS =====
+      try {
+        await TextToSpeech.stop();
+
+        await TextToSpeech.speak({
+          text,
+          lang: 'es-ES',
+          rate: 0.95,
+          pitch: 1.0,
+          volume: 1.0,
+          category: 'ambient',
+        });
+      } catch (err) {
+        console.error('Error al usar TextToSpeech:', err);
+      }
     }
   }
 

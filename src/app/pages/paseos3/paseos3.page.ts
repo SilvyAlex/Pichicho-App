@@ -15,6 +15,8 @@ import { FirebaseService } from '../../services/firebase';
 import { SessionService } from '../../services/session';
 import { Profile } from '../../models/profile.model';
 import { Router } from '@angular/router';
+import { Capacitor } from '@capacitor/core';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
 
 @Component({
   selector: 'app-paseos3',
@@ -147,16 +149,52 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  speakCard() {
-    const text = `¡Qué bien lo hicieron! Ahora toma una foto de ${this.petName}.`;
-    try {
-      const synth = (window as any).speechSynthesis;
-      if (synth) {
+  async speakCard() {
+    const text = `¡Qué bien lo hicieron! Ahora toma una foto de ${this.petName || 'tu perrito'}.`;
+
+    if (!text.trim()) return;
+
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      // ===== Web (localhost / navegador) → Web Speech API =====
+      const hasWebSpeech =
+        'speechSynthesis' in window &&
+        typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
+
+      if (!hasWebSpeech) {
+        console.warn('SpeechSynthesis no está disponible en este navegador.');
+        return;
+      }
+
+      try {
+        const synth = (window as any).speechSynthesis;
+        synth.cancel();
+
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = 'es-ES';
-        synth.cancel();
+        utter.rate = 0.95;
+
         synth.speak(utter);
+      } catch (e) {
+        console.warn('No se pudo reproducir la locución:', e);
       }
-    } catch {}
+    } else {
+      // ===== APK (Android / iOS) → Plugin nativo de TTS =====
+      try {
+        await TextToSpeech.stop();
+
+        await TextToSpeech.speak({
+          text,
+          lang: 'es-ES',
+          rate: 0.95,
+          pitch: 1.0,
+          volume: 1.0,
+          category: 'ambient',
+        });
+      } catch (err) {
+        console.error('Error al usar TextToSpeech:', err);
+      }
+    }
   }
 }

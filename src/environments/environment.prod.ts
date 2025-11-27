@@ -6,6 +6,7 @@ export const environment = {
     projectId: "pichicho-7fd34",
     storageBucket: "pichicho-7fd34.firebasestorage.app",
     messagingSenderId: "59092679526",
-    appId: "1:59092679526:web:2d3f181d09b074a7e4a6a7"
+    appId: "1:59092679526:web:2d3f181d09b074a7e4a6a7",
+    measurementId: "G-GZ8Y02QLK6"
   }
 };

@@ -2,13 +2,16 @@ import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAxmojqxgsD4fR9pcBhMt2P6vDoAruJ740",
-  authDomain: "pichichioapp.firebaseapp.com",
-  projectId: "pichichioapp",
-  storageBucket: "pichichioapp.firebasestorage.app",
-  messagingSenderId: "438192714060",
-  appId: "1:438192714060:web:b74bd6fa34006a6cc71fe9"
+  apiKey: "AIzaSyCI9o29oFCD8hI1a2PLmDoL65SRMYvyxkc",
+  authDomain: "pichicho-7fd34.firebaseapp.com",
+  projectId: "pichicho-7fd34",
+  storageBucket: "pichicho-7fd34.firebasestorage.app",
+  messagingSenderId: "59092679526",
+  appId: "1:59092679526:web:2d3f181d09b074a7e4a6a7",
+  measurementId: "G-GZ8Y02QLK6"
 };
+
+console.log("Firebase Config:", firebaseConfig);
 
 const app = initializeApp(firebaseConfig);
 export const db = getDatabase(app);

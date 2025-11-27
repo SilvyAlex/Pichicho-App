@@ -17,6 +17,10 @@ import { chevronBackOutline, volumeHighOutline } from 'ionicons/icons';
 import { FirebaseService } from '../../services/firebase';
 import { SessionService } from '../../services/session';
 
+import { Capacitor } from '@capacitor/core';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
+
+
 interface DayCell {
   date: Date;
   inMonth: boolean;
@@ -190,18 +194,56 @@ export class LimpiezaPage implements OnInit {
     this.rebuild();
   }
 
-  speakCard() {
+  async speakCard() {
     const text =
-      `¡Hora de planear el baño de ${this.petName}! ` +
-      `Selecciona el día de su último baño. Se confirmará con un círculo amarillo.`;
-    try {
-      const synth = (window as any).speechSynthesis;
-      if (synth) {
+      `¡Hora de planear el baño de ${this.petName || 'tu perrito'}! ` +
+      `Los perritos necesitan un baño al menos una vez al mes para estar limpios y sanos. ` +
+      `Marca en el calendario el día de su último baño. ` +
+      `Ese día se verá en amarillo, y los días en celeste serán los estimados para su próximo baño.`;
+
+    if (!text.trim()) return;
+
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      // ===== Web → Web Speech API =====
+      const hasWebSpeech =
+        'speechSynthesis' in window &&
+        typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
+
+      if (!hasWebSpeech) {
+        console.warn('SpeechSynthesis no está disponible en este navegador.');
+        return;
+      }
+
+      try {
+        const synth = (window as any).speechSynthesis;
+        synth.cancel();
+
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = 'es-ES';
-        synth.cancel();
+        utter.rate = 0.95;
+
         synth.speak(utter);
+      } catch (e) {
+        console.warn('No se pudo reproducir la locución:', e);
       }
-    } catch {}
+    } else {
+      // ===== APK (Android / iOS) → TextToSpeech nativo =====
+      try {
+        await TextToSpeech.stop();
+
+        await TextToSpeech.speak({
+          text,
+          lang: 'es-ES',
+          rate: 0.95,
+          pitch: 1.0,
+          volume: 1.0,
+          category: 'ambient',
+        });
+      } catch (err) {
+        console.error('Error al usar TextToSpeech:', err);
+      }
+    }
   }
 }

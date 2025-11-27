@@ -17,6 +17,8 @@ import { chevronBackOutline, volumeHighOutline } from 'ionicons/icons';
 import { SessionService } from '../../services/session';
 import { Profile } from '../../models/profile.model';
 import { FeedingService, FeedingResult } from '../../services/feeding.service';
+import { Capacitor } from '@capacitor/core';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
 
 @Component({
   selector: 'app-paseos2',
@@ -114,18 +116,52 @@ export class Paseos2Page implements OnInit, OnDestroy {
     }, 1000);
   }
 
-  speakCard() {
-    const text = `¡Paseo en curso! Aprovecha este tiempo para que ${this.petName} explore y juegue. No olvides recoger sus desechos con una fundita.`;
-    try {
-      const synth = (window as any).speechSynthesis;
-      if (synth) {
+  async speakCard() {
+    let text = `Paseo en curso. Aprovecha este tiempo para que ${this.petName || 'tu perrito'} explore y juegue. No olvides recoger sus desechos con una fundita.`;
+
+    if (!text.trim()) return;
+
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      // ===== Web (localhost / navegador) → Web Speech API =====
+      const hasWebSpeech =
+        'speechSynthesis' in window &&
+        typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
+
+      if (!hasWebSpeech) {
+        console.warn('SpeechSynthesis no está disponible en este navegador.');
+        return;
+      }
+
+      try {
+        const synth = (window as any).speechSynthesis;
+        synth.cancel();
+
         const u = new SpeechSynthesisUtterance(text);
         u.lang = 'es-ES';
-        synth.cancel();
+        u.rate = 0.95;
+
         synth.speak(u);
+      } catch (e) {
+        console.warn('No se pudo reproducir la locución:', e);
       }
-    } catch {
-      // no-op
+    } else {
+      // ===== APK (Android / iOS) → Plugin nativo de TTS =====
+      try {
+        await TextToSpeech.stop();
+
+        await TextToSpeech.speak({
+          text,
+          lang: 'es-ES',
+          rate: 0.95,
+          pitch: 1.0,
+          volume: 1.0,
+          category: 'ambient',
+        });
+      } catch (err) {
+        console.error('Error al usar TextToSpeech:', err);
+      }
     }
   }
 

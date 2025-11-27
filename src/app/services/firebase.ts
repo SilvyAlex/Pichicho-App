@@ -20,7 +20,7 @@ export interface RegistroPayload {
   edad: number;
   correoAdulto: string;
   foto?: string | null;
-  fotoPerfil?: string | null;
+  fotoPerfil?: string | null; // 👈 nuevo campo más claro
 }
 
 @Injectable({ providedIn: 'root' })
@@ -64,8 +64,7 @@ export class FirebaseService {
       banos: [],
       ultimoBano: null,
       proximoBano: null,
-      vacunas: [],
-      lastTrainingDate: null // 👈 nuevo campo agregado
+      vacunas: []
     });
   }
 
@@ -282,7 +281,6 @@ export class FirebaseService {
     await updateDoc(refDoc, {
       evidenciasEntrenamiento: arrayUnion({ actividadId, fecha: new Date() }),
       puntos: nuevosPuntos,
-      lastTrainingDate: new Date().toISOString().split('T')[0], // 👈 guardamos la fecha actual
       updatedAt: serverTimestamp()
     });
   }
@@ -301,20 +299,5 @@ export class FirebaseService {
     const colRef = collection(this.firestore, 'entrenamientos');
     const snapshot = await getDocs(colRef);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  }
-
-  // --------------------------------------------------------
-  // 🧠 NUEVOS MÉTODOS: PROGRESO DIARIO DE ENTRENAMIENTO
-  // --------------------------------------------------------
-
-  async getUserProgress(profileId: string) {
-    const refDoc = doc(this.firestore, 'registros', profileId);
-    const snap = await getDoc(refDoc);
-    return snap.exists() ? snap.data() : null;
-  }
-
-  async updateUserProgress(profileId: string, data: any) {
-    const refDoc = doc(this.firestore, 'registros', profileId);
-    return await updateDoc(refDoc, { ...data, updatedAt: serverTimestamp() });
   }
 }

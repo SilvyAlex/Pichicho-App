@@ -136,6 +136,13 @@
   box-shadow: 0 4px 12px rgba(245, 158, 11, .25);
 }
 
+/* Nota pequeña debajo del botón y mensaje de horario */
+.note.small {
+  color: var(--text-sub);
+  font-size: 12px;
+  line-height: 1.4;
+}
+ 
 /* Responsive pequeñito */
 @media (max-width: 330px) {
   .viewport { padding: 24px 16px 20px; }

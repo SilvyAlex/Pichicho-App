@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { IonContent, IonButton, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { volumeHighOutline, volumeHigh } from 'ionicons/icons';
+import { Capacitor } from '@capacitor/core';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
 
 addIcons({
   'volume-high-outline': volumeHighOutline,
@@ -55,30 +57,66 @@ export class Intro2Page implements OnInit {
     this.ngZone.run(() => (this.active = i));
   }
 
-  /** Reproduce el título + descripción del slide actual */
-  speakCurrentSlide() {
-    try {
-      window.speechSynthesis.cancel();
+  /** Reproduce el título + descripción del slide actual (web + APK) */
+  async speakCurrentSlide() {
+    const slides: NodeListOf<HTMLElement> =
+      this.swiper?.nativeElement?.querySelectorAll('swiper-slide') ??
+      ([] as any);
 
-      const slides: NodeListOf<HTMLElement> =
-        this.swiper?.nativeElement?.querySelectorAll('swiper-slide') ?? ([] as any);
-      const slide = slides[this.active];
-      if (!slide) return;
+    const slide = slides[this.active];
+    if (!slide) return;
 
-      const titleEl = slide.querySelector('[data-read="title"]') || slide.querySelector('h2');
-      const descEl  = slide.querySelector('[data-read="desc"]')  || slide.querySelector('p');
+    const titleEl =
+      slide.querySelector('[data-read="title"]') || slide.querySelector('h2');
+    const descEl =
+      slide.querySelector('[data-read="desc"]') || slide.querySelector('p');
 
-      const title = (titleEl?.textContent || '').trim();
-      const desc  = (descEl?.textContent || '').trim();
-      const toSpeak = [title, desc].filter(Boolean).join('. ');
+    const title = (titleEl?.textContent || '').trim();
+    const desc = (descEl?.textContent || '').trim();
+    const toSpeak = [title, desc].filter(Boolean).join('. ');
 
-      if (!toSpeak) return;
-      const utter = new SpeechSynthesisUtterance(toSpeak);
-      utter.lang = 'es-ES';
-      utter.rate = 0.95;
-      window.speechSynthesis.speak(utter);
-    } catch (e) {
-      console.warn('No se pudo reproducir la locución:', e);
+    if (!toSpeak) return;
+
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      // ===== Entorno web (localhost / navegador) → Web Speech API =====
+      const hasWebSpeech =
+        'speechSynthesis' in window &&
+        typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
+
+      if (!hasWebSpeech) {
+        console.warn('SpeechSynthesis no está disponible en este navegador.');
+        return;
+      }
+
+      try {
+        (window as any).speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(toSpeak);
+        utterance.lang = 'es-ES';
+        utterance.rate = 0.95;
+
+        (window as any).speechSynthesis.speak(utterance);
+      } catch (e) {
+        console.warn('No se pudo reproducir la locución:', e);
+      }
+    } else {
+      // ===== APK (Android / iOS) → Plugin nativo de TTS =====
+      try {
+        await TextToSpeech.stop(); // detener cualquier lectura anterior
+
+        await TextToSpeech.speak({
+          text: toSpeak,
+          lang: 'es-ES',
+          rate: 0.95,
+          pitch: 1.0,
+          volume: 1.0,
+          category: 'ambient',
+        });
+      } catch (err) {
+        console.error('Error al usar TextToSpeech:', err);
+      }
     }
   }
 }

@@ -24,6 +24,8 @@ import { SessionService } from '../../services/session';
 import { FirebaseService } from '../../services/firebase';
 import { Profile } from '../../models/profile.model';
 import { FeedingService, FeedingResult } from '../../services/feeding.service';
+import { Capacitor } from '@capacitor/core';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
 
 type FeedTime = 'dia' | 'noche';
 
@@ -129,14 +131,58 @@ export class Comida1Page implements OnInit {
   }
 
   /** 🎙️ Voz */
-  speakCard() {
-    const text = `Hola ${this.userName}. Hoy ${this.petName} necesita ${this.feeding.scoops} scoops, es decir ${this.feeding.grams} gramos de croquetas.`;
-    const synth = (window as any).speechSynthesis;
-    if (synth) {
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = 'es-ES';
-      synth.cancel();
-      synth.speak(utter);
+  async speakCard() {
+    let text = `Hola ${this.userName}. Hoy ${this.petName} necesita ${this.feeding.scoops} scoops, es decir ${this.feeding.grams} gramos de croquetas para estar fuerte y feliz.`;
+
+    // Agregar el mensaje de horario cuando no es hora de comida
+    if (this.currentPeriod === 'none') {
+      text +=
+        ' En este momento no es hora de comida. Los horarios son: por la mañana de cuatro a once, y por la tarde de doce del día a diez de la noche.';
+    }
+
+    if (!text.trim()) return;
+
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      // ===== Entorno web (localhost / navegador) → Web Speech API =====
+      const hasWebSpeech =
+        'speechSynthesis' in window &&
+        typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
+
+      if (!hasWebSpeech) {
+        console.warn('SpeechSynthesis no está disponible en este navegador.');
+        return;
+      }
+
+      try {
+        const synth = (window as any).speechSynthesis;
+        synth.cancel();
+
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'es-ES';
+        utter.rate = 0.95;
+
+        synth.speak(utter);
+      } catch (e) {
+        console.warn('No se pudo reproducir la locución:', e);
+      }
+    } else {
+      // ===== APK (Android / iOS) → Plugin nativo de TTS =====
+      try {
+        await TextToSpeech.stop();
+
+        await TextToSpeech.speak({
+          text,
+          lang: 'es-ES',
+          rate: 0.95,
+          pitch: 1.0,
+          volume: 1.0,
+          category: 'ambient',
+        });
+      } catch (err) {
+        console.error('Error al usar TextToSpeech:', err);
+      }
     }
   }
 

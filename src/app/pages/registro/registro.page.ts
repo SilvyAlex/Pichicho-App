@@ -34,7 +34,7 @@ export class RegistroPage {
     private firebaseSvc: FirebaseService,
     private session: SessionService,
     private toastCtrl: ToastController,
-    private loadingCtrl: LoadingController,
+    // private loadingCtrl: LoadingController,
     private alertCtrl: AlertController
   ) {
     this.form = this.fb.group({
@@ -47,10 +47,11 @@ export class RegistroPage {
         '',
         [
           Validators.required,
-          Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/) // formato válido de email
+          Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/)
         ]
       ],
-      foto: [null, Validators.required] // 👈 también obligatorio
+      // 👇 Foto opcional: sin Validators.required
+      foto: [null]
     });
   }
 
@@ -83,91 +84,100 @@ export class RegistroPage {
     await alert.present();
   }
 
-  // 🧩 Envío: validar, subir foto, guardar y navegar
+  // 🧩 Envío: validar, subir foto (si hay), guardar y navegar
   async onSubmit() {
-    // ⚠️ Si el formulario es inválido
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
+  if (!this.form.valid) {
+    this.form.markAllAsTouched();
 
-      // Detectar qué campo falta
-      const errores: string[] = [];
+    const errores: string[] = [];
 
-      if (this.form.get('nombreNino')?.hasError('required')) errores.push('Tu nombre');
-      if (this.form.get('nombrePerro')?.hasError('required')) errores.push('El nombre del perrito');
-      if (this.form.get('peso')?.hasError('required')) errores.push('El peso del perrito');
-      if (this.form.get('raza')?.hasError('required')) errores.push('La raza del perrito');
-      if (this.form.get('edad')?.hasError('required')) errores.push('La edad del perrito');
-      if (this.form.get('correoAdulto')?.hasError('required')) errores.push('El correo del adulto');
-      if (this.form.get('correoAdulto')?.hasError('pattern')) errores.push('El formato del correo es inválido');
-      if (this.form.get('foto')?.hasError('required')) errores.push('La foto del peludito');
+    if (this.form.get('nombreNino')?.hasError('required')) errores.push('Tu nombre');
+    if (this.form.get('nombrePerro')?.hasError('required')) errores.push('El nombre del perrito');
+    if (this.form.get('peso')?.hasError('required')) errores.push('El peso del perrito');
+    if (this.form.get('raza')?.hasError('required')) errores.push('La raza del perrito');
+    if (this.form.get('edad')?.hasError('required')) errores.push('La edad del perrito');
+    if (this.form.get('correoAdulto')?.hasError('required')) errores.push('El correo del adulto');
+    if (this.form.get('correoAdulto')?.hasError('pattern')) errores.push('El formato del correo es inválido');
 
-      let mensaje = '';
-      if (errores.length === 1) {
-        mensaje = `Debes completar: ${errores[0]}.`;
-      } else if (errores.length > 1) {
-        mensaje = `Debes completar los siguientes campos:<br>- ${errores.join('<br>- ')}`;
-      }
-
-      await this.showAlert(mensaje || 'Por favor completa todos los campos.');
-      return;
+    let mensaje = '';
+    if (errores.length === 1) {
+      mensaje = `Debes completar: ${errores[0]}.`;
+    } else if (errores.length > 1) {
+      mensaje = `Debes completar los siguientes campos:<br>- ${errores.join('<br>- ')}`;
     }
 
-    const loading = await this.loadingCtrl.create({ message: 'Guardando...' });
-    await loading.present();
+    await this.showAlert(mensaje || 'Por favor completa todos los campos.');
+    return;
+  }
 
-    try {
-      const { foto, ...rest } = this.form.value;
-      let fotoUrl: string | null = null;
+  console.log({value: this.form.value});
+  console.log({photoDataUrl: this.photoDataUrl});
 
-      // 1️⃣ Subir imagen de perfil
-      if (this.photoDataUrl) {
+  // const loading = await this.loadingCtrl.create({ message: 'Guardando...' });
+  // console.log("🚀 ~ RegistroPage ~ onSubmit ~ loading:", loading)
+  // await loading.present();
+
+  try {
+    const { foto, ...rest } = this.form.value;
+    let fotoUrl: string | null = null;
+
+    // 1️⃣ Intentar subir imagen SOLO si hay foto,
+    //    pero si falla, seguimos sin romper el registro
+    if (this.photoDataUrl) {
+      try {
         fotoUrl = await this.firebaseSvc.uploadProfilePhoto(
           this.photoDataUrl,
           (this.form.value.nombrePerro || 'peludito').toString()
         );
+      } catch (e) {
+        console.warn('No se pudo subir la foto, continúo sin fotoPerfil', e);
+        fotoUrl = null;
       }
-
-      // 2️⃣ Guardar registro en Firestore
-      const docRef = await this.firebaseSvc.saveRegistro({
-        ...rest,
-        fotoPerfil: fotoUrl,
-        puntos: 0,
-        evidencias: []
-      });
-
-      // 3️⃣ Guardar perfil localmente
-      const profile: Profile = {
-        id: docRef.id,
-        ...rest,
-        fotoPerfil: fotoUrl,
-        puntos: 0,
-        evidencias: []
-      };
-      await this.session.setProfile(profile);
-
-      // 4️⃣ Feedback visual
-      await loading.dismiss();
-      const ok = await this.toastCtrl.create({
-        message: '¡Registro guardado con éxito!',
-        duration: 1800,
-        icon: 'checkmark-circle',
-      });
-      await ok.present();
-
-      this.goToIntro2();
-
-    } catch (err) {
-      console.error(err);
-      await loading.dismiss();
-      const t = await this.toastCtrl.create({
-        message: 'Ocurrió un error al guardar. Intenta de nuevo.',
-        duration: 2200,
-        color: 'danger',
-        icon: 'alert-circle',
-      });
-      await t.present();
     }
+
+    // 2️⃣ Guardar registro en Firestore
+    const docRef = await this.firebaseSvc.saveRegistro({
+      ...rest,
+      fotoPerfil: fotoUrl,
+      puntos: 0,
+      evidencias: []
+    });
+
+    // 3️⃣ Guardar perfil local
+    const profile: Profile = {
+      id: docRef.id,
+      ...rest,
+      fotoPerfil: fotoUrl,
+      puntos: 0,
+      evidencias: []
+    };
+    await this.session.setProfile(profile);
+
+    // 4️⃣ Feedback
+    // await loading.dismiss();
+    // const ok = await this.toastCtrl.create({
+    //   message: '¡Registro guardado con éxito!',
+    //   duration: 1800,
+    //   icon: 'checkmark-circle',
+    // });
+    // await ok.present();
+
+    this.goToIntro2();
+
+  } catch (err: any) {
+    console.error('ERROR REGISTRO:', err);
+    // await loading.dismiss();
+    const t = await this.toastCtrl.create({
+      message: 'Error al guardar: ' + (err?.message || 'Intenta de nuevo.'),
+      duration: 3000,
+      color: 'danger',
+      icon: 'alert-circle',
+    });
+    await t.present();
   }
+}
+
+  
 
   goToIntro2() {
     this.router.navigate(['/intro2']);
