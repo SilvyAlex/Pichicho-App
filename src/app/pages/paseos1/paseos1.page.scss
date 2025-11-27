@@ -14,6 +14,7 @@
   padding: 0;
 }
 
+/* Contenedor principal interno */
 .viewport {
   width: 100%;
   max-width: 390px;
@@ -25,6 +26,14 @@
   justify-items: center;
   box-sizing: border-box;
   margin-inline: auto;
+}
+
+/* ENVOLTORIO DE CONTENIDO – CENTRA TODO */
+.center-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;          /* 👈 centra horizontalmente la tarjeta, segment, perro, etc. */
 }
 
 /* Header */
@@ -52,79 +61,89 @@
   height: 42px;
   border-radius: 50%;
   border: 2px solid #dbeafe;
-
-  ion-icon { font-size: 20px; color: #2b6cb0; }
+}
+.audio-btn ion-icon {
+  font-size: 20px;
+  color: #2b6cb0;
 }
 
-/* Tarjeta punteada */
+/* Tarjeta punteada (TEXTO DE ARRIBA) */
 .dashed-card {
+  width: 100%;                  /* 👈 ocupa todo el ancho del contenedor */
+  box-sizing: border-box;
   border: 2px dashed var(--dashed);
   border-radius: 18px;
   padding: 18px 16px;
-  text-align: center;
+  text-align: center;           /* 👈 centra el texto */
   margin-bottom: 18px;
   background: #fff;
+}
 
-  .hello {
-    margin: 0 0 8px;
-    color: var(--text-main);
-    font-size: 14px;
-    font-weight: 700;
-  }
+.dashed-card .hello {
+  margin: 0 0 8px;
+  color: var(--text-main);
+  font-size: 14px;
+  font-weight: 700;
+}
 
-  .note {
-    margin: 0;
-    color: var(--text-sub);
-    font-size: 14px;
-    line-height: 1.3;
-  }
+.dashed-card .note {
+  margin: 0;
+  color: var(--text-sub);
+  font-size: 14px;
+  line-height: 1.3;
+}
 
-  .strong {
-    margin: 10px 0 0;
-    color: #111;
-    font-size: 14px;
-    line-height: 1.25;
-  }
+.dashed-card .strong {
+  margin: 10px 0 0;
+  color: #111;
+  font-size: 14px;
+  line-height: 1.25;
 }
 
 /* Segmento Día/Tarde */
 .section-label {
-  margin: 8px 0 8px 4px;
+  width: 100%;
+  margin: 8px 0;
   font-size: 14px;
   color: var(--text-main);
+  text-align: center;
 }
 
 .day-night {
+  width: 100%;
   border-radius: 14px;
   background: #f0f0f0;
   padding: 4px;
   margin-bottom: 14px;
+}
 
-  ion-segment-button {
-    border-radius: 12px;
-    min-height: 44px;
-    font-weight: 600;
-    color: #333;                /* más visible cuando no está seleccionado */
-    border: 1px solid transparent;
+.day-night ion-segment-button {
+  border-radius: 12px;
+  min-height: 44px;
+  font-weight: 600;
+  color: #333;                /* más visible cuando no está seleccionado */
+  border: 1px solid transparent;
+}
 
-    &.segment-button-checked {
-      background: #bfbfbf;
-      color: #000;
-      border: 1px solid #9a9a9a;
-    }
-  }
+.day-night ion-segment-button.segment-button-checked {
+  background: #bfbfbf;
+  color: #000;
+  border: 1px solid #9a9a9a;
 }
 
 /* Imagen */
 .dog {
-  text-align: center;
+  width: 100%;
+  display: flex;              /* 👈 igual que en comida, usamos flex */
+  justify-content: center;
+  align-items: center;
   margin: 6px 0 18px;
+}
 
-  ion-img {
-    width: 140px;
-    height: auto;
-    margin: 0 auto;
-  }
+.dog ion-img {
+  width: 140px;
+  height: auto;
+  display: block;
 }
 
 /* CTA */
@@ -141,8 +160,9 @@
   color: var(--text-sub);
   font-size: 12px;
   line-height: 1.4;
+  text-align: center;
 }
- 
+
 /* Responsive pequeñito */
 @media (max-width: 330px) {
   .viewport { padding: 24px 16px 20px; }

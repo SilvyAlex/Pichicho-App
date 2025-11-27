@@ -13,6 +13,7 @@
   place-items: center;
 }
 
+/* Contenedor interno */
 .viewport {
   width: 100%;
   max-width: 390px;
@@ -23,6 +24,14 @@
   align-items: start;
   justify-items: center;
   margin-inline: auto;
+}
+
+/* WRAP PRINCIPAL PARA CENTRAR TODO EL CONTENIDO */
+.center-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* 👈 centra horizontalmente todo lo de adentro */
 }
 
 /* Header */
@@ -49,14 +58,16 @@
   height: 42px;
   border-radius: 50%;
   border: 2px solid #dbeafe;
-  ion-icon {
-    font-size: 20px;
-    color: #2b6cb0;
-  }
+}
+.audio-btn ion-icon {
+  font-size: 20px;
+  color: #2b6cb0;
 }
 
 /* Tarjeta */
 .dashed-card {
+  width: 100%;
+  box-sizing: border-box;
   border: 2px dashed var(--dashed);
   border-radius: 18px;
   padding: 20px;
@@ -79,24 +90,25 @@
 }
 
 .day-night {
+  width: 100%;
   border-radius: 14px;
   background: #f0f0f0;
   padding: 4px;
   margin-bottom: 14px;
+}
 
-  ion-segment-button {
-    border-radius: 12px;
-    min-height: 44px;
-    font-weight: 600;
-    color: #333; /* 👈 más visible cuando NO está seleccionado */
-    border: 1px solid transparent;
+.day-night ion-segment-button {
+  border-radius: 12px;
+  min-height: 44px;
+  font-weight: 600;
+  color: #333;
+  border: 1px solid transparent;
+}
 
-    &.segment-button-checked {
-      background: #bfbfbf;
-      color: #000;
-      border: 1px solid #999;
-    }
-  }
+.day-night ion-segment-button.segment-button-checked {
+  background: #bfbfbf;
+  color: #000;
+  border: 1px solid #999;
 }
 
 /* Peso */
@@ -107,20 +119,23 @@
   display: flex;
   justify-content: space-between;
   margin: 8px 0 18px;
-  .w-label { font-size: 15px; color: var(--text-sub); font-weight: 600; }
-  .w-value { font-size: 18px; font-weight: 700; color: #000; }
+}
+.weight-box .w-label { font-size: 15px; color: var(--text-sub); font-weight: 600; }
+.weight-box .w-value { font-size: 18px; font-weight: 700; color: #000; }
+
+/* Imagen perro – AHORA SÍ CENTRADA EN ANDROID/APK */
+.dog {
+  width: 100%;
+  display: flex;              /* 👈 flex para centrar */
+  justify-content: center;    /* 👈 centro horizontal */
+  align-items: center;        /* opcional: centro vertical dentro del bloque */
+  margin: 12px 0 18px;
 }
 
-/* Imagen perro */
-.dog {
-  place-items: center;
-  text-align: center;
-  margin: 12px 0 18px;
-
-  ion-img {
-    width: 120px; /* ajusta al tamaño que quieras */
-    height: auto;
-  }
+.dog ion-img {
+  width: 120px;   /* tamaño fijo del perrito */
+  height: auto;
+  display: block;
 }
 
 /* CTA */

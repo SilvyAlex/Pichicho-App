@@ -4,132 +4,306 @@
   color-scheme: light;
   background: #ffffff !important;
 }
-ion-content.page { --background: #ffffff !important;
---padding-top: 60px; }
+ion-content.page {
+  --background: #ffffff !important;
+  --padding-top: 60px;
+}
 
-.wrap{
+.wrap {
   padding: 20px 18px 0 18px;
   font-family: ui-rounded, system-ui, -apple-system, "SF Pro Text", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
-  color:#1a1a1a;
-  background:#ffffff;
+  color: #1a1a1a;
+  background: #ffffff;
+}
+
+/* ====== Fila de saludo + botón audio ====== */
+.top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+/* botón redondo como en la intro */
+.audio-wrap {
+  display: flex;
+  justify-content: flex-end;
+  width: auto;
+}
+
+.audio-btn {
+  --background: #eaf2ff;
+  --box-shadow: none;
+  width: 56px;
+  height: 56px;
+  --border-radius: 50%;
+  border-radius: 50%;
+  border: 2px solid #dbeafe;
+  display: grid;
+  place-items: center;
+
+  ion-icon {
+    font-size: 22px;
+    color: #2b6cb0;
+  }
 }
 
 /* =================== Textos de cabecera =================== */
-.hello{ font-size:14px;
-  color:#6e6e73;
-  margin-bottom:16px; }
-.title{ font-size:28px; line-height:1.15; font-weight:700; letter-spacing:-0.2px; margin:0 0 14px; }
+.hello {
+  font-size: 14px;
+  color: #6e6e73;
+}
+.title {
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  margin: 4px 0 14px;
+}
 
 /* =================== Card de estado =================== */
-.status-card{
-  background:#fff;
-  border-radius:18px;
-  padding:16px 16px 12px;
-  margin-bottom:22px;
-  display:flex; align-items:center; justify-content:space-between;
-  border:2px dashed rgba(0,0,0,0.08);
-  box-shadow:0 1px 0 rgba(0,0,0,0.03);
+.status-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px 16px 12px;
+  margin-bottom: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 2px dashed rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03);
 }
-.status-left{ flex:1 1 auto; padding-right:12px; }
-.row{ display:flex; align-items:center; margin-bottom:8px; }
-.dot{
-  width:12px; height:12px; border-radius:50%; margin-right:8px;
-  &.ok{ background:#2ecc71; }
-  &.warn{ background:#f1c40f; }
+.status-left {
+  flex: 1 1 auto;
+  padding-right: 12px;
 }
-.label{ font-size:15px; }
-.count{ margin-left:auto; font-size:14px; color:#6e6e73; }
-.health{ display:flex; align-items:center; gap:8px; margin-top:6px; }
-.muted{ color:#6e6e73; }
-.pet-circle{
-  width:88px; height:88px; border-radius:50%;
-  background:#fff; display:grid; place-items:center;
-  font-size:42px; box-shadow:0 1px 0 rgba(0,0,0,0.05);
+.row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+
+  &.ok {
+    background: #2ecc71;
+  }
+  &.warn {
+    background: #f1c40f;
+  }
+}
+.label {
+  font-size: 15px;
+}
+.count {
+  margin-left: auto;
+  font-size: 14px;
+  color: #6e6e73;
+}
+.health {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.muted {
+  color: #6e6e73;
+}
+.pet-circle {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 42px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
 }
 
 /* =================== Secciones =================== */
-.section-head{ display:flex; align-items:center; justify-content:space-between; margin:12px 2px 10px; }
-.section-title{ font-size:18px; font-weight:600; }
-.chev{ font-size:20px; color:#6e6e73; }
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 12px 2px 10px;
+}
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+.chev {
+  font-size: 20px;
+  color: #6e6e73;
+}
 
 /* =================== Pills (Actividades) =================== */
-.pill{
-  display:grid; grid-template-columns:auto 1fr auto auto; align-items:center;
-  padding:14px; border-radius:16px; margin-bottom:12px;
-  box-shadow:0 1px 2px rgba(0,0,0,0.08);
-  user-select:none;
+.pill {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  padding: 14px;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  user-select: none;
 }
-.pill-blue   { background:#78c2ff; }
-.pill-orange { background:#ffc25f; }
-.pill-salmon { background:#ff8075; }
+.pill-blue {
+  background: #78c2ff;
+}
+.pill-orange {
+  background: #ffc25f;
+}
+.pill-salmon {
+  background: #ff8075;
+}
 
-.pill .emoji{
-  width:40px; height:40px; border-radius:50%;
-  background:#fff; display:grid; place-items:center;
-  font-size:22px; margin-right:12px;
-  box-shadow:0 1px 0 rgba(0,0,0,0.05);
+.pill .emoji {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  margin-right: 12px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
 }
 
 /* títulos blancos como tu mock */
-.pill .pill-text{ font-weight:600; font-size:16px; color:#ffffff !important; }
-/* contador y caret (puedes ponerlos en blanco si quieres) */
-.pill .pill-count{ margin-left:auto; font-weight:600; color:#0b2239; }
-.pill .pill-caret{ font-size:24px; margin-left:8px; color:#0b2239; }
+.pill .pill-text {
+  font-weight: 600;
+  font-size: 16px;
+  color: #ffffff !important;
+}
+/* contador y caret */
+.pill .pill-count {
+  margin-left: auto;
+  font-weight: 600;
+  color: #0b2239;
+}
+.pill .pill-caret {
+  font-size: 24px;
+  margin-left: 8px;
+  color: #0b2239;
+}
 
 /* =================== Puntos extras (Bonus) =================== */
-.top-gap{ margin-top:8px; }
-.bonus{
-  display:flex; align-items:center; justify-content:space-between;
-  border-radius:16px; padding:12px 14px; margin-bottom:12px;
-  box-shadow:0 1px 2px rgba(0,0,0,0.08);
+.top-gap {
+  margin-top: 8px;
 }
-.bonus-green{ background:#71c27d; }
-.bonus-blue { background:#6fb2ff; }
-.bonus-red  { background:#ff6f6a; }
+.bonus {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+.bonus-green {
+  background: #71c27d;
+}
+.bonus-blue {
+  background: #6fb2ff;
+}
+.bonus-red {
+  background: #ff6f6a;
+}
 
-.bonus .left{ display:flex; align-items:center; }
-.bonus .emoji{
-  width:40px; height:40px; border-radius:50%;
-  background:#fff; display:grid; place-items:center;
-  font-size:22px; margin-right:12px;
-  box-shadow:0 1px 0 rgba(0,0,0,0.05);
+.bonus .left {
+  display: flex;
+  align-items: center;
 }
-.bonus-text{ font-size:16px; font-weight:600; color:#ffffff; }
+.bonus .emoji {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  margin-right: 12px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+}
+.bonus-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+}
 
 /* círculo verde con check blanco y chevron blanco a la derecha */
-.bonus-right{ display:flex; align-items:center; gap:10px; }
-.check-dot{
-  width:32px; height:32px; border-radius:50%;
-  background:#21c17a; display:grid; place-items:center;
-  box-shadow:0 1px 0 rgba(0,0,0,0.06);
+.bonus-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
-.check-dot ion-icon{ font-size:18px; color:#ffffff; }
-.chev-white{ font-size:22px; color:#ffffff; font-weight:700; margin-right:6px; }
+.check-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #21c17a;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+}
+.check-dot ion-icon {
+  font-size: 18px;
+  color: #ffffff;
+}
+.chev-white {
+  font-size: 22px;
+  color: #ffffff;
+  font-weight: 700;
+  margin-right: 6px;
+}
 
 /* =================== Barra inferior fija (custom) =================== */
-.bottom-bar{
-  position:fixed; left:12px; right:12px; bottom:10px; height:64px;
-  background:#ffffff;
-  box-shadow:0 -1px 0 rgba(0,0,0,0.06), 0 6px 18px rgba(0,0,0,0.08);
-  border-radius:20px;
-  display:flex; justify-content:space-evenly; align-items:center;
-  z-index:999;
+.bottom-bar {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 10px;
+  height: 64px;
+  background: #ffffff;
+  box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.06), 0 6px 18px rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  z-index: 999;
 }
-.bottom-bar .tab{
-  display:flex; flex-direction:column; align-items:center; gap:4px;
-  color:#a6aab0; text-decoration:none; padding:8px 14px; border-radius:14px;
+.bottom-bar .tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #a6aab0;
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 14px;
 }
-.bottom-bar .tab ion-icon{ font-size:22px; color:inherit; }
-.bottom-bar .tab span{ font-size:12px; color:inherit; }
+.bottom-bar .tab ion-icon {
+  font-size: 22px;
+  color: inherit;
+}
+.bottom-bar .tab span {
+  font-size: 12px;
+  color: inherit;
+}
 
-.bottom-bar .tab.active{
-  background:#ffe6ea;      /* burbuja rosada */
-  color:#ff8fa3;           /* icono y texto rosa */
+.bottom-bar .tab.active {
+  background: #ffe6ea;
+  color: #ff8fa3;
 }
 
 /* =================== Hard reset extra =================== */
-body, .ion-page, ion-content {
-  background:#ffffff !important;
+body,
+.ion-page,
+ion-content {
+  background: #ffffff !important;
 }
 
 /* 🌟 Línea de bonus debajo del porcentaje */
@@ -139,4 +313,3 @@ body, .ion-page, ion-content {
   color: #22c55e; /* verde alegre */
   font-weight: 600;
 }
-

@@ -1,6 +1,21 @@
 <ion-content class="page white" [forceOverscroll]="false" fullscreen>
   <div class="wrap">
-    <div class="hello">Hola {{ (profile$ | async)?.nombreNino || '...' }}</div>
+
+    <!-- Fila de saludo + botón de audio -->
+    <div class="top-row">
+      <div class="hello">Hola {{ (profile$ | async)?.nombreNino || '...' }}</div>
+
+      <div class="audio-wrap">
+        <ion-button
+          class="audio-btn"
+          aria-label="Escuchar pantalla"
+          (click)="onMainAudio()"
+        >
+          <ion-icon name="volume-high-outline"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+
     <h1 class="title">
       ¿Cómo está {{ (profile$ | async)?.nombrePerro || 'tu pelusa' }}<br />hoy?
     </h1>
@@ -62,21 +77,36 @@
       <ion-icon name="chevron-forward-outline" class="chev"></ion-icon>
     </div>
 
-    <div class="pill pill-blue" role="button" tabindex="0" (click)="continue('/comida1')">
+    <div
+      class="pill pill-blue"
+      role="button"
+      tabindex="0"
+      (click)="onPillClick('/comida1', 'Comida')"
+    >
       <div class="emoji">🦴</div>
       <div class="bonus-text">Comida</div>
       <div class="pill-count">{{ progreso.comida.done }}/{{ progreso.comida.total }}</div>
       <div class="pill-caret">›</div>
     </div>
 
-    <div class="pill pill-orange" role="button" tabindex="0" (click)="continue('/paseos1')">
+    <div
+      class="pill pill-orange"
+      role="button"
+      tabindex="0"
+      (click)="onPillClick('/paseos1', 'Paseos')"
+    >
       <div class="emoji">🐾</div>
       <div class="bonus-text">Paseos</div>
       <div class="pill-count">{{ progreso.paseos.done }}/{{ progreso.paseos.total }}</div>
       <div class="pill-caret">›</div>
     </div>
 
-    <div class="pill pill-salmon" role="button" tabindex="0" (click)="continue('/entrena1')">
+    <div
+      class="pill pill-salmon"
+      role="button"
+      tabindex="0"
+      (click)="onPillClick('/entrena1', 'Entrenamientos')"
+    >
       <div class="emoji">🐶</div>
       <div class="bonus-text">Entrenamientos</div>
       <div class="pill-count">{{ progreso.entreno.done }}/{{ progreso.entreno.total }}</div>
@@ -89,28 +119,17 @@
       <ion-icon name="chevron-forward-outline" class="chev"></ion-icon>
     </div>
 
-    <!--
-    <div class="bonus bonus-green" role="button" tabindex="0">
-      <div class="left">
-        <div class="emoji">📚</div>
-        <div class="bonus-text">Historias</div>
-      </div>
-      <div class="bonus-right">
-        <span class="check-dot" *ngIf="false">
-          <ion-icon name="checkmark-outline"></ion-icon>
-        </span>
-        <span class="chev-white">›</span>
-      </div>
-    </div>
-    -->
-
-    <div class="bonus bonus-green" role="button" tabindex="0" (click)="continue('/limpieza')">
+    <div
+      class="bonus bonus-green"
+      role="button"
+      tabindex="0"
+      (click)="onPillClick('/limpieza', 'Limpieza')"
+    >
       <div class="left">
         <div class="emoji">🛁</div>
         <div class="bonus-text">Limpieza</div>
       </div>
       <div class="bonus-right">
-        <!-- ✅ Círculo verde si hay al menos un baño -->
         <span class="check-dot" *ngIf="progreso.limpieza && progreso.limpieza.done === 1">
           <ion-icon name="checkmark-outline"></ion-icon>
         </span>
@@ -118,13 +137,17 @@
       </div>
     </div>
 
-    <div class="bonus bonus-blue" role="button" tabindex="0" (click)="continue('/vacunas')">
+    <div
+      class="bonus bonus-blue"
+      role="button"
+      tabindex="0"
+      (click)="onPillClick('/vacunas', 'Vacunas')"
+    >
       <div class="left">
         <div class="emoji">💉</div>
         <div class="bonus-text">Vacunas</div>
       </div>
       <div class="bonus-right">
-        <!-- ✅ Círculo verde si hay al menos una vacuna -->
         <span class="check-dot" *ngIf="progreso.vacunas && progreso.vacunas.done === 1">
           <ion-icon name="checkmark-outline"></ion-icon>
         </span>
