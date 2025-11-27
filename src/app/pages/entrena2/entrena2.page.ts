@@ -113,26 +113,10 @@ export class Entrena2Page implements OnInit {
   }
 
   async finishTraining() {
-    if (!this.profileId || !this.data) return;
+    // Solo mandamos al usuario a tomar la foto
+    const entrenamientoId = this.route.snapshot.paramMap.get('id');
+    if (!entrenamientoId) return;
 
-    await this.firebase.addTrainingEvidence(
-      this.profileId,
-      this.data.id || 'sin_id'
-    );
-
-    const alert = await this.alertCtrl.create({
-      header: '¡Buen trabajo!',
-      message: 'Has completado el entrenamiento de hoy y ganaste 15 puntos 🦴',
-      buttons: [
-        {
-          text: 'Aceptar',
-          handler: () => {
-            this.router.navigate(['/entrena1']);
-          }
-        }
-      ]
-    });
-
-    await alert.present();
+    this.router.navigate(['/entrena3', entrenamientoId]);
   }
 }

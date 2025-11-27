@@ -189,7 +189,10 @@ export class FirebaseService {
   // 🍗 COMIDA
   // --------------------------------------------------------
 
-  async getDailyFeedStatus(profileId: string, date: Date = new Date()): Promise<{ morningFed: boolean; eveningFed: boolean }> {
+  async getDailyFeedStatus(
+    profileId: string,
+    date: Date = new Date()
+  ): Promise<{ morningFed: boolean; eveningFed: boolean }> {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
     if (!snap.exists()) return { morningFed: false, eveningFed: false };
@@ -219,7 +222,10 @@ export class FirebaseService {
   // 🐾 PASEOS
   // --------------------------------------------------------
 
-  async getDailyWalkStatus(profileId: string, date: Date = new Date()): Promise<{ morningWalked: boolean; eveningWalked: boolean }> {
+  async getDailyWalkStatus(
+    profileId: string,
+    date: Date = new Date()
+  ): Promise<{ morningWalked: boolean; eveningWalked: boolean }> {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
     if (!snap.exists()) return { morningWalked: false, eveningWalked: false };
@@ -251,7 +257,10 @@ export class FirebaseService {
   // 🎮 ENTRENAMIENTOS
   // --------------------------------------------------------
 
-  async getDailyTrainingStatus(profileId: string, date: Date = new Date()): Promise<{ trainedToday: boolean; activityId?: string }> {
+  async getDailyTrainingStatus(
+    profileId: string,
+    date: Date = new Date()
+  ): Promise<{ trainedToday: boolean; activityId?: string }> {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
     if (!snap.exists()) return { trainedToday: false };
@@ -270,7 +279,12 @@ export class FirebaseService {
     return { trainedToday: !!evidenciaHoy, activityId: evidenciaHoy?.actividadId || null };
   }
 
-  async addTrainingEvidence(profileId: string, actividadId: string) {
+  // ✅ ACTUALIZADO: ahora también guarda foto opcional
+  async addTrainingEvidence(
+    profileId: string,
+    actividadId: string,
+    fotoUrl?: string
+  ) {
     const refDoc = doc(this.firestore, 'registros', profileId);
     const snap = await getDoc(refDoc);
     if (!snap.exists()) return;
@@ -279,7 +293,11 @@ export class FirebaseService {
     const nuevosPuntos = (data.puntos || 0) + 15;
 
     await updateDoc(refDoc, {
-      evidenciasEntrenamiento: arrayUnion({ actividadId, fecha: new Date() }),
+      evidenciasEntrenamiento: arrayUnion({
+        actividadId,
+        fecha: new Date(),
+        foto: fotoUrl || null
+      }),
       puntos: nuevosPuntos,
       updatedAt: serverTimestamp()
     });

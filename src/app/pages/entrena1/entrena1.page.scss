@@ -134,7 +134,7 @@
   grid-auto-columns: 70%;
   gap: 14px;
   overflow-x: auto;
-  padding-bottom: 6px;
+  padding: 12px 12px 6px 0;   /* 👈 padding extra arriba y a la derecha */
   margin-bottom: 10px;
   scroll-snap-type: x mandatory;
 }
@@ -183,20 +183,36 @@
   }
 }
 
-/* ✅ Card completada (borde verde alrededor) */
+/* ✅ Card completada (estilo tipo badge) */
 .card.completed {
-  border: 2.5px solid var(--green);
-  box-shadow: 0 0 15px rgba(34, 197, 94, 0.35);
-  transform: scale(1.02);
+  border: 2px solid var(--green);
+  box-shadow: 0 8px 18px rgba(34, 197, 94, 0.18);
+  transform: translateY(-2px); // levanta un poquito la card
 }
 
+/* título en verde cuando está completada */
 .card.completed .meta .title {
   color: var(--green);
 }
 
+/* la imagen ya no tiene borde verde grueso */
 .card.completed .media ion-img {
-  border: 2px solid var(--green);
+  border-color: transparent;
 }
+
+/* 🔵 Badge redondo arriba a la derecha */
+.card.completed::after {
+  content: '';
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--green);
+  box-shadow: 0 0 0 3px #ffffff;  /* halo blanco dentro de la card */
+}
+
 
 /* Tip card inferior */
 .tip-card {

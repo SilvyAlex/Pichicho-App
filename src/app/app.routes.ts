@@ -76,7 +76,7 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/entrena2/entrena2.page').then( m => m.Entrena2Page)
   },
   {
-    path: 'entrena3',
+    path: 'entrena3/:id',
     loadComponent: () => import('./pages/entrena3/entrena3.page').then( m => m.Entrena3Page)
   },
 ];

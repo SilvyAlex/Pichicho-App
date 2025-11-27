@@ -26,6 +26,7 @@ import { FirebaseService } from '../../services/firebase';
 import { SessionService } from '../../services/session';
 import { Router } from '@angular/router';
 import { Profile } from '../../models/profile.model';
+import { ActivatedRoute } from '@angular/router';
 
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { Capacitor } from '@capacitor/core';
@@ -49,6 +50,7 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
   userName = '';
   petName = '';
   profileId = '';
+  activityId = '';
 
   @ViewChild('video') videoRef!: ElementRef<HTMLVideoElement>;
   @ViewChild('canvas') canvasRef!: ElementRef<HTMLCanvasElement>;
@@ -64,7 +66,8 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
     private firebaseSvc: FirebaseService,
     private session: SessionService,
     private router: Router,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private route: ActivatedRoute
   ) {
     addIcons({ chevronBackOutline, volumeHighOutline, cameraOutline });
   }
@@ -76,6 +79,9 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
       this.petName = profile.nombrePerro;
       this.profileId = profile.id!;
     }
+
+     // 👇 ID del entrenamiento elegido
+    this.activityId = this.route.snapshot.paramMap.get('id') || '';
 
     // Verificar si ya existe evidencia hoy
     await this.checkTrainedToday();
@@ -190,7 +196,11 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
       );
 
       // 2) Registrar evidencia en Firestore (suma puntos)
-      await this.firebaseSvc.addEvidenceDate(this.profileId, 'entrenamiento', fotoUrl);
+      await this.firebaseSvc.addTrainingEvidence(
+        this.profileId,
+        this.activityId,
+        fotoUrl
+      );
 
       // 3) Marcar como entrenado hoy (bloqueo)
       this.trainedToday = true;

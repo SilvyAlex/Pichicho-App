@@ -21,6 +21,10 @@ import {
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { Capacitor } from '@capacitor/core';
 
+// 👇 mismo servicio y modelo que usas en entrena3
+import { SessionService } from '../../services/session';
+import { Profile } from '../../models/profile.model';
+
 @Component({
   selector: 'app-entrena1',
   templateUrl: './entrena1.page.html',
@@ -45,11 +49,12 @@ export class Entrena1Page implements OnInit {
   trainedToday = false;
   completedActivityId: string | null = null;
 
-  profileId = localStorage.getItem('profileId') || ''; // ID del registro del niño
+  profileId = ''; // 👈 lo vamos a llenar desde SessionService
 
   constructor(
     private firebase: FirebaseService,
-    private router: Router
+    private router: Router,
+    private session: SessionService          // 👈 NUEVO
   ) {
     addIcons({
       chevronBackOutline,
@@ -60,6 +65,17 @@ export class Entrena1Page implements OnInit {
   }
 
   async ngOnInit() {
+    // 👇 Tomar el perfil actual igual que en entrena3
+    const profile: Profile | null = this.session.snapshot;
+    if (profile) {
+      this.petName = profile.nombrePerro;
+      this.profileId = profile.id!;
+    } else {
+      // fallback por si acaso, pero idealmente siempre viene de session
+      this.profileId = localStorage.getItem('profileId') || '';
+    }
+
+    // Traer las actividades y luego el estado del día
     this.activities = await this.firebase.getEntrenamientos();
     await this.checkTrainingStatus();
   }
@@ -69,11 +85,18 @@ export class Entrena1Page implements OnInit {
   }
 
   async checkTrainingStatus() {
-    if (!this.profileId) return;
+    if (!this.profileId) {
+      console.warn('No hay profileId en Entrena1, no se puede revisar entrenamiento diario');
+      return;
+    }
+
     const status = await this.firebase.getDailyTrainingStatus(this.profileId);
     this.trainedToday = status.trainedToday;
     this.completedActivityId = status.activityId || null;
     this.progress = status.trainedToday ? 1 : 0;
+
+    // 👀 Debug opcional:
+    // console.log('Status entrenamiento hoy:', status);
   }
 
   /** 🔊 Botón de audio de la pantalla */
@@ -85,16 +108,14 @@ Escoge qué quieres practicar hoy. Recuerda premiarlo por un buen trabajo.`;
 
   /** 👉 Cuando el niño toca una actividad */
   async onActivityClick(a: any) {
-    // Si está deshabilitada, no hacemos nada
+    // Si ya entrenó hoy y esta no es la actividad marcada, no hacer nada
     if (this.trainedToday && this.completedActivityId !== a.id) {
       return;
     }
 
-    // Decir el nombre del entrenamiento
     const nombre = a?.titulo || 'actividad';
     await this.speak(nombre);
 
-    // Solo navega si aún no ha entrenado hoy
     if (!this.trainedToday) {
       this.router.navigate(['/entrena2', a.id]);
     }
