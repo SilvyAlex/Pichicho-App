@@ -1,6 +1,17 @@
 <ion-content fullscreen="true" class="onboard-content">
   <div class="viewport">
 
+    <!-- Botón de audio centrado -->
+    <div class="audio-wrap">
+      <ion-button
+        class="audio-btn"
+        aria-label="Escuchar progreso"
+        (click)="onMainAudio()"
+      >
+        <ion-icon name="volume-high-outline"></ion-icon>
+      </ion-button>
+    </div>
+
     <!-- Título -->
     <h2 class="big-title">¡Mira tu<br>progreso!</h2>
 
@@ -82,10 +93,8 @@
       <p class="note">{{ feedbackMessage }}</p>
 
       <div class="dog">
-
-        <!-- Si es imagen -->
-        <ion-img *ngIf="!feedbackMedia.endsWith('.mp4')" 
-                 [src]="feedbackMedia" 
+        <ion-img *ngIf="!feedbackMedia.endsWith('.mp4')"
+                 [src]="feedbackMedia"
                  alt="Estado de mascota"
                  class="dog-image">
         </ion-img>

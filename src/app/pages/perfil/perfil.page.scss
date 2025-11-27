@@ -39,6 +39,31 @@
   z-index: 10;
 }
 
+/* ===== Botón de audio arriba ===== */
+.audio-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.audio-btn {
+  --background: #eaf2ff;
+  --box-shadow: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  --border-radius: 50%;
+  border: 2px solid #dbeafe;
+  display: grid;
+  place-items: center;
+
+  ion-icon {
+    font-size: 22px;
+    color: #2b6cb0;
+  }
+}
+
 /* ===== Espacio superior del título ===== */
 .hello-space {
   margin-top: 10px;
@@ -86,7 +111,7 @@
   margin-top: 6px;
 }
 
-/* ===== Insignia de nivel ===== */
+/* ===== Insignia de nivel / nombre mascota ===== */
 .pet-level-badge {
   display: inline-block;
   margin-top: 4px;

@@ -1,5 +1,16 @@
 <ion-content class="page white" [forceOverscroll]="false" fullscreen>
   <div class="wrap">
+    <!-- Botón de audio -->
+    <div class="audio-wrap">
+      <ion-button
+        class="audio-btn"
+        aria-label="Escuchar perfil"
+        (click)="onMainAudio()"
+      >
+        <ion-icon name="volume-high-outline"></ion-icon>
+      </ion-button>
+    </div>
+
     <!-- ===== Espacio superior y título ===== -->
     <div class="hello-space"></div>
     <h1 class="title">Perfil de {{ userName || 'tu mascota' }}</h1>

@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonIcon, IonImg } from '@ionic/angular/standalone';
+import { IonContent, IonIcon, IonImg, IonButton } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   chevronBackOutline,
@@ -12,18 +12,21 @@ import {
 import { FirebaseService } from '../../services/firebase';
 import { SessionService } from '../../services/session';
 
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
+import { Capacitor } from '@capacitor/core';
+
 @Component({
   selector: 'app-puntos',
   templateUrl: './puntos.page.html',
   styleUrls: ['./puntos.page.scss'],
   standalone: true,
-  imports: [IonContent, IonIcon, IonImg, CommonModule]
+  imports: [IonContent, IonIcon, IonImg, IonButton, CommonModule]
 })
-export class PuntosPage implements OnInit {
+export class PuntosPage implements OnInit, OnDestroy {
 
   petName = '';
   porcentajeSemanal = 0;
-  porcentajeHoy = 0; // 🔸 nuevo: porcentaje del día actual
+  porcentajeHoy = 0; // porcentaje del día actual
   colorActual = '#22c55e';
   shown = 0;
   radius = 62;
@@ -33,9 +36,8 @@ export class PuntosPage implements OnInit {
   gradTrackId  = 'gTrack'  + Math.random().toString(36).slice(2);
   glowId       = 'fGlow'   + Math.random().toString(36).slice(2);
 
-  // 🔸 propiedades para feedback visual
   feedbackMessage = '';
-  feedbackMedia = ''; // puede ser imagen o video
+  feedbackMedia = '';
 
   get center() { return this.radius + this.stroke; }
   get circumference() { return 2 * Math.PI * this.radius; }
@@ -52,14 +54,25 @@ export class PuntosPage implements OnInit {
     private firebase: FirebaseService,
     private session: SessionService
   ) {
-    addIcons({ chevronBackOutline, volumeHighOutline, homeOutline, heartOutline, personOutline });
+    addIcons({
+      chevronBackOutline,
+      volumeHighOutline,
+      homeOutline,
+      heartOutline,
+      personOutline
+    });
   }
 
   async ngOnInit() {
     const profile = this.session.snapshot;
     if (!profile) return;
+
     this.petName = profile.nombrePerro;
     await this.loadWeeklyProgress(profile.id);
+  }
+
+  ngOnDestroy() {
+    this.stopSpeech();
   }
 
   /** 📅 Calcula el progreso total de la semana */
@@ -74,14 +87,13 @@ export class PuntosPage implements OnInit {
       const percent = await this.getDayPerformance(profileId, date);
       dailyPercents.push(percent);
 
-      // guarda el porcentaje del día actual
       if (this.sameDate(today, date)) this.porcentajeHoy = percent;
     }
 
     const totalSemanal = dailyPercents.reduce((a, b) => a + b, 0) / 7;
     this.porcentajeSemanal = Math.round(totalSemanal);
 
-    // 🔸 color del donut
+    // Color del donut
     if (this.porcentajeSemanal <= 45) this.colorActual = '#ef4444';
     else if (this.porcentajeSemanal <= 79) this.colorActual = '#facc15';
     else this.colorActual = '#22c55e';
@@ -93,18 +105,17 @@ export class PuntosPage implements OnInit {
       v <= 45 ? '#ef4444' : v <= 79 ? '#facc15' : '#22c55e'
     );
 
-    // 🔸 actualizar feedback visual
     this.updateFeedback();
   }
 
   /** 💬 Cambia el mensaje e imagen/video según porcentaje del día */
   updateFeedback() {
     if (this.porcentajeHoy < 50) {
-      this.feedbackMessage = 'Debes prestarle más atención a tu mascota para que esté feliz 🐾';
-      this.feedbackMedia = 'assets/images/NoDog.png'; // video o gif triste
+      this.feedbackMessage = 'Debes prestarle más atención a tu mascota para que esté feliz';
+      this.feedbackMedia = 'assets/images/NoDog.png';
     } else {
-      this.feedbackMessage = '¡Tu mascota está feliz! Buen trabajo 🎉';
-      this.feedbackMedia = 'assets/images/SiDog.png'; // video o gif feliz
+      this.feedbackMessage = '¡Tu mascota está feliz! Buen trabajo';
+      this.feedbackMedia = 'assets/images/SiDog.png';
     }
   }
 
@@ -118,7 +129,8 @@ export class PuntosPage implements OnInit {
       const paseosDone = [walk.morningWalked, walk.eveningWalked].filter(Boolean).length;
       const entrenoDone = train.trainedToday ? 1 : 0;
 
-      let base = ((comidaDone / 2) + (paseosDone / 2) + (entrenoDone / 1)) / 3 * 100;
+      let base =
+        ((comidaDone / 2) + (paseosDone / 2) + (entrenoDone / 1)) / 3 * 100;
 
       const today = new Date();
       if (this.sameDate(today, date)) {
@@ -157,5 +169,75 @@ export class PuntosPage implements OnInit {
       if (p < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
+  }
+
+  /** 🗣 Texto que leerá el botón de audio */
+  private buildMainAudioText(): string {
+    const titulo = 'Mira tu progreso';
+    const resp = `Tu responsabilidad es del ${Math.round(this.porcentajeSemanal)} por ciento.`;
+
+    const headline = this.porcentajeHoy < 50 ? '¡Ups!' : '¡Increíble!';
+    const mensaje = this.feedbackMessage || '';
+
+    return `${titulo}. ${resp} ${headline}. ${mensaje}`;
+  }
+
+  /** 👉 Botón de audio superior */
+  async onMainAudio() {
+    const text = this.buildMainAudioText();
+    await this.speak(text);
+  }
+
+  /** 🔊 Hablar (web y nativo) */
+  private async speak(text: string) {
+    if (!text) return;
+
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      const hasWebSpeech =
+        'speechSynthesis' in window &&
+        typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
+
+      if (!hasWebSpeech) {
+        console.warn('SpeechSynthesis no está disponible en este navegador.');
+        return;
+      }
+
+      (window as any).speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'es-ES';
+      utterance.rate = 0.95;
+
+      (window as any).speechSynthesis.speak(utterance);
+    } else {
+      try {
+        await TextToSpeech.stop();
+        await TextToSpeech.speak({
+          text,
+          lang: 'es-ES',
+          rate: 0.95,
+          pitch: 1.0,
+          volume: 1.0,
+          category: 'ambient'
+        });
+      } catch (err) {
+        console.error('Error al usar TextToSpeech:', err);
+      }
+    }
+  }
+
+  /** 🧹 Detener lectura al salir */
+  private stopSpeech() {
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      if ('speechSynthesis' in window) {
+        (window as any).speechSynthesis.cancel();
+      }
+    } else {
+      TextToSpeech.stop().catch(() => {});
+    }
   }
 }
