@@ -15,8 +15,12 @@ import { FirebaseService } from '../../services/firebase';
 import { SessionService } from '../../services/session';
 import { Profile } from '../../models/profile.model';
 import { Router } from '@angular/router';
+
 import { Capacitor } from '@capacitor/core';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
+
+// ✅ NUEVO: plugin de cámara de Capacitor
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 @Component({
   selector: 'app-paseos3',
@@ -45,6 +49,9 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
   isStreaming = false;
   photoDataUrl: string | null = null;
 
+  // ✅ Saber si estamos en APK (nativo) o en web
+  readonly isNative = Capacitor.isNativePlatform();
+
   constructor(
     private firebaseSvc: FirebaseService,
     private session: SessionService,
@@ -63,13 +70,17 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async ngAfterViewInit() {
-    await this.startCamera();
+    // En web iniciamos la cámara del navegador; en nativo usamos el plugin al disparar
+    if (!this.isNative) {
+      await this.startCamera();
+    }
   }
 
   ngOnDestroy() {
     this.stopCamera();
   }
 
+  // ======= CÁMARA WEB (solo navegador / localhost) =======
   async startCamera() {
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
@@ -82,7 +93,7 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
       await video.play();
       this.isStreaming = true;
     } catch (err) {
-      console.warn('No se pudo iniciar la cámara:', err);
+      console.warn('No se pudo iniciar la cámara (web):', err);
       this.isStreaming = false;
     }
   }
@@ -95,16 +106,27 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
     this.isStreaming = false;
   }
 
+  // ======= BOTÓN DISPARO =======
   async onShutter() {
+    // Si ya hay foto, resetear y volver a la cámara
     if (this.photoDataUrl) {
       this.photoDataUrl = null;
-      await this.startCamera();
+      if (!this.isNative) {
+        await this.startCamera();
+      }
       return;
     }
-    this.takePhoto();
+
+    // Tomar foto según plataforma
+    if (this.isNative) {
+      await this.takePhotoNative();
+    } else {
+      this.takePhotoWeb();
+    }
   }
 
-  takePhoto() {
+  // ======= FOTO EN WEB (lo que ya tenías) =======
+  takePhotoWeb() {
     const video = this.videoRef?.nativeElement;
     const canvas = this.canvasRef?.nativeElement;
     if (!video || !canvas) return;
@@ -120,6 +142,28 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
     ctx.drawImage(video, 0, 0, w, h);
     this.photoDataUrl = canvas.toDataURL('image/jpeg', 0.92);
     this.stopCamera();
+  }
+
+  // ======= FOTO EN APK (Android / iOS) CON PERMISOS =======
+  async takePhotoNative() {
+    try {
+      // 🔐 Pedir permisos de cámara
+      await Camera.requestPermissions({
+        permissions: ['camera']
+      });
+
+      const photo = await Camera.getPhoto({
+        quality: 80,
+        resultType: CameraResultType.DataUrl, // seguimos trabajando con photoDataUrl
+        source: CameraSource.Camera,
+        saveToGallery: false,
+        correctOrientation: true
+      });
+
+      this.photoDataUrl = photo.dataUrl || null;
+    } catch (err) {
+      console.warn('No se pudo tomar la foto (nativo) o el usuario canceló:', err);
+    }
   }
 
   /** 💾 Guardar evidencia del paseo */
@@ -154,7 +198,7 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
 
     if (!text.trim()) return;
 
-    const isNative = Capacitor.isNativePlatform();
+    const isNative = this.isNative;
 
     if (!isNative) {
       // ===== Web (localhost / navegador) → Web Speech API =====

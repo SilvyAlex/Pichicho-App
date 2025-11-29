@@ -1,4 +1,11 @@
-import { Component, OnInit, ViewChild, ElementRef, CUSTOM_ELEMENTS_SCHEMA, NgZone } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  ElementRef,
+  CUSTOM_ELEMENTS_SCHEMA,
+  NgZone,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -33,9 +40,11 @@ export class Intro2Page implements OnInit {
 
   ngOnInit() {}
 
-  /** Se dispara cuando cambias de slide */
+  /** Se dispara cuando cambias de slide (por swipe o por código) */
   onSlideChangeEvent() {
-    const idx = this.swiper?.nativeElement?.swiper?.activeIndex ?? 0;
+    const swiperInstance = this.swiper?.nativeElement?.swiper;
+    const idx = swiperInstance?.activeIndex ?? 0;
+
     this.ngZone.run(() => {
       this.active = Math.max(0, Math.min(idx, this.total - 1));
     });
@@ -43,27 +52,47 @@ export class Intro2Page implements OnInit {
 
   /** Avanza al siguiente slide o navega */
   continue() {
+    const swiperInstance = this.swiper?.nativeElement?.swiper;
+    if (!swiperInstance) return;
+
     if (this.active < this.total - 1) {
-      this.swiper?.nativeElement?.swiper?.slideNext();
-      const idx = this.swiper?.nativeElement?.swiper?.activeIndex ?? this.active + 1;
-      this.ngZone.run(() => (this.active = Math.max(0, Math.min(idx, this.total - 1))));
+      swiperInstance.slideNext();
+
+      const idx = swiperInstance.activeIndex ?? this.active + 1;
+      this.ngZone.run(() => {
+        this.active = Math.max(0, Math.min(idx, this.total - 1));
+      });
     } else {
-      this.router.navigate(['/home']); // cambia la ruta final aquí
+      this.router.navigate(['/home']); // cambia la ruta final aquí si quieres
     }
   }
 
+  /** Ir directo a un slide desde los dots */
   goTo(i: number) {
-    this.swiper?.nativeElement?.swiper?.slideTo(i);
-    this.ngZone.run(() => (this.active = i));
+    const swiperInstance = this.swiper?.nativeElement?.swiper;
+    if (!swiperInstance) return;
+
+    swiperInstance.slideTo(i);
+    this.ngZone.run(() => {
+      this.active = i;
+    });
   }
 
-  /** Reproduce el título + descripción del slide actual (web + APK) */
+  /** Reproduce título + descripción + labels de las cards del slide actual (web + APK) */
   async speakCurrentSlide() {
-    const slides: NodeListOf<HTMLElement> =
-      this.swiper?.nativeElement?.querySelectorAll('swiper-slide') ??
-      ([] as any);
+    const swiperInstance = this.swiper?.nativeElement?.swiper;
 
-    const slide = slides[this.active];
+    // Tomar el índice REAL del swiper para evitar desfaces al hacer swipe
+    let idx = this.active;
+    if (swiperInstance && typeof swiperInstance.activeIndex === 'number') {
+      idx = swiperInstance.activeIndex;
+      this.active = Math.max(0, Math.min(idx, this.total - 1));
+    }
+
+    const slides: NodeListOf<HTMLElement> =
+      this.swiper?.nativeElement?.querySelectorAll('swiper-slide') ?? ([] as any);
+
+    const slide = slides[idx];
     if (!slide) return;
 
     const titleEl =
@@ -73,7 +102,19 @@ export class Intro2Page implements OnInit {
 
     const title = (titleEl?.textContent || '').trim();
     const desc = (descEl?.textContent || '').trim();
-    const toSpeak = [title, desc].filter(Boolean).join('. ');
+
+    // NUEVO: leer también los labels de las cards (Comida, Entrenamiento, Paseos, etc.)
+    const labelEls = slide.querySelectorAll('.label');
+    const labels: string[] = [];
+    labelEls.forEach((el) => {
+      const txt = (el.textContent || '').trim();
+      if (txt) labels.push(txt);
+    });
+
+    const extraLabels = labels.join(', '); // "Comida, Entrenamiento, Paseos..."
+
+    const parts = [title, desc, extraLabels].filter(Boolean);
+    const toSpeak = parts.join('. ');
 
     if (!toSpeak) return;
 

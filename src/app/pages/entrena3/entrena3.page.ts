@@ -31,6 +31,9 @@ import { ActivatedRoute } from '@angular/router';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { Capacitor } from '@capacitor/core';
 
+// ✅ NUEVO: plugin de cámara de Capacitor
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+
 @Component({
   selector: 'app-entrena3',
   templateUrl: './entrena3.page.html',
@@ -62,6 +65,9 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
   isSaving = false;       // evita dobles taps
   cameraReady = false;
 
+  // ✅ Saber si estamos en APK (nativo) o en web
+  readonly isNative = Capacitor.isNativePlatform();
+
   constructor(
     private firebaseSvc: FirebaseService,
     private session: SessionService,
@@ -80,7 +86,7 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
       this.profileId = profile.id!;
     }
 
-     // 👇 ID del entrenamiento elegido
+    // 👇 ID del entrenamiento elegido
     this.activityId = this.route.snapshot.paramMap.get('id') || '';
 
     // Verificar si ya existe evidencia hoy
@@ -88,7 +94,10 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async ngAfterViewInit() {
-    await this.startCamera();
+    // En web iniciamos la cámara del navegador; en nativo usamos el plugin al disparar
+    if (!this.isNative) {
+      await this.startCamera();
+    }
   }
 
   ngOnDestroy() {
@@ -102,12 +111,15 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
     this.trainedToday = trainedToday;
   }
 
-  /** 🎥 Enciende la cámara */
+  /** 🎥 Enciende la cámara (solo web) */
   async startCamera() {
     if (this.trainedToday) {
       // Si ya entrenó hoy, no iniciamos cámara para evitar confusión
       return;
     }
+
+    // En nativo no usamos getUserMedia, solo plugin
+    if (this.isNative) return;
 
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
@@ -122,11 +134,11 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
     } catch (err) {
       this.cameraReady = false;
       await this.showToast('No se pudo acceder a la cámara. Revisa permisos.');
-      console.warn('No se pudo iniciar la cámara:', err);
+      console.warn('No se pudo iniciar la cámara (web):', err);
     }
   }
 
-  /** ⏹️ Apaga la cámara */
+  /** ⏹️ Apaga la cámara (web) */
   stopCamera() {
     if (this.stream) {
       this.stream.getTracks().forEach(t => t.stop());
@@ -142,17 +154,25 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    // Si ya hay foto → rehacer
     if (this.photoDataUrl) {
-      // Rehacer foto
       this.photoDataUrl = null;
-      await this.startCamera();
+      if (!this.isNative) {
+        await this.startCamera();
+      }
       return;
     }
-    this.takePhoto();
+
+    // Tomar foto según plataforma
+    if (this.isNative) {
+      await this.takePhotoNative();
+    } else {
+      this.takePhotoWeb();
+    }
   }
 
-  /** 🧱 Captura frame en canvas → dataURL */
-  takePhoto() {
+  /** 🧱 Captura frame en canvas → dataURL (web) */
+  takePhotoWeb() {
     if (!this.cameraReady) return;
     const video = this.videoRef?.nativeElement;
     const canvas = this.canvasRef?.nativeElement;
@@ -171,6 +191,28 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
 
     // Apagar cámara al tener foto
     this.stopCamera();
+  }
+
+  /** 📸 Foto en APK (Android / iOS) con permisos nativos */
+  async takePhotoNative() {
+    try {
+      // Pedir permisos de cámara
+      await Camera.requestPermissions({
+        permissions: ['camera']
+      });
+
+      const photo = await Camera.getPhoto({
+        quality: 80,
+        resultType: CameraResultType.DataUrl, // seguimos usando photoDataUrl
+        source: CameraSource.Camera,
+        saveToGallery: false,
+        correctOrientation: true
+      });
+
+      this.photoDataUrl = photo.dataUrl || null;
+    } catch (err) {
+      console.warn('No se pudo tomar la foto (nativo) o el usuario canceló:', err);
+    }
   }
 
   /** 💾 Guarda evidencia con foto (única que cuenta para 1/1) */
@@ -229,7 +271,7 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
   private async speak(text: string) {
     if (!text) return;
 
-    const isNative = Capacitor.isNativePlatform();
+    const isNative = this.isNative;
 
     if (!isNative) {
       // Web Speech API (navegador)

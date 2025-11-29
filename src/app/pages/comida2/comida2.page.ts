@@ -15,9 +15,11 @@ import { FirebaseService } from '../../services/firebase';
 import { SessionService } from '../../services/session';
 import { Router } from '@angular/router';
 
-
 import { Capacitor } from '@capacitor/core';
-import { TextToSpeech } from '@capacitor-community/text-to-speech'
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
+
+// ✅ NUEVO: plugin de cámara de Capacitor
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 @Component({
   selector: 'app-comida2',
@@ -46,6 +48,9 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
   isStreaming = false;
   photoDataUrl: string | null = null;
 
+  // ✅ Saber si estamos en APK (nativo) o en web
+  readonly isNative = Capacitor.isNativePlatform();
+
   constructor(
     private firebaseSvc: FirebaseService,
     private session: SessionService,
@@ -64,13 +69,18 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async ngAfterViewInit() {
-    await this.startCamera();
+    // 🔹 En web seguimos usando la cámara del navegador
+    // 🔹 En APK (nativo) NO iniciamos getUserMedia, usamos el plugin al disparar la foto
+    if (!this.isNative) {
+      await this.startCamera();
+    }
   }
 
   ngOnDestroy() {
     this.stopCamera();
   }
 
+  // ======= CÁMARA WEB (solo navegador / localhost) =======
   async startCamera() {
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
@@ -83,7 +93,7 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
       await video.play();
       this.isStreaming = true;
     } catch (err) {
-      console.warn('No se pudo iniciar la cámara:', err);
+      console.warn('No se pudo iniciar la cámara (web):', err);
       this.isStreaming = false;
     }
   }
@@ -96,16 +106,28 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
     this.isStreaming = false;
   }
 
+  // ======= BOTÓN DISPARO (misma lógica externa) =======
   async onShutter() {
+    // Si ya hay foto, resetear y volver a mostrar cámara
     if (this.photoDataUrl) {
       this.photoDataUrl = null;
-      await this.startCamera();
+      if (!this.isNative) {
+        await this.startCamera();
+      }
+      // En nativo no hace falta reiniciar nada, la próxima vez se vuelve a abrir la cámara
       return;
     }
-    this.takePhoto();
+
+    // Tomar foto dependiendo de la plataforma
+    if (this.isNative) {
+      await this.takePhotoNative();
+    } else {
+      this.takePhotoWeb();
+    }
   }
 
-  takePhoto() {
+  // ======= FOTO EN WEB (lo que ya tenías) =======
+  takePhotoWeb() {
     const video = this.videoRef?.nativeElement;
     const canvas = this.canvasRef?.nativeElement;
     if (!video || !canvas) return;
@@ -120,6 +142,28 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
     ctx.drawImage(video, 0, 0, w, h);
     this.photoDataUrl = canvas.toDataURL('image/jpeg', 0.92);
     this.stopCamera();
+  }
+
+  // ======= FOTO EN APK (Android / iOS) CON PERMISOS =======
+  async takePhotoNative() {
+    try {
+      // 🔐 Pedir permisos si aún no los tiene
+      await Camera.requestPermissions({
+        permissions: ['camera']
+      });
+
+      const photo = await Camera.getPhoto({
+        quality: 80,
+        resultType: CameraResultType.DataUrl, // ⬅️ para seguir usando photoDataUrl
+        source: CameraSource.Camera,
+        saveToGallery: false,
+        correctOrientation: true
+      });
+
+      this.photoDataUrl = photo.dataUrl || null;
+    } catch (err) {
+      console.warn('No se pudo tomar la foto (nativo) o el usuario canceló:', err);
+    }
   }
 
   /** Guardar evidencia de comida */
@@ -139,7 +183,7 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
 
       console.log('✅ Evidencia de comida guardada correctamente');
 
-      // ✅ Pequeña pausa antes de volver al Home para que Firebase termine de escribir
+      // ✅ Pausa antes de volver al Home
       setTimeout(() => {
         this.router.navigateByUrl('/home');
       }, 800);
@@ -154,10 +198,10 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
 
     if (!text.trim()) return;
 
-    const isNative = Capacitor.isNativePlatform();
+    const isNative = this.isNative;
 
     if (!isNative) {
-      // ===== Entorno web (localhost / navegador) → Web Speech API =====
+      // ===== Entorno web → Web Speech API =====
       const hasWebSpeech =
         'speechSynthesis' in window &&
         typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
