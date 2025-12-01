@@ -43,18 +43,38 @@
   font-weight: 700;
   color: var(--text-main);
 }
+/* Audio redondo */
 .audio-btn {
   --background: #eaf2ff;
   --box-shadow: none;
+
+  /* borde del botón */
+  --border-color: #dbeafe;
+  --border-width: 2px;
+  --border-radius: 50%;
+
+  /* quitar padding interno que deforma el círculo */
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+
   width: 42px;
   height: 42px;
-  border-radius: 50%;
-  border: 2px solid #dbeafe;
-  ion-icon {
-    font-size: 20px;
-    color: #2b6cb0;
-  }
+  min-width: 42px;
+  min-height: 42px;
 }
+
+/* asegurar que el botón “nativo” también sea circular */
+.audio-btn::part(native) {
+  border-radius: 50%;
+}
+
+.audio-btn ion-icon {
+  font-size: 20px;
+  color: #2b6cb0;
+}
+
 
 /* Tarjeta informativa */
 .dashed-card {
