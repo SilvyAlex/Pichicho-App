@@ -14,13 +14,15 @@ import { SessionService } from '../../services/session';
 
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { Capacitor } from '@capacitor/core';
+import { RouterModule } from '@angular/router';
+
 
 @Component({
   selector: 'app-puntos',
   templateUrl: './puntos.page.html',
   styleUrls: ['./puntos.page.scss'],
   standalone: true,
-  imports: [IonContent, IonIcon, IonImg, IonButton, CommonModule]
+  imports: [IonContent, IonIcon, IonImg, IonButton, CommonModule, RouterModule]
 })
 export class PuntosPage implements OnInit, OnDestroy {
 

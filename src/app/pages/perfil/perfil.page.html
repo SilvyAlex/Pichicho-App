@@ -63,21 +63,35 @@
     ></ion-icon>
   </div>
 
-  <!-- ===== Barra inferior ===== -->
+    <!-- ===== Barra inferior ===== -->
   <nav class="bottom-bar">
-    <div class="tab" (click)="goTo('/home')">
+    <a
+      class="tab"
+      [routerLink]="['/home']"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
       <ion-icon name="home-outline"></ion-icon>
       <span>Inicio</span>
-    </div>
+    </a>
 
-    <div class="tab" (click)="goTo('/puntos')">
+    <a
+      class="tab"
+      [routerLink]="['/puntos']"
+      routerLinkActive="active"
+    >
       <ion-icon name="heart-outline"></ion-icon>
       <span>Puntos</span>
-    </div>
+    </a>
 
-    <div class="tab active" (click)="goTo('/perfil')">
+    <a
+      class="tab"
+      [routerLink]="['/perfil']"
+      routerLinkActive="active"
+    >
       <ion-icon name="person-outline"></ion-icon>
       <span>Perfil</span>
-    </div>
+    </a>
   </nav>
+
 </ion-content>

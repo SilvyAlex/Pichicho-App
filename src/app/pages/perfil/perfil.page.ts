@@ -15,6 +15,8 @@ import { SessionService } from '../../services/session';
 import { FirebaseService } from '../../services/firebase';
 import { doc, getDoc, Firestore } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
+
 
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { Capacitor } from '@capacitor/core';
@@ -24,7 +26,7 @@ import { Capacitor } from '@capacitor/core';
   templateUrl: './perfil.page.html',
   styleUrls: ['./perfil.page.scss'],
   standalone: true,
-  imports: [IonContent, IonIcon, IonButton, CommonModule, FormsModule],
+  imports: [IonContent, IonIcon, IonButton, CommonModule, FormsModule, RouterModule],
 })
 export class PerfilPage implements OnInit, OnDestroy {
   userName = '';

@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonContent, IonIcon, IonButton } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import {
   checkmarkOutline,
   homeOutline,
@@ -22,7 +22,7 @@ import { Capacitor } from '@capacitor/core';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, IonContent, IonIcon, IonButton],
+  imports: [CommonModule, IonContent, IonIcon, IonButton, RouterModule],
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss']
 })

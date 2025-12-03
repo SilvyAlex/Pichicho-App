@@ -102,19 +102,35 @@
     </div>
   </div>
 
-  <!-- Barra inferior -->
-  <nav class="bottom-bar">
-    <a class="tab" href="/home">
-      <ion-icon name="home-outline"></ion-icon>
-      <span>Inicio</span>
-    </a>
-    <a class="tab active" href="#">
-      <ion-icon name="heart-outline"></ion-icon>
-      <span>Puntos</span>
-    </a>
-    <a class="tab" href="perfil">
-      <ion-icon name="person-outline"></ion-icon>
-      <span>Perfil</span>
-    </a>
-  </nav>
+    <!-- Barra inferior -->
+    <nav class="bottom-bar">
+      <a
+        class="tab"
+        [routerLink]="['/home']"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <ion-icon name="home-outline"></ion-icon>
+        <span>Inicio</span>
+      </a>
+
+      <a
+        class="tab"
+        [routerLink]="['/puntos']"
+        routerLinkActive="active"
+      >
+        <ion-icon name="heart-outline"></ion-icon>
+        <span>Puntos</span>
+      </a>
+
+      <a
+        class="tab"
+        [routerLink]="['/perfil']"
+        routerLinkActive="active"
+      >
+        <ion-icon name="person-outline"></ion-icon>
+        <span>Perfil</span>
+      </a>
+    </nav>
+
 </ion-content>
