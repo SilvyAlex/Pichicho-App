@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -48,7 +48,7 @@ type FeedTime = 'dia' | 'noche';
     IonImg
   ]
 })
-export class Comida1Page implements OnInit {
+export class Comida1Page implements OnInit, OnDestroy {
   userName = '';
   petName = '';
   profileId = '';
@@ -60,6 +60,10 @@ export class Comida1Page implements OnInit {
   eveningFed = false;
   isDisabled = true;
   progress = 0;
+
+  /** 👇 NUEVO: estado del audio */
+  isSpeaking = false;
+  private currentUtterance: SpeechSynthesisUtterance | null = null;
 
   constructor(
     private router: Router,
@@ -84,6 +88,15 @@ export class Comida1Page implements OnInit {
     await this.loadDailyFeedStatus();
   }
 
+  /** 👇 Al salir de la vista, cortamos el audio */
+  ionViewWillLeave() {
+    this.stopSpeech();
+  }
+
+  ngOnDestroy() {
+    this.stopSpeech();
+  }
+
   /** 🔍 Detectar horario y actualizar segmento */
   detectPeriod() {
     const hour = new Date().getHours();
@@ -102,12 +115,13 @@ export class Comida1Page implements OnInit {
   /** 📅 Cargar progreso diario */
   async loadDailyFeedStatus() {
     if (!this.profileId) return;
-    const { morningFed, eveningFed } = await this.firebase.getDailyFeedStatus(this.profileId);
+    const { morningFed, eveningFed } =
+      await this.firebase.getDailyFeedStatus(this.profileId);
+
     this.morningFed = morningFed;
     this.eveningFed = eveningFed;
     this.progress = [morningFed, eveningFed].filter(Boolean).length;
 
-    // Desactivar fuera de hora o si ya alimentó
     if (
       (this.currentPeriod === 'morning' && this.morningFed) ||
       (this.currentPeriod === 'evening' && this.eveningFed) ||
@@ -123,35 +137,60 @@ export class Comida1Page implements OnInit {
   async feedDog() {
     if (this.isDisabled) return;
 
-    // Mostrar mensaje motivador
+    // Detenemos audio por si está hablando
+    this.stopSpeech();
+
     await this.showToast(`¡${this.petName} está feliz y comiendo! 🦴`);
 
     // Redirigir a Comida2 para tomar la foto
     this.router.navigateByUrl('/comida2');
   }
 
-  /** 🎙️ Voz */
-  async speakCard() {
+  /** 🎙️ Texto de la tarjeta */
+  private buildCardText(): string {
     let text = `Hola ${this.userName}. Hoy ${this.petName} necesita ${this.feeding.scoops} scoops, es decir ${this.feeding.grams} gramos de croquetas para estar fuerte y feliz.`;
 
-    // Agregar el mensaje de horario cuando no es hora de comida
     if (this.currentPeriod === 'none') {
       text +=
         ' En este momento no es hora de comida. Los horarios son: por la mañana de cuatro a once, y por la tarde de doce del día a diez de la noche.';
     }
 
+    return text;
+  }
+
+  /** 🎙️ Botón de audio — ahora toggle */
+  async speakCard() {
+    const text = this.buildCardText();
+    await this.toggleSpeech(text);
+  }
+
+  /** 👇 NUEVO: lógica toggle (play / stop) */
+  private async toggleSpeech(text: string) {
+    if (!text.trim()) return;
+
+    if (this.isSpeaking) {
+      this.stopSpeech();
+      return;
+    }
+
+    await this.speak(text);
+  }
+
+  /** 🔊 Hablar (web y nativo) */
+  private async speak(text: string) {
     if (!text.trim()) return;
 
     const isNative = Capacitor.isNativePlatform();
+    this.isSpeaking = true;
 
     if (!isNative) {
-      // ===== Entorno web (localhost / navegador) → Web Speech API =====
       const hasWebSpeech =
         'speechSynthesis' in window &&
         typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
 
       if (!hasWebSpeech) {
         console.warn('SpeechSynthesis no está disponible en este navegador.');
+        this.isSpeaking = false;
         return;
       }
 
@@ -160,15 +199,30 @@ export class Comida1Page implements OnInit {
         synth.cancel();
 
         const utter = new SpeechSynthesisUtterance(text);
+        this.currentUtterance = utter;
         utter.lang = 'es-ES';
         utter.rate = 0.95;
+
+        utter.onend = () => {
+          if (this.currentUtterance === utter) {
+            this.isSpeaking = false;
+            this.currentUtterance = null;
+          }
+        };
+
+        utter.onerror = () => {
+          if (this.currentUtterance === utter) {
+            this.isSpeaking = false;
+            this.currentUtterance = null;
+          }
+        };
 
         synth.speak(utter);
       } catch (e) {
         console.warn('No se pudo reproducir la locución:', e);
+        this.isSpeaking = false;
       }
     } else {
-      // ===== APK (Android / iOS) → Plugin nativo de TTS =====
       try {
         await TextToSpeech.stop();
 
@@ -178,12 +232,31 @@ export class Comida1Page implements OnInit {
           rate: 0.95,
           pitch: 1.0,
           volume: 1.0,
-          category: 'ambient',
+          category: 'ambient'
         });
       } catch (err) {
         console.error('Error al usar TextToSpeech:', err);
+      } finally {
+        // En nativo no tenemos onend fiable
+        this.isSpeaking = false;
       }
     }
+  }
+
+  /** 🧹 Detener cualquier audio activo */
+  private stopSpeech() {
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      if ('speechSynthesis' in window) {
+        (window as any).speechSynthesis.cancel();
+      }
+    } else {
+      TextToSpeech.stop().catch(() => {});
+    }
+
+    this.isSpeaking = false;
+    this.currentUtterance = null;
   }
 
   /** 📣 Toast */
@@ -197,6 +270,7 @@ export class Comida1Page implements OnInit {
   }
 
   continue(path: string) {
+    this.stopSpeech();
     this.router.navigateByUrl(path);
   }
 }

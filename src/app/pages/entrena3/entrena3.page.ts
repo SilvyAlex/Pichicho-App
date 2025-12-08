@@ -31,7 +31,7 @@ import { ActivatedRoute } from '@angular/router';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { Capacitor } from '@capacitor/core';
 
-// ✅ NUEVO: plugin de cámara de Capacitor
+// Plugin de cámara de Capacitor
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 @Component({
@@ -61,12 +61,15 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
   private stream: MediaStream | null = null;
   photoDataUrl: string | null = null;
 
-  trainedToday = false;   // ✅ solo 1 por día
+  trainedToday = false;   // solo 1 por día
   isSaving = false;       // evita dobles taps
   cameraReady = false;
 
-  // ✅ Saber si estamos en APK (nativo) o en web
   readonly isNative = Capacitor.isNativePlatform();
+
+  /** 🔊 Estado del audio */
+  isSpeaking = false;
+  private currentUtterance: SpeechSynthesisUtterance | null = null;
 
   constructor(
     private firebaseSvc: FirebaseService,
@@ -86,39 +89,39 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
       this.profileId = profile.id!;
     }
 
-    // 👇 ID del entrenamiento elegido
     this.activityId = this.route.snapshot.paramMap.get('id') || '';
 
-    // Verificar si ya existe evidencia hoy
     await this.checkTrainedToday();
   }
 
   async ngAfterViewInit() {
-    // En web iniciamos la cámara del navegador; en nativo usamos el plugin al disparar
     if (!this.isNative) {
       await this.startCamera();
     }
   }
 
+  /** 🚪 Cortar audio al salir de la vista */
+  ionViewWillLeave() {
+    this.stopSpeech();
+  }
+
   ngOnDestroy() {
+    this.stopSpeech();
     this.stopCamera();
   }
 
   /** 🔍 Verifica si ya se entrenó hoy (bloquea si es así) */
   private async checkTrainedToday() {
     if (!this.profileId) return;
-    const { trainedToday } = await this.firebaseSvc.getDailyTrainingStatus(this.profileId);
+    const { trainedToday } = await this.firebaseSvc.getDailyTrainingStatus(
+      this.profileId
+    );
     this.trainedToday = trainedToday;
   }
 
   /** 🎥 Enciende la cámara (solo web) */
   async startCamera() {
-    if (this.trainedToday) {
-      // Si ya entrenó hoy, no iniciamos cámara para evitar confusión
-      return;
-    }
-
-    // En nativo no usamos getUserMedia, solo plugin
+    if (this.trainedToday) return;
     if (this.isNative) return;
 
     try {
@@ -149,12 +152,13 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
 
   /** 📸 Tomar o rehacer foto */
   async onShutter() {
+    this.stopSpeech(); // cortar audio si estaba hablando
+
     if (this.trainedToday) {
       await this.showToast('✅ Ya registraste el entrenamiento de hoy');
       return;
     }
 
-    // Si ya hay foto → rehacer
     if (this.photoDataUrl) {
       this.photoDataUrl = null;
       if (!this.isNative) {
@@ -163,7 +167,6 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    // Tomar foto según plataforma
     if (this.isNative) {
       await this.takePhotoNative();
     } else {
@@ -189,21 +192,19 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
     ctx.drawImage(video, 0, 0, w, h);
     this.photoDataUrl = canvas.toDataURL('image/jpeg', 0.9);
 
-    // Apagar cámara al tener foto
     this.stopCamera();
   }
 
   /** 📸 Foto en APK (Android / iOS) con permisos nativos */
   async takePhotoNative() {
     try {
-      // Pedir permisos de cámara
       await Camera.requestPermissions({
         permissions: ['camera']
       });
 
       const photo = await Camera.getPhoto({
         quality: 80,
-        resultType: CameraResultType.DataUrl, // seguimos usando photoDataUrl
+        resultType: CameraResultType.DataUrl,
         source: CameraSource.Camera,
         saveToGallery: false,
         correctOrientation: true
@@ -218,6 +219,9 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
   /** 💾 Guarda evidencia con foto (única que cuenta para 1/1) */
   async saveEvidence() {
     if (this.isSaving) return;
+
+    this.stopSpeech(); // que no siga hablando mientras guarda
+
     if (this.trainedToday) {
       await this.showToast('✅ Ya registraste el entrenamiento de hoy');
       return;
@@ -231,23 +235,19 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
 
     this.isSaving = true;
     try {
-      // 1) Subir foto a Storage
       const fotoUrl = await this.firebaseSvc.uploadEvidencePhoto(
         this.photoDataUrl,
         profile.nombrePerro
       );
 
-      // 2) Registrar evidencia en Firestore (suma puntos)
       await this.firebaseSvc.addTrainingEvidence(
         this.profileId,
         this.activityId,
         fotoUrl
       );
 
-      // 3) Marcar como entrenado hoy (bloqueo)
       this.trainedToday = true;
 
-      // 4) Feedback + volver al home
       await this.showToast('¡Evidencia guardada! 🐕‍🦺');
       this.router.navigateByUrl('/home', { replaceUrl: true });
     } catch (err) {
@@ -258,11 +258,22 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /** 🔊 Audio (web + APK) */
+  /** 🔊 Audio (toggle) */
   async speakCard() {
     const text = this.trainedToday
       ? '¡Excelente! Ya registraste el entrenamiento de hoy.'
       : `¡Qué bien lo hicieron! Ahora toma una foto de ${this.petName}.`;
+
+    await this.toggleSpeech(text);
+  }
+
+  private async toggleSpeech(text: string) {
+    if (!text) return;
+
+    if (this.isSpeaking) {
+      this.stopSpeech();
+      return;
+    }
 
     await this.speak(text);
   }
@@ -272,27 +283,42 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
     if (!text) return;
 
     const isNative = this.isNative;
+    this.isSpeaking = true;
 
     if (!isNative) {
-      // Web Speech API (navegador)
       const hasWebSpeech =
         'speechSynthesis' in window &&
         typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
 
       if (!hasWebSpeech) {
         console.warn('SpeechSynthesis no está disponible en este navegador.');
+        this.isSpeaking = false;
         return;
       }
 
       (window as any).speechSynthesis.cancel();
 
       const utter = new SpeechSynthesisUtterance(text);
+      this.currentUtterance = utter;
       utter.lang = 'es-ES';
       utter.rate = 0.95;
 
+      utter.onend = () => {
+        if (this.currentUtterance === utter) {
+          this.isSpeaking = false;
+          this.currentUtterance = null;
+        }
+      };
+
+      utter.onerror = () => {
+        if (this.currentUtterance === utter) {
+          this.isSpeaking = false;
+          this.currentUtterance = null;
+        }
+      };
+
       (window as any).speechSynthesis.speak(utter);
     } else {
-      // Plugin nativo para APK
       try {
         await TextToSpeech.stop();
         await TextToSpeech.speak({
@@ -305,8 +331,26 @@ export class Entrena3Page implements OnInit, AfterViewInit, OnDestroy {
         });
       } catch (err) {
         console.error('Error al usar TextToSpeech:', err);
+      } finally {
+        this.isSpeaking = false;
       }
     }
+  }
+
+  /** 🧹 Detener cualquier audio activo */
+  private stopSpeech() {
+    const isNative = this.isNative;
+
+    if (!isNative) {
+      if ('speechSynthesis' in window) {
+        (window as any).speechSynthesis.cancel();
+      }
+    } else {
+      TextToSpeech.stop().catch(() => {});
+    }
+
+    this.isSpeaking = false;
+    this.currentUtterance = null;
   }
 
   /** 💬 Toast helper */

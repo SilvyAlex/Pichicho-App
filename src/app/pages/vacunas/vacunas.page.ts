@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -51,7 +51,7 @@ interface VaccineRecord {
     FormsModule
   ]
 })
-export class VacunasPage implements OnInit {
+export class VacunasPage implements OnInit, OnDestroy {
   userName = '';
   petName = '';
 
@@ -67,6 +67,10 @@ export class VacunasPage implements OnInit {
 
   vaccineList: VaccineRecord[] = [];
   profileId: string | null = null;
+
+  /** 🔊 Estado de audio */
+  isSpeaking = false;
+  private currentUtterance: SpeechSynthesisUtterance | null = null;
 
   constructor(
     private firebaseSvc: FirebaseService,
@@ -89,6 +93,15 @@ export class VacunasPage implements OnInit {
       this.petName = profile.nombrePerro;
       await this.loadVaccineHistory();
     }
+  }
+
+  /** 🚪 Al salir de la vista corta el audio */
+  ionViewWillLeave() {
+    this.stopSpeech();
+  }
+
+  ngOnDestroy() {
+    this.stopSpeech();
   }
 
   async loadVaccineHistory() {
@@ -114,6 +127,9 @@ export class VacunasPage implements OnInit {
       return;
     }
 
+    // Cortamos audio por si está hablando
+    this.stopSpeech();
+
     try {
       await this.firebaseSvc.addVaccine(this.profileId, {
         tipo: vacuna.tipo!,
@@ -134,21 +150,39 @@ export class VacunasPage implements OnInit {
     }
   }
 
+  /** 🔊 Botón de audio — ahora toggle */
   async speakCard() {
-    const text = `${this.petName} necesita sus vacunas. Marca cuál fue la vacuna que recibió, la fecha en que se la pusieron y el día de su refuerzo.`;
+    const text = `${this.petName || 'Tu perrito'} necesita sus vacunas. Marca cuál fue la vacuna que recibió, la fecha en que se la pusieron y el día de su refuerzo.`;
+    await this.toggleSpeech(text);
+  }
 
+  /** 🎛️ Lógica toggle (play / stop) */
+  private async toggleSpeech(text: string) {
+    if (!text.trim()) return;
+
+    if (this.isSpeaking) {
+      this.stopSpeech();
+      return;
+    }
+
+    await this.speak(text);
+  }
+
+  /** 🔊 Hablar (web + APK) */
+  private async speak(text: string) {
     if (!text.trim()) return;
 
     const isNative = Capacitor.isNativePlatform();
+    this.isSpeaking = true;
 
     if (!isNative) {
-      // ===== Entorno web (localhost / navegador) → Web Speech API =====
       const hasWebSpeech =
         'speechSynthesis' in window &&
         typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
 
       if (!hasWebSpeech) {
         console.warn('SpeechSynthesis no está disponible en este navegador.');
+        this.isSpeaking = false;
         return;
       }
 
@@ -157,30 +191,62 @@ export class VacunasPage implements OnInit {
         synth.cancel();
 
         const utter = new SpeechSynthesisUtterance(text);
+        this.currentUtterance = utter;
         utter.lang = 'es-ES';
         utter.rate = 0.95;
+
+        utter.onend = () => {
+          if (this.currentUtterance === utter) {
+            this.isSpeaking = false;
+            this.currentUtterance = null;
+          }
+        };
+
+        utter.onerror = () => {
+          if (this.currentUtterance === utter) {
+            this.isSpeaking = false;
+            this.currentUtterance = null;
+          }
+        };
 
         synth.speak(utter);
       } catch (e) {
         console.warn('No se pudo reproducir la locución:', e);
+        this.isSpeaking = false;
       }
     } else {
-      // ===== APK (Android / iOS) → Plugin nativo de TTS =====
       try {
         await TextToSpeech.stop();
-
         await TextToSpeech.speak({
           text,
           lang: 'es-ES',
           rate: 0.95,
           pitch: 1.0,
           volume: 1.0,
-          category: 'ambient',
+          category: 'ambient'
         });
       } catch (err) {
         console.error('Error al usar TextToSpeech:', err);
+      } finally {
+        this.isSpeaking = false;
       }
     }
+  }
+
+  /** 🧹 Detener cualquier audio activo */
+  private stopSpeech() {
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      if ('speechSynthesis' in window) {
+        (window as any).speechSynthesis.cancel();
+      }
+    } else {
+      TextToSpeech.stop().catch(() => {});
+    }
+
+    this.isSpeaking = false;
+    this.currentUtterance = null;
   }
 
   async showToast(message: string, color: string) {

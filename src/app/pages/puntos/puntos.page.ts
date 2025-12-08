@@ -16,7 +16,6 @@ import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { Capacitor } from '@capacitor/core';
 import { RouterModule } from '@angular/router';
 
-
 @Component({
   selector: 'app-puntos',
   templateUrl: './puntos.page.html',
@@ -52,6 +51,10 @@ export class PuntosPage implements OnInit, OnDestroy {
   dayValues: number[] = new Array(7).fill(0);
   dayColors: string[] = new Array(7).fill('#e5e7eb');
 
+  /** 🔊 Estado de audio */
+  isSpeaking = false;
+  private currentUtterance: SpeechSynthesisUtterance | null = null;
+
   constructor(
     private firebase: FirebaseService,
     private session: SessionService
@@ -71,6 +74,11 @@ export class PuntosPage implements OnInit, OnDestroy {
 
     this.petName = profile.nombrePerro;
     await this.loadWeeklyProgress(profile.id);
+  }
+
+  /** 🚪 Al salir de la vista (por navegación) corta el audio */
+  ionViewWillLeave() {
+    this.stopSpeech();
   }
 
   ngOnDestroy() {
@@ -184,9 +192,21 @@ export class PuntosPage implements OnInit, OnDestroy {
     return `${titulo}. ${resp} ${headline}. ${mensaje}`;
   }
 
-  /** 👉 Botón de audio superior */
+  /** 👉 Botón de audio superior (toggle) */
   async onMainAudio() {
     const text = this.buildMainAudioText();
+    await this.toggleSpeech(text);
+  }
+
+  /** 🎛️ Lógica toggle (play / stop) */
+  private async toggleSpeech(text: string) {
+    if (!text) return;
+
+    if (this.isSpeaking) {
+      this.stopSpeech();
+      return;
+    }
+
     await this.speak(text);
   }
 
@@ -195,6 +215,7 @@ export class PuntosPage implements OnInit, OnDestroy {
     if (!text) return;
 
     const isNative = Capacitor.isNativePlatform();
+    this.isSpeaking = true;
 
     if (!isNative) {
       const hasWebSpeech =
@@ -203,14 +224,30 @@ export class PuntosPage implements OnInit, OnDestroy {
 
       if (!hasWebSpeech) {
         console.warn('SpeechSynthesis no está disponible en este navegador.');
+        this.isSpeaking = false;
         return;
       }
 
       (window as any).speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(text);
+      this.currentUtterance = utterance;
       utterance.lang = 'es-ES';
       utterance.rate = 0.95;
+
+      utterance.onend = () => {
+        if (this.currentUtterance === utterance) {
+          this.isSpeaking = false;
+          this.currentUtterance = null;
+        }
+      };
+
+      utterance.onerror = () => {
+        if (this.currentUtterance === utterance) {
+          this.isSpeaking = false;
+          this.currentUtterance = null;
+        }
+      };
 
       (window as any).speechSynthesis.speak(utterance);
     } else {
@@ -226,6 +263,8 @@ export class PuntosPage implements OnInit, OnDestroy {
         });
       } catch (err) {
         console.error('Error al usar TextToSpeech:', err);
+      } finally {
+        this.isSpeaking = false;
       }
     }
   }
@@ -241,5 +280,8 @@ export class PuntosPage implements OnInit, OnDestroy {
     } else {
       TextToSpeech.stop().catch(() => {});
     }
+
+    this.isSpeaking = false;
+    this.currentUtterance = null;
   }
 }

@@ -36,24 +36,63 @@ export class Intro1Page implements OnInit {
   active = 0;
   dots = [0, 1, 2];
 
-  // Permiso de audio otorgado solo cuando el usuario toca el botón
+  /**
+   * audioEnabled: indica si el usuario ya dio "permiso" tocando el botón al menos una vez.
+   * isSpeaking: indica si actualmente se está reproduciendo audio.
+   */
   audioEnabled = false;
+  isSpeaking = false;
 
   constructor(private router: Router, private ngZone: NgZone) {}
 
   ngOnInit() {}
 
-  /** Botón de audio: habilita audio y lee el slide actual */
-  enableAudio() {
-    this.audioEnabled = true;
+  /**
+   * Botón de audio:
+   * - Primer toque: da permiso y reproduce el slide actual.
+   * - Siguiente toque: detiene el audio.
+   */
+  async onAudioButtonClick() {
+    // El niño ya dio permiso para usar audio
+    if (!this.audioEnabled) {
+      this.audioEnabled = true;
 
-    const swiperInstance = this.swiper?.nativeElement?.swiper;
-    if (swiperInstance) {
-      const idx = swiperInstance.activeIndex ?? this.active;
-      this.active = Math.max(0, Math.min(idx, this.total - 1));
+      // Aseguramos que el índice active coincide con el slide real
+      const swiperInstance = this.swiper?.nativeElement?.swiper;
+      if (swiperInstance) {
+        const idx = swiperInstance.activeIndex ?? this.active;
+        this.active = Math.max(0, Math.min(idx, this.total - 1));
+      }
     }
 
-    this.speakCurrentSlide();
+    // Si está hablando → detener (pausa/stop)
+    if (this.isSpeaking) {
+      await this.stopCurrentSpeech();
+      return;
+    }
+
+    // Si NO está hablando → reproducir el slide actual
+    await this.stopCurrentSpeech(); // por si quedó algo colgado
+    await this.speakCurrentSlide();
+  }
+
+  /** Detener cualquier audio actual (web o nativo) */
+  async stopCurrentSpeech() {
+    this.isSpeaking = false;
+
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      if ('speechSynthesis' in window) {
+        (window as any).speechSynthesis.cancel();
+      }
+    } else {
+      try {
+        await TextToSpeech.stop();
+      } catch (err) {
+        console.warn('Error al detener TTS nativo:', err);
+      }
+    }
   }
 
   /** Evento al cambiar de slide (por swipe o por código) */
@@ -64,10 +103,10 @@ export class Intro1Page implements OnInit {
     this.ngZone.run(() => {
       this.active = Math.max(0, Math.min(idx, this.total - 1));
 
-      // Si ya se dio permiso → narrar automáticamente
-      if (this.audioEnabled) {
-        this.speakCurrentSlide();
-      }
+      // Al cambiar de slide SIEMPRE se detiene el audio anterior
+      this.stopCurrentSpeech();
+      // Ojo: ya NO autoreproducimos el siguiente slide.
+      // Los niños deciden cuándo escuchar tocando el botón.
     });
   }
 
@@ -76,6 +115,9 @@ export class Intro1Page implements OnInit {
     const swiperInstance = this.swiper?.nativeElement?.swiper;
     if (!swiperInstance) return;
 
+    // Siempre paramos audio al cambiar de slide o salir
+    this.stopCurrentSpeech();
+
     if (this.active < this.total - 1) {
       swiperInstance.slideNext();
 
@@ -83,12 +125,10 @@ export class Intro1Page implements OnInit {
 
       this.ngZone.run(() => {
         this.active = Math.max(0, Math.min(idx, this.total - 1));
-
-        if (this.audioEnabled) {
-          this.speakCurrentSlide();
-        }
+        // Ya no llamamos speakCurrentSlide aquí.
       });
     } else {
+      // Navegamos a registro y nos aseguramos de que no quede audio
       this.router.navigate(['/registro']);
     }
   }
@@ -98,17 +138,18 @@ export class Intro1Page implements OnInit {
     const swiperInstance = this.swiper?.nativeElement?.swiper;
     if (!swiperInstance) return;
 
+    // Detenemos el audio antes de cambiar
+    this.stopCurrentSpeech();
+
     swiperInstance.slideTo(i);
 
     this.ngZone.run(() => {
       this.active = i;
-      if (this.audioEnabled) {
-        this.speakCurrentSlide();
-      }
+      // No autoreproducimos audio
     });
   }
 
-  /** Leer el slide actual */
+  /** Leer el slide actual (solo se llama cuando el usuario quiere escuchar) */
   async speakCurrentSlide() {
     if (!this.audioEnabled) return;
 
@@ -143,17 +184,27 @@ export class Intro1Page implements OnInit {
         return;
       }
 
-      (window as any).speechSynthesis.cancel();
-
+      const synth = (window as any).speechSynthesis;
       const utterance = new SpeechSynthesisUtterance(toSpeak);
       utterance.lang = 'es-ES';
       utterance.rate = 0.95;
 
-      (window as any).speechSynthesis.speak(utterance);
+      // Marcamos que está hablando
+      this.isSpeaking = true;
+
+      utterance.onend = () => {
+        this.isSpeaking = false;
+      };
+      utterance.onerror = () => {
+        this.isSpeaking = false;
+      };
+
+      synth.speak(utterance);
     } else {
       // APK (Android / iOS) → plugin nativo de TTS
       try {
-        await TextToSpeech.stop();
+        this.isSpeaking = true;
+
         await TextToSpeech.speak({
           text: toSpeak,
           lang: 'es-ES',
@@ -162,8 +213,12 @@ export class Intro1Page implements OnInit {
           volume: 1.0,
           category: 'ambient',
         });
+
+        // Cuando termina de hablar
+        this.isSpeaking = false;
       } catch (err) {
         console.error('Error al usar TextToSpeech:', err);
+        this.isSpeaking = false;
       }
     }
   }

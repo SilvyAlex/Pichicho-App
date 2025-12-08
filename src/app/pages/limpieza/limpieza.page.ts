@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonContent,
@@ -19,7 +19,6 @@ import { SessionService } from '../../services/session';
 
 import { Capacitor } from '@capacitor/core';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
-
 
 interface DayCell {
   date: Date;
@@ -46,9 +45,9 @@ interface DayCell {
     FormsModule
   ]
 })
-export class LimpiezaPage implements OnInit {
+export class LimpiezaPage implements OnInit, OnDestroy {
 
-  petName = ''; // ← ahora se toma del perfil
+  petName = '';
   profileId: string | null = null;
 
   monthDate = new Date();
@@ -63,6 +62,10 @@ export class LimpiezaPage implements OnInit {
   confirmMessage = '';
   confirmButtons: Array<any> = [];
 
+  /** 🔊 Estado de audio */
+  isSpeaking = false;
+  private currentUtterance: SpeechSynthesisUtterance | null = null;
+
   constructor(
     private firebase: FirebaseService,
     private session: SessionService
@@ -76,16 +79,13 @@ export class LimpiezaPage implements OnInit {
   }
 
   async ngOnInit() {
-    // Recuperar perfil actual
     const profile = this.session.snapshot;
     if (profile) {
       this.profileId = profile.id;
       this.petName = profile.nombrePerro || 'tu perrito';
 
-      // Actualizar mensaje de confirmación
       this.confirmMessage = `¿Has bañado a ${this.petName}?`;
 
-      // Cargar historial desde Firebase
       const data = await this.firebase.getBathHistory(profile.id);
       this.banos = data.banos;
       this.proximoBano = data.proximoBano || null;
@@ -95,6 +95,15 @@ export class LimpiezaPage implements OnInit {
     }
 
     this.rebuild();
+  }
+
+  /** 🚪 Cortar audio al salir de la vista */
+  ionViewWillLeave() {
+    this.stopSpeech();
+  }
+
+  ngOnDestroy() {
+    this.stopSpeech();
   }
 
   /** Construye el calendario con baños y estimaciones */
@@ -170,7 +179,6 @@ export class LimpiezaPage implements OnInit {
 
     const nuevaFecha = new Date(this.pendingCell.date);
 
-    // Evitar duplicados
     if (!this.banos.some(b => this.sameDate(b, nuevaFecha))) {
       this.banos.push(nuevaFecha);
     }
@@ -185,15 +193,24 @@ export class LimpiezaPage implements OnInit {
   }
 
   prevMonth() {
-    this.monthDate = new Date(this.monthDate.getFullYear(), this.monthDate.getMonth() - 1, 1);
+    this.monthDate = new Date(
+      this.monthDate.getFullYear(),
+      this.monthDate.getMonth() - 1,
+      1
+    );
     this.rebuild();
   }
 
   nextMonth() {
-    this.monthDate = new Date(this.monthDate.getFullYear(), this.monthDate.getMonth() + 1, 1);
+    this.monthDate = new Date(
+      this.monthDate.getFullYear(),
+      this.monthDate.getMonth() + 1,
+      1
+    );
     this.rebuild();
   }
 
+  /** 🔊 Texto + toggle del botón de audio */
   async speakCard() {
     const text =
       `¡Hora de planear el baño de ${this.petName || 'tu perrito'}! ` +
@@ -201,18 +218,37 @@ export class LimpiezaPage implements OnInit {
       `Marca en el calendario el día de su último baño. ` +
       `Ese día se verá en amarillo, y los días en celeste serán los estimados para su próximo baño.`;
 
+    await this.toggleSpeech(text);
+  }
+
+  /** 👉 Lógica toggle (play / stop) */
+  private async toggleSpeech(text: string) {
+    if (!text.trim()) return;
+
+    if (this.isSpeaking) {
+      this.stopSpeech();
+      return;
+    }
+
+    await this.speak(text);
+  }
+
+  /** 🔊 Hablar (web + nativo) */
+  private async speak(text: string) {
     if (!text.trim()) return;
 
     const isNative = Capacitor.isNativePlatform();
+    this.isSpeaking = true;
 
     if (!isNative) {
-      // ===== Web → Web Speech API =====
+      // Web → Web Speech API
       const hasWebSpeech =
         'speechSynthesis' in window &&
         typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
 
       if (!hasWebSpeech) {
         console.warn('SpeechSynthesis no está disponible en este navegador.');
+        this.isSpeaking = false;
         return;
       }
 
@@ -221,15 +257,31 @@ export class LimpiezaPage implements OnInit {
         synth.cancel();
 
         const utter = new SpeechSynthesisUtterance(text);
+        this.currentUtterance = utter;
         utter.lang = 'es-ES';
         utter.rate = 0.95;
+
+        utter.onend = () => {
+          if (this.currentUtterance === utter) {
+            this.isSpeaking = false;
+            this.currentUtterance = null;
+          }
+        };
+
+        utter.onerror = () => {
+          if (this.currentUtterance === utter) {
+            this.isSpeaking = false;
+            this.currentUtterance = null;
+          }
+        };
 
         synth.speak(utter);
       } catch (e) {
         console.warn('No se pudo reproducir la locución:', e);
+        this.isSpeaking = false;
       }
     } else {
-      // ===== APK (Android / iOS) → TextToSpeech nativo =====
+      // APK (Android / iOS) → TextToSpeech
       try {
         await TextToSpeech.stop();
 
@@ -239,11 +291,29 @@ export class LimpiezaPage implements OnInit {
           rate: 0.95,
           pitch: 1.0,
           volume: 1.0,
-          category: 'ambient',
+          category: 'ambient'
         });
       } catch (err) {
         console.error('Error al usar TextToSpeech:', err);
+      } finally {
+        this.isSpeaking = false;
       }
     }
+  }
+
+  /** 🧹 Detener cualquier audio activo */
+  private stopSpeech() {
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      if ('speechSynthesis' in window) {
+        (window as any).speechSynthesis.cancel();
+      }
+    } else {
+      TextToSpeech.stop().catch(() => {});
+    }
+
+    this.isSpeaking = false;
+    this.currentUtterance = null;
   }
 }

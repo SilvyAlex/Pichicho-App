@@ -3,10 +3,12 @@
 
     <!-- Botón de audio redondo -->
     <div class="audio-wrap">
-      <ion-button class="audio-btn" aria-label="Audio" (click)="enableAudio()">
-        <ion-icon name="volume-high-outline"></ion-icon>
+      <ion-button class="audio-btn" aria-label="Audio" (click)="onAudioButtonClick()">
+        <!-- Icono cambia según si está sonando o no -->
+        <ion-icon [name]="isSpeaking ? 'volume-high' : 'volume-high-outline'"></ion-icon>
       </ion-button>
     </div>
+
 
     <!-- Swiper -->
     <swiper-container

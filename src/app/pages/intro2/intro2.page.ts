@@ -36,9 +36,59 @@ export class Intro2Page implements OnInit {
   active = 0; // arranca en el primer slide
   dots = [0, 1, 2];
 
+  // Igual que en intro1
+  audioEnabled = false; // el usuario ya tocó el botón al menos una vez
+  isSpeaking = false;   // está hablando ahora mismo
+
   constructor(private router: Router, private ngZone: NgZone) {}
 
   ngOnInit() {}
+
+  /** Botón de audio:
+   * - Primer toque: da permiso y reproduce el slide actual.
+   * - Siguiente toque: detiene el audio.
+   */
+  async onAudioButtonClick() {
+    // Primer toque → habilita audio y sincroniza índice real del swiper
+    if (!this.audioEnabled) {
+      this.audioEnabled = true;
+
+      const swiperInstance = this.swiper?.nativeElement?.swiper;
+      if (swiperInstance && typeof swiperInstance.activeIndex === 'number') {
+        const idx = swiperInstance.activeIndex;
+        this.active = Math.max(0, Math.min(idx, this.total - 1));
+      }
+    }
+
+    // Si está hablando → detener
+    if (this.isSpeaking) {
+      await this.stopCurrentSpeech();
+      return;
+    }
+
+    // Si no está hablando → reproducir el slide actual
+    await this.stopCurrentSpeech(); // por si quedó algo colgado
+    await this.speakCurrentSlide();
+  }
+
+  /** Detener cualquier audio actual (web o nativo) */
+  async stopCurrentSpeech() {
+    this.isSpeaking = false;
+
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      if ('speechSynthesis' in window) {
+        (window as any).speechSynthesis.cancel();
+      }
+    } else {
+      try {
+        await TextToSpeech.stop();
+      } catch (err) {
+        console.warn('Error al detener TTS nativo:', err);
+      }
+    }
+  }
 
   /** Se dispara cuando cambias de slide (por swipe o por código) */
   onSlideChangeEvent() {
@@ -47,6 +97,10 @@ export class Intro2Page implements OnInit {
 
     this.ngZone.run(() => {
       this.active = Math.max(0, Math.min(idx, this.total - 1));
+
+      // Siempre detenemos audio al cambiar de slide
+      this.stopCurrentSpeech();
+      // NO autoreproducimos el nuevo slide, el niño decide.
     });
   }
 
@@ -54,6 +108,9 @@ export class Intro2Page implements OnInit {
   continue() {
     const swiperInstance = this.swiper?.nativeElement?.swiper;
     if (!swiperInstance) return;
+
+    // Antes de cambiar de slide o salir, detenemos audio
+    this.stopCurrentSpeech();
 
     if (this.active < this.total - 1) {
       swiperInstance.slideNext();
@@ -63,7 +120,7 @@ export class Intro2Page implements OnInit {
         this.active = Math.max(0, Math.min(idx, this.total - 1));
       });
     } else {
-      this.router.navigate(['/home']); // cambia la ruta final aquí si quieres
+      this.router.navigate(['/home']); // o la ruta que toque
     }
   }
 
@@ -71,6 +128,9 @@ export class Intro2Page implements OnInit {
   goTo(i: number) {
     const swiperInstance = this.swiper?.nativeElement?.swiper;
     if (!swiperInstance) return;
+
+    // Detenemos audio antes de cambiar
+    this.stopCurrentSpeech();
 
     swiperInstance.slideTo(i);
     this.ngZone.run(() => {
@@ -80,6 +140,8 @@ export class Intro2Page implements OnInit {
 
   /** Reproduce título + descripción + labels de las cards del slide actual (web + APK) */
   async speakCurrentSlide() {
+    if (!this.audioEnabled) return;
+
     const swiperInstance = this.swiper?.nativeElement?.swiper;
 
     // Tomar el índice REAL del swiper para evitar desfaces al hacer swipe
@@ -103,7 +165,7 @@ export class Intro2Page implements OnInit {
     const title = (titleEl?.textContent || '').trim();
     const desc = (descEl?.textContent || '').trim();
 
-    // NUEVO: leer también los labels de las cards (Comida, Entrenamiento, Paseos, etc.)
+    // Leer también los labels de las cards (Comida, Entrenamiento, Paseos, etc.)
     const labelEls = slide.querySelectorAll('.label');
     const labels: string[] = [];
     labelEls.forEach((el) => {
@@ -115,7 +177,6 @@ export class Intro2Page implements OnInit {
 
     const parts = [title, desc, extraLabels].filter(Boolean);
     const toSpeak = parts.join('. ');
-
     if (!toSpeak) return;
 
     const isNative = Capacitor.isNativePlatform();
@@ -132,20 +193,30 @@ export class Intro2Page implements OnInit {
       }
 
       try {
-        (window as any).speechSynthesis.cancel();
-
+        const synth = (window as any).speechSynthesis;
         const utterance = new SpeechSynthesisUtterance(toSpeak);
         utterance.lang = 'es-ES';
         utterance.rate = 0.95;
 
-        (window as any).speechSynthesis.speak(utterance);
+        this.isSpeaking = true;
+
+        utterance.onend = () => {
+          this.isSpeaking = false;
+        };
+        utterance.onerror = () => {
+          this.isSpeaking = false;
+        };
+
+        synth.cancel();
+        synth.speak(utterance);
       } catch (e) {
         console.warn('No se pudo reproducir la locución:', e);
+        this.isSpeaking = false;
       }
     } else {
       // ===== APK (Android / iOS) → Plugin nativo de TTS =====
       try {
-        await TextToSpeech.stop(); // detener cualquier lectura anterior
+        this.isSpeaking = true;
 
         await TextToSpeech.speak({
           text: toSpeak,
@@ -155,8 +226,11 @@ export class Intro2Page implements OnInit {
           volume: 1.0,
           category: 'ambient',
         });
+
+        this.isSpeaking = false;
       } catch (err) {
         console.error('Error al usar TextToSpeech:', err);
+        this.isSpeaking = false;
       }
     }
   }

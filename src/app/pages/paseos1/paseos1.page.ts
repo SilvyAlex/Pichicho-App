@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -48,7 +48,7 @@ type WalkTime = 'dia' | 'tarde';
     FormsModule
   ]
 })
-export class Paseos1Page implements OnInit {
+export class Paseos1Page implements OnInit, OnDestroy {
   userName = '';
   petName = '';
   profileId = '';
@@ -58,6 +58,10 @@ export class Paseos1Page implements OnInit {
   eveningWalked = false;
   progress = 0;
   isDisabled = true;
+
+  /** 🔊 Estado del audio */
+  isSpeaking = false;
+  private currentUtterance: SpeechSynthesisUtterance | null = null;
 
   constructor(
     private router: Router,
@@ -78,6 +82,15 @@ export class Paseos1Page implements OnInit {
 
     this.detectPeriod();
     await this.loadDailyWalkStatus();
+  }
+
+  /** 🚪 Al salir de la vista, cortar audio */
+  ionViewWillLeave() {
+    this.stopSpeech();
+  }
+
+  ngOnDestroy() {
+    this.stopSpeech();
   }
 
   /** 🔍 Detectar horario */
@@ -118,32 +131,62 @@ export class Paseos1Page implements OnInit {
   async walkDog() {
     if (this.isDisabled) return;
 
+    // Por si está hablando, paramos audio
+    this.stopSpeech();
+
     await this.showToast(`¡${this.petName} está listo para su paseo! 🐾`);
-    // 👇 Aquí solo se navega, no se guarda evidencia
     this.router.navigateByUrl('/paseos2');
   }
 
-  /** 🔊 Reproducir audio */
-  async speakCard() {
-    let text = `Vamos a caminar con ${this.petName}. Recuerda que los paseos lo mantienen sano y contento. También es tu momento para moverte y divertirte.`;
+  /** 🗣 Texto que debe leer el botón de audio */
+  private buildCardText(): string {
+    let text =
+      `Vamos a caminar con ${this.petName || 'tu perrito'}. ` +
+      `Recuerda que los paseos lo mantienen sano y contento. ` +
+      `También es tu momento para moverte y divertirte.`;
 
     if (this.currentPeriod === 'none') {
       text +=
         ' En este momento no es hora de paseo. Los horarios son: por la mañana de cuatro a once, y por la tarde de doce del día a diez de la noche.';
     }
 
+    return text;
+  }
+
+  /** 🔊 Reproducir audio (toggle) */
+  async speakCard() {
+    const text = this.buildCardText();
+    await this.toggleSpeech(text);
+  }
+
+  /** 🎛️ Lógica toggle (play / stop) */
+  private async toggleSpeech(text: string) {
+    if (!text.trim()) return;
+
+    if (this.isSpeaking) {
+      this.stopSpeech();
+      return;
+    }
+
+    await this.speak(text);
+  }
+
+  /** 🔊 Hablar (web + nativo) */
+  private async speak(text: string) {
     if (!text.trim()) return;
 
     const isNative = Capacitor.isNativePlatform();
+    this.isSpeaking = true;
 
     if (!isNative) {
-      // ===== Web (localhost / navegador) → Web Speech API =====
+      // Web (localhost / navegador) → Web Speech API
       const hasWebSpeech =
         'speechSynthesis' in window &&
         typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
 
       if (!hasWebSpeech) {
         console.warn('SpeechSynthesis no está disponible en este navegador.');
+        this.isSpeaking = false;
         return;
       }
 
@@ -152,15 +195,31 @@ export class Paseos1Page implements OnInit {
         synth.cancel();
 
         const utter = new SpeechSynthesisUtterance(text);
+        this.currentUtterance = utter;
         utter.lang = 'es-ES';
         utter.rate = 0.95;
+
+        utter.onend = () => {
+          if (this.currentUtterance === utter) {
+            this.isSpeaking = false;
+            this.currentUtterance = null;
+          }
+        };
+
+        utter.onerror = () => {
+          if (this.currentUtterance === utter) {
+            this.isSpeaking = false;
+            this.currentUtterance = null;
+          }
+        };
 
         synth.speak(utter);
       } catch (e) {
         console.warn('No se pudo reproducir la locución:', e);
+        this.isSpeaking = false;
       }
     } else {
-      // ===== APK (Android / iOS) → Plugin nativo de TTS =====
+      // APK (Android / iOS) → Plugin nativo de TTS
       try {
         await TextToSpeech.stop();
 
@@ -174,8 +233,26 @@ export class Paseos1Page implements OnInit {
         });
       } catch (err) {
         console.error('Error al usar TextToSpeech:', err);
+      } finally {
+        this.isSpeaking = false;
       }
     }
+  }
+
+  /** 🧹 Detener lectura */
+  private stopSpeech() {
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      if ('speechSynthesis' in window) {
+        (window as any).speechSynthesis.cancel();
+      }
+    } else {
+      TextToSpeech.stop().catch(() => {});
+    }
+
+    this.isSpeaking = false;
+    this.currentUtterance = null;
   }
 
   /** 💬 Toast */

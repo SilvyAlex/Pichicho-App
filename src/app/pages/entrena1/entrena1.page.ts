@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonContent,
@@ -21,7 +21,6 @@ import {
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { Capacitor } from '@capacitor/core';
 
-// 👇 mismo servicio y modelo que usas en entrena3
 import { SessionService } from '../../services/session';
 import { Profile } from '../../models/profile.model';
 
@@ -41,20 +40,25 @@ import { Profile } from '../../models/profile.model';
     IonImg
   ]
 })
-export class Entrena1Page implements OnInit {
+export class Entrena1Page implements OnInit, OnDestroy {
   @ViewChild('scroller') scroller!: ElementRef;
+
   petName = 'Pichicho';
   activities: any[] = [];
   progress = 0;
   trainedToday = false;
   completedActivityId: string | null = null;
 
-  profileId = ''; // 👈 lo vamos a llenar desde SessionService
+  profileId = '';
+
+  /** 🔊 Estado de audio */
+  isSpeaking = false;
+  private currentUtterance: SpeechSynthesisUtterance | null = null;
 
   constructor(
     private firebase: FirebaseService,
     private router: Router,
-    private session: SessionService          // 👈 NUEVO
+    private session: SessionService
   ) {
     addIcons({
       chevronBackOutline,
@@ -65,17 +69,14 @@ export class Entrena1Page implements OnInit {
   }
 
   async ngOnInit() {
-    // 👇 Tomar el perfil actual igual que en entrena3
     const profile: Profile | null = this.session.snapshot;
     if (profile) {
       this.petName = profile.nombrePerro;
       this.profileId = profile.id!;
     } else {
-      // fallback por si acaso, pero idealmente siempre viene de session
       this.profileId = localStorage.getItem('profileId') || '';
     }
 
-    // Traer las actividades y luego el estado del día
     this.activities = await this.firebase.getEntrenamientos();
     await this.checkTrainingStatus();
   }
@@ -84,9 +85,20 @@ export class Entrena1Page implements OnInit {
     await this.checkTrainingStatus();
   }
 
+  /** 🚪 Al salir de la vista, corta el audio */
+  ionViewWillLeave() {
+    this.stopSpeech();
+  }
+
+  ngOnDestroy() {
+    this.stopSpeech();
+  }
+
   async checkTrainingStatus() {
     if (!this.profileId) {
-      console.warn('No hay profileId en Entrena1, no se puede revisar entrenamiento diario');
+      console.warn(
+        'No hay profileId en Entrena1, no se puede revisar entrenamiento diario'
+      );
       return;
     }
 
@@ -94,26 +106,25 @@ export class Entrena1Page implements OnInit {
     this.trainedToday = status.trainedToday;
     this.completedActivityId = status.activityId || null;
     this.progress = status.trainedToday ? 1 : 0;
-
-    // 👀 Debug opcional:
-    // console.log('Status entrenamiento hoy:', status);
   }
 
-  /** 🔊 Botón de audio de la pantalla */
+  /** 🔊 Botón de audio de la pantalla (toggle) */
   async speakCard() {
     const text = `Entrenamiento. Hora de enseñarle trucos a ${this.petName}. 
 Escoge qué quieres practicar hoy. Recuerda premiarlo por un buen trabajo.`;
-    await this.speak(text);
+    await this.toggleSpeech(text);
   }
 
   /** 👉 Cuando el niño toca una actividad */
   async onActivityClick(a: any) {
-    // Si ya entrenó hoy y esta no es la actividad marcada, no hacer nada
     if (this.trainedToday && this.completedActivityId !== a.id) {
       return;
     }
 
     const nombre = a?.titulo || 'actividad';
+
+    // Cortar cualquier audio que esté sonando antes de decir el nombre
+    this.stopSpeech();
     await this.speak(nombre);
 
     if (!this.trainedToday) {
@@ -127,11 +138,27 @@ Escoge qué quieres practicar hoy. Recuerda premiarlo por un buen trabajo.`;
     }
   }
 
+  /* ================================
+     AUDIO (toggle + control)
+  ===================================*/
+
+  private async toggleSpeech(text: string) {
+    if (!text) return;
+
+    if (this.isSpeaking) {
+      this.stopSpeech();
+      return;
+    }
+
+    await this.speak(text);
+  }
+
   /** 🔊 Función genérica para hablar (web + APK) */
   private async speak(text: string) {
     if (!text) return;
 
     const isNative = Capacitor.isNativePlatform();
+    this.isSpeaking = true;
 
     if (!isNative) {
       const hasWebSpeech =
@@ -140,14 +167,30 @@ Escoge qué quieres practicar hoy. Recuerda premiarlo por un buen trabajo.`;
 
       if (!hasWebSpeech) {
         console.warn('SpeechSynthesis no está disponible en este navegador.');
+        this.isSpeaking = false;
         return;
       }
 
       (window as any).speechSynthesis.cancel();
 
       const u = new SpeechSynthesisUtterance(text);
+      this.currentUtterance = u;
       u.lang = 'es-ES';
       u.rate = 0.95;
+
+      u.onend = () => {
+        if (this.currentUtterance === u) {
+          this.isSpeaking = false;
+          this.currentUtterance = null;
+        }
+      };
+
+      u.onerror = () => {
+        if (this.currentUtterance === u) {
+          this.isSpeaking = false;
+          this.currentUtterance = null;
+        }
+      };
 
       (window as any).speechSynthesis.speak(u);
     } else {
@@ -163,7 +206,25 @@ Escoge qué quieres practicar hoy. Recuerda premiarlo por un buen trabajo.`;
         });
       } catch (err) {
         console.error('Error al usar TextToSpeech:', err);
+      } finally {
+        this.isSpeaking = false;
       }
     }
+  }
+
+  /** 🧹 Detener cualquier audio activo */
+  private stopSpeech() {
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      if ('speechSynthesis' in window) {
+        (window as any).speechSynthesis.cancel();
+      }
+    } else {
+      TextToSpeech.stop().catch(() => {});
+    }
+
+    this.isSpeaking = false;
+    this.currentUtterance = null;
   }
 }

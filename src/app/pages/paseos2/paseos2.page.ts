@@ -49,6 +49,10 @@ export class Paseos2Page implements OnInit, OnDestroy {
   running = false;
   finished = false;
 
+  /** 🔊 Estado de audio */
+  isSpeaking = false;
+  private currentUtterance: SpeechSynthesisUtterance | null = null;
+
   constructor(
     private router: Router,
     private session: SessionService,
@@ -72,12 +76,19 @@ export class Paseos2Page implements OnInit, OnDestroy {
     }
   }
 
+  /** 🚪 Al salir de la vista, cortar audio y timer */
+  ionViewWillLeave() {
+    this.stopSpeech();
+    this.clearTimer();
+  }
+
   ngOnDestroy() {
+    this.stopSpeech();
     this.clearTimer();
   }
 
   private startTimer() {
-    if (this.running) return;
+    if (this.running || this.durationSec <= 0) return;
     this.running = true;
     this.finished = false;
 
@@ -108,6 +119,7 @@ export class Paseos2Page implements OnInit, OnDestroy {
   finishWalk() {
     this.clearTimer();
     this.finished = true;
+    this.stopSpeech(); // por si estaba hablando
     console.log('Paseo finalizado');
 
     // 🔹 Navegar automáticamente a la siguiente vista
@@ -116,21 +128,48 @@ export class Paseos2Page implements OnInit, OnDestroy {
     }, 1000);
   }
 
-  async speakCard() {
-    let text = `Paseo en curso. Aprovecha este tiempo para que ${this.petName || 'tu perrito'} explore y juegue. No olvides recoger sus desechos con una fundita.`;
+  /** 🗣 Texto que debe leer el botón de audio */
+  private buildCardText(): string {
+    return (
+      `Paseo en curso. Aprovecha este tiempo para que ${this.petName || 'tu perrito'} ` +
+      `explore y juegue. No olvides recoger sus desechos con una fundita.`
+    );
+  }
 
+  /** 🔊 Botón de audio (toggle) */
+  async speakCard() {
+    const text = this.buildCardText();
+    await this.toggleSpeech(text);
+  }
+
+  /** 🎛️ Lógica toggle (play / stop) */
+  private async toggleSpeech(text: string) {
+    if (!text.trim()) return;
+
+    if (this.isSpeaking) {
+      this.stopSpeech();
+      return;
+    }
+
+    await this.speak(text);
+  }
+
+  /** 🔊 Hablar (web + nativo) */
+  private async speak(text: string) {
     if (!text.trim()) return;
 
     const isNative = Capacitor.isNativePlatform();
+    this.isSpeaking = true;
 
     if (!isNative) {
-      // ===== Web (localhost / navegador) → Web Speech API =====
+      // Web (localhost / navegador) → Web Speech API
       const hasWebSpeech =
         'speechSynthesis' in window &&
         typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
 
       if (!hasWebSpeech) {
         console.warn('SpeechSynthesis no está disponible en este navegador.');
+        this.isSpeaking = false;
         return;
       }
 
@@ -139,15 +178,31 @@ export class Paseos2Page implements OnInit, OnDestroy {
         synth.cancel();
 
         const u = new SpeechSynthesisUtterance(text);
+        this.currentUtterance = u;
         u.lang = 'es-ES';
         u.rate = 0.95;
+
+        u.onend = () => {
+          if (this.currentUtterance === u) {
+            this.isSpeaking = false;
+            this.currentUtterance = null;
+          }
+        };
+
+        u.onerror = () => {
+          if (this.currentUtterance === u) {
+            this.isSpeaking = false;
+            this.currentUtterance = null;
+          }
+        };
 
         synth.speak(u);
       } catch (e) {
         console.warn('No se pudo reproducir la locución:', e);
+        this.isSpeaking = false;
       }
     } else {
-      // ===== APK (Android / iOS) → Plugin nativo de TTS =====
+      // APK (Android / iOS) → Plugin nativo de TTS
       try {
         await TextToSpeech.stop();
 
@@ -161,8 +216,26 @@ export class Paseos2Page implements OnInit, OnDestroy {
         });
       } catch (err) {
         console.error('Error al usar TextToSpeech:', err);
+      } finally {
+        this.isSpeaking = false;
       }
     }
+  }
+
+  /** 🧹 Detener lectura */
+  private stopSpeech() {
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      if ('speechSynthesis' in window) {
+        (window as any).speechSynthesis.cancel();
+      }
+    } else {
+      TextToSpeech.stop().catch(() => {});
+    }
+
+    this.isSpeaking = false;
+    this.currentUtterance = null;
   }
 
   onEndPress() {

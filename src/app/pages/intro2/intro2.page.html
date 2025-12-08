@@ -2,8 +2,8 @@
   <div class="viewport">
     <!-- Botón de audio redondo -->
     <div class="audio-wrap">
-      <ion-button class="audio-btn" aria-label="Audio" (click)="speakCurrentSlide()">
-        <ion-icon name="volume-high-outline"></ion-icon>
+      <ion-button class="audio-btn" aria-label="Audio" (click)="onAudioButtonClick()">
+        <ion-icon [name]="isSpeaking ? 'volume-high' : 'volume-high-outline'"></ion-icon>
       </ion-button>
     </div>
 
@@ -100,7 +100,7 @@
           </div>
 
           <p class="helper" data-read="desc">
-            ¡Diviértete, aprende y conviértete en el mejor cuidador del mundo! ✨
+            ¡Diviértete, aprende y conviértete en el mejor cuidador del mundo!
           </p>
         </div>
       </swiper-slide>

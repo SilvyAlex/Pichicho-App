@@ -17,7 +17,6 @@ import { doc, getDoc, Firestore } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
 
-
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { Capacitor } from '@capacitor/core';
 
@@ -35,6 +34,10 @@ export class PerfilPage implements OnInit, OnDestroy {
   petLevel = 1;
   allPhotos: string[] = [];
   selectedImage: string | null = null;
+
+  /** 🔊 Estado de audio */
+  isSpeaking = false;
+  private currentUtterance: SpeechSynthesisUtterance | null = null;
 
   constructor(
     private router: Router,
@@ -86,6 +89,11 @@ export class PerfilPage implements OnInit, OnDestroy {
     }
   }
 
+  /** 🚪 Al salir de la vista */
+  ionViewWillLeave() {
+    this.stopSpeech();
+  }
+
   ngOnDestroy() {
     this.stopSpeech();
   }
@@ -125,14 +133,28 @@ export class PerfilPage implements OnInit, OnDestroy {
   private buildMainAudioText(): string {
     const nombre = this.userName || 'tu cuidador';
     const mascota = this.petName || 'tu mascota';
+    const nivel = this.petLevel || 1;
+    const cantidadFotos = this.allPhotos.length;
 
-    // Hasta "Galería de evidencias"
-    return `Perfil de ${nombre}. Mascota: ${mascota}. Galería de evidencias.`;
+    return `Perfil de ${nombre}. Mascota: ${mascota}. Nivel de cuidado: ${nivel}. 
+Tienes ${cantidadFotos} fotos de evidencias en tu galería.`;
   }
 
-  /** 👉 Botón de audio superior */
+  /** 👉 Botón de audio superior (toggle) */
   async onMainAudio() {
     const text = this.buildMainAudioText();
+    await this.toggleSpeech(text);
+  }
+
+  /** 🎛️ Lógica toggle (play / stop) */
+  private async toggleSpeech(text: string) {
+    if (!text) return;
+
+    if (this.isSpeaking) {
+      this.stopSpeech();
+      return;
+    }
+
     await this.speak(text);
   }
 
@@ -141,6 +163,7 @@ export class PerfilPage implements OnInit, OnDestroy {
     if (!text) return;
 
     const isNative = Capacitor.isNativePlatform();
+    this.isSpeaking = true;
 
     if (!isNative) {
       const hasWebSpeech =
@@ -149,14 +172,30 @@ export class PerfilPage implements OnInit, OnDestroy {
 
       if (!hasWebSpeech) {
         console.warn('SpeechSynthesis no está disponible en este navegador.');
+        this.isSpeaking = false;
         return;
       }
 
       (window as any).speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(text);
+      this.currentUtterance = utterance;
       utterance.lang = 'es-ES';
       utterance.rate = 0.95;
+
+      utterance.onend = () => {
+        if (this.currentUtterance === utterance) {
+          this.isSpeaking = false;
+          this.currentUtterance = null;
+        }
+      };
+
+      utterance.onerror = () => {
+        if (this.currentUtterance === utterance) {
+          this.isSpeaking = false;
+          this.currentUtterance = null;
+        }
+      };
 
       (window as any).speechSynthesis.speak(utterance);
     } else {
@@ -172,6 +211,8 @@ export class PerfilPage implements OnInit, OnDestroy {
         });
       } catch (err) {
         console.error('Error al usar TextToSpeech:', err);
+      } finally {
+        this.isSpeaking = false;
       }
     }
   }
@@ -187,5 +228,8 @@ export class PerfilPage implements OnInit, OnDestroy {
     } else {
       TextToSpeech.stop().catch(() => {});
     }
+
+    this.isSpeaking = false;
+    this.currentUtterance = null;
   }
 }

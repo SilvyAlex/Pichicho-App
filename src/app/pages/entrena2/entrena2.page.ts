@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FirebaseService } from '../../services/firebase';
 import { CommonModule } from '@angular/common';
@@ -31,9 +31,13 @@ import { Capacitor } from '@capacitor/core';
     IonIcon
   ]
 })
-export class Entrena2Page implements OnInit {
+export class Entrena2Page implements OnInit, OnDestroy {
   data: any = null;
   profileId = localStorage.getItem('profileId') || '';
+
+  /** 🔊 Estado de audio */
+  isSpeaking = false;
+  private currentUtterance: SpeechSynthesisUtterance | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -51,9 +55,18 @@ export class Entrena2Page implements OnInit {
     }
   }
 
-  /** 🔊 Botón de audio: título + descripción + pasos */
-  async speakCard() {
-    if (!this.data) return;
+  /** 🚪 Cortar audio al salir de la vista */
+  ionViewWillLeave() {
+    this.stopSpeech();
+  }
+
+  ngOnDestroy() {
+    this.stopSpeech();
+  }
+
+  /** 🧱 Construir texto de la tarjeta */
+  private buildCardText(): string {
+    if (!this.data) return '';
 
     const titulo = this.data.titulo ? `Entrenamiento: ${this.data.titulo}.` : '';
     const descripcion = this.data.descripcion || '';
@@ -67,7 +80,22 @@ export class Entrena2Page implements OnInit {
           .join('. ');
     }
 
-    const text = [titulo, descripcion, pasosText].filter(Boolean).join(' ');
+    return [titulo, descripcion, pasosText].filter(Boolean).join(' ');
+  }
+
+  /** 🔊 Botón de audio: ahora toggle (play/stop) */
+  async speakCard() {
+    const text = this.buildCardText();
+    await this.toggleSpeech(text);
+  }
+
+  private async toggleSpeech(text: string) {
+    if (!text) return;
+
+    if (this.isSpeaking) {
+      this.stopSpeech();
+      return;
+    }
 
     await this.speak(text);
   }
@@ -77,6 +105,7 @@ export class Entrena2Page implements OnInit {
     if (!text) return;
 
     const isNative = Capacitor.isNativePlatform();
+    this.isSpeaking = true;
 
     if (!isNative) {
       const hasWebSpeech =
@@ -85,14 +114,30 @@ export class Entrena2Page implements OnInit {
 
       if (!hasWebSpeech) {
         console.warn('SpeechSynthesis no está disponible en este navegador.');
+        this.isSpeaking = false;
         return;
       }
 
       (window as any).speechSynthesis.cancel();
 
       const u = new SpeechSynthesisUtterance(text);
+      this.currentUtterance = u;
       u.lang = 'es-ES';
       u.rate = 0.95;
+
+      u.onend = () => {
+        if (this.currentUtterance === u) {
+          this.isSpeaking = false;
+          this.currentUtterance = null;
+        }
+      };
+
+      u.onerror = () => {
+        if (this.currentUtterance === u) {
+          this.isSpeaking = false;
+          this.currentUtterance = null;
+        }
+      };
 
       (window as any).speechSynthesis.speak(u);
     } else {
@@ -103,20 +148,39 @@ export class Entrena2Page implements OnInit {
           lang: 'es-ES',
           rate: 0.95,
           pitch: 1.0,
-          volume: 1.0,   // volumen alto para APK
+          volume: 1.0,
           category: 'ambient'
         });
       } catch (err) {
         console.error('Error al usar TextToSpeech:', err);
+      } finally {
+        this.isSpeaking = false;
       }
     }
   }
 
+  /** 🧹 Detener cualquier audio activo */
+  private stopSpeech() {
+    const isNative = Capacitor.isNativePlatform();
+
+    if (!isNative) {
+      if ('speechSynthesis' in window) {
+        (window as any).speechSynthesis.cancel();
+      }
+    } else {
+      TextToSpeech.stop().catch(() => {});
+    }
+
+    this.isSpeaking = false;
+    this.currentUtterance = null;
+  }
+
   async finishTraining() {
-    // Solo mandamos al usuario a tomar la foto
     const entrenamientoId = this.route.snapshot.paramMap.get('id');
     if (!entrenamientoId) return;
 
+    // cortar audio antes de navegar
+    this.stopSpeech();
     this.router.navigate(['/entrena3', entrenamientoId]);
   }
 }

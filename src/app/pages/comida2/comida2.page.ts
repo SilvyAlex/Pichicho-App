@@ -1,4 +1,11 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  AfterViewInit,
+  ElementRef,
+  ViewChild
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -9,7 +16,11 @@ import {
   IonIcon
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chevronBackOutline, volumeHighOutline, cameraOutline } from 'ionicons/icons';
+import {
+  chevronBackOutline,
+  volumeHighOutline,
+  cameraOutline
+} from 'ionicons/icons';
 
 import { FirebaseService } from '../../services/firebase';
 import { SessionService } from '../../services/session';
@@ -18,7 +29,6 @@ import { Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 
-// ✅ NUEVO: plugin de cámara de Capacitor
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 @Component({
@@ -38,18 +48,21 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 })
 export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
   userName = '';
-  petName  = '';
+  petName = '';
   profileId: string | null = null;
 
-  @ViewChild('video')  videoRef!: ElementRef<HTMLVideoElement>;
+  @ViewChild('video') videoRef!: ElementRef<HTMLVideoElement>;
   @ViewChild('canvas') canvasRef!: ElementRef<HTMLCanvasElement>;
 
   private stream: MediaStream | null = null;
   isStreaming = false;
   photoDataUrl: string | null = null;
 
-  // ✅ Saber si estamos en APK (nativo) o en web
   readonly isNative = Capacitor.isNativePlatform();
+
+  /** 🔊 NUEVO: estado del audio */
+  isSpeaking = false;
+  private currentUtterance: SpeechSynthesisUtterance | null = null;
 
   constructor(
     private firebaseSvc: FirebaseService,
@@ -63,38 +76,43 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
     const profile = this.session.snapshot;
     if (profile) {
       this.userName = profile.nombreNino;
-      this.petName  = profile.nombrePerro;
+      this.petName = profile.nombrePerro;
       this.profileId = profile.id;
     }
   }
 
   async ngAfterViewInit() {
-    // 🔹 En web seguimos usando la cámara del navegador
-    // 🔹 En APK (nativo) NO iniciamos getUserMedia, usamos el plugin al disparar la foto
-    if (!this.isNative) {
-      await this.startCamera();
-    }
+    if (!this.isNative) await this.startCamera();
+  }
+
+  /** 🚪 Cortar audio al salir */
+  ionViewWillLeave() {
+    this.stopSpeech();
   }
 
   ngOnDestroy() {
+    this.stopSpeech();
     this.stopCamera();
   }
 
-  // ======= CÁMARA WEB (solo navegador / localhost) =======
+  /* ================================
+     CÁMARA WEB
+  ===================================*/
   async startCamera() {
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: 'environment' } },
         audio: false
       });
+
       const video = this.videoRef?.nativeElement;
       if (!video) return;
+
       video.srcObject = this.stream;
       await video.play();
       this.isStreaming = true;
     } catch (err) {
-      console.warn('No se pudo iniciar la cámara (web):', err);
-      this.isStreaming = false;
+      console.warn('No se pudo iniciar cámara web:', err);
     }
   }
 
@@ -106,19 +124,18 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
     this.isStreaming = false;
   }
 
-  // ======= BOTÓN DISPARO (misma lógica externa) =======
+  /* ================================
+     BOTÓN DISPARO
+  ===================================*/
   async onShutter() {
-    // Si ya hay foto, resetear y volver a mostrar cámara
+    this.stopSpeech(); // cortar audio si estaba sonando
+
     if (this.photoDataUrl) {
       this.photoDataUrl = null;
-      if (!this.isNative) {
-        await this.startCamera();
-      }
-      // En nativo no hace falta reiniciar nada, la próxima vez se vuelve a abrir la cámara
+      if (!this.isNative) await this.startCamera();
       return;
     }
 
-    // Tomar foto dependiendo de la plataforma
     if (this.isNative) {
       await this.takePhotoNative();
     } else {
@@ -126,7 +143,6 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // ======= FOTO EN WEB (lo que ya tenías) =======
   takePhotoWeb() {
     const video = this.videoRef?.nativeElement;
     const canvas = this.canvasRef?.nativeElement;
@@ -134,111 +150,153 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
 
     const w = video.videoWidth || 720;
     const h = video.videoHeight || 1280;
+
     canvas.width = w;
     canvas.height = h;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
     ctx.drawImage(video, 0, 0, w, h);
     this.photoDataUrl = canvas.toDataURL('image/jpeg', 0.92);
     this.stopCamera();
   }
 
-  // ======= FOTO EN APK (Android / iOS) CON PERMISOS =======
   async takePhotoNative() {
     try {
-      // 🔐 Pedir permisos si aún no los tiene
-      await Camera.requestPermissions({
-        permissions: ['camera']
-      });
+      await Camera.requestPermissions({ permissions: ['camera'] });
 
       const photo = await Camera.getPhoto({
         quality: 80,
-        resultType: CameraResultType.DataUrl, // ⬅️ para seguir usando photoDataUrl
+        resultType: CameraResultType.DataUrl,
         source: CameraSource.Camera,
-        saveToGallery: false,
         correctOrientation: true
       });
 
       this.photoDataUrl = photo.dataUrl || null;
     } catch (err) {
-      console.warn('No se pudo tomar la foto (nativo) o el usuario canceló:', err);
+      console.warn('Error tomando foto nativa:', err);
     }
   }
 
-  /** Guardar evidencia de comida */
+  /* ================================
+     GUARDAR EVIDENCIA
+  ===================================*/
   async saveEvidence() {
     if (!this.photoDataUrl || !this.profileId) return;
 
-    const profile = this.session.snapshot;
-    if (!profile) return;
+    this.stopSpeech(); // evitar que siga hablando
 
     try {
-      const fotoUrl = await this.firebaseSvc.uploadEvidencePhoto(this.photoDataUrl, this.petName);
-      await this.firebaseSvc.addEvidenceDate(this.profileId, 'comida', fotoUrl);
+      const fotoUrl = await this.firebaseSvc.uploadEvidencePhoto(
+        this.photoDataUrl,
+        this.petName
+      );
 
-      // 🧮 Actualizar puntos locales
-      const nuevosPuntos = (profile.puntos || 0) + 5;
-      await this.session.setProfile({ ...profile, puntos: nuevosPuntos });
+      await this.firebaseSvc.addEvidenceDate(
+        this.profileId,
+        'comida',
+        fotoUrl
+      );
 
-      console.log('✅ Evidencia de comida guardada correctamente');
+      const profile = this.session.snapshot;
+      if (profile) {
+        const nuevosPuntos = (profile.puntos || 0) + 5;
+        await this.session.setProfile({
+          ...profile,
+          puntos: nuevosPuntos
+        });
+      }
 
-      // ✅ Pausa antes de volver al Home
       setTimeout(() => {
         this.router.navigateByUrl('/home');
       }, 800);
-
     } catch (err) {
-      console.error('❌ Error al guardar evidencia de comida:', err);
+      console.error('Error guardando evidencia:', err);
     }
   }
 
+  /* ================================
+     AUDIO — TOGGLE
+  ===================================*/
+
   async speakCard() {
     const text = `¡Qué bien lo hicieron! Ahora toma una foto de ${this.petName}.`;
+    await this.toggleSpeech(text);
+  }
 
+  private async toggleSpeech(text: string) {
+    if (this.isSpeaking) {
+      this.stopSpeech();
+      return;
+    }
+    await this.speak(text);
+  }
+
+  private async speak(text: string) {
     if (!text.trim()) return;
 
     const isNative = this.isNative;
+    this.isSpeaking = true;
 
     if (!isNative) {
-      // ===== Entorno web → Web Speech API =====
       const hasWebSpeech =
         'speechSynthesis' in window &&
         typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
 
       if (!hasWebSpeech) {
-        console.warn('SpeechSynthesis no está disponible en este navegador.');
+        this.isSpeaking = false;
         return;
       }
 
-      try {
-        const synth = (window as any).speechSynthesis;
-        synth.cancel();
+      const synth = (window as any).speechSynthesis;
+      synth.cancel();
 
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = 'es-ES';
-        utter.rate = 0.95;
+      const utter = new SpeechSynthesisUtterance(text);
+      this.currentUtterance = utter;
+      utter.lang = 'es-ES';
+      utter.rate = 0.95;
 
-        synth.speak(utter);
-      } catch (e) {
-        console.warn('No se pudo reproducir la locución:', e);
-      }
+      utter.onend = () => {
+        if (this.currentUtterance === utter) {
+          this.isSpeaking = false;
+          this.currentUtterance = null;
+        }
+      };
+
+      utter.onerror = () => {
+        this.isSpeaking = false;
+        this.currentUtterance = null;
+      };
+
+      synth.speak(utter);
     } else {
-      // ===== APK (Android / iOS) → Plugin nativo de TTS =====
       try {
         await TextToSpeech.stop();
-
         await TextToSpeech.speak({
           text,
           lang: 'es-ES',
           rate: 0.95,
-          pitch: 1.0,
-          volume: 1.0,
-          category: 'ambient',
+          pitch: 1
         });
-      } catch (err) {
-        console.error('Error al usar TextToSpeech:', err);
+      } catch (_) {
+      } finally {
+        this.isSpeaking = false;
       }
     }
+  }
+
+  private stopSpeech() {
+    const isNative = this.isNative;
+
+    if (!isNative) {
+      if ('speechSynthesis' in window)
+        (window as any).speechSynthesis.cancel();
+    } else {
+      TextToSpeech.stop().catch(() => {});
+    }
+
+    this.isSpeaking = false;
+    this.currentUtterance = null;
   }
 }

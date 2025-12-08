@@ -1,4 +1,11 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  AfterViewInit,
+  ElementRef,
+  ViewChild
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -19,7 +26,7 @@ import { Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 
-// ✅ NUEVO: plugin de cámara de Capacitor
+// ✅ Plugin de cámara de Capacitor
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 @Component({
@@ -52,6 +59,10 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
   // ✅ Saber si estamos en APK (nativo) o en web
   readonly isNative = Capacitor.isNativePlatform();
 
+  /** 🔊 Estado de audio */
+  isSpeaking = false;
+  private currentUtterance: SpeechSynthesisUtterance | null = null;
+
   constructor(
     private firebaseSvc: FirebaseService,
     private session: SessionService,
@@ -76,8 +87,15 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /** 🚪 Al salir de la vista */
+  ionViewWillLeave() {
+    this.stopCamera();
+    this.stopSpeech();
+  }
+
   ngOnDestroy() {
     this.stopCamera();
+    this.stopSpeech();
   }
 
   // ======= CÁMARA WEB (solo navegador / localhost) =======
@@ -125,7 +143,7 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // ======= FOTO EN WEB (lo que ya tenías) =======
+  // ======= FOTO EN WEB =======
   takePhotoWeb() {
     const video = this.videoRef?.nativeElement;
     const canvas = this.canvasRef?.nativeElement;
@@ -183,7 +201,9 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
 
       console.log('✅ Evidencia de paseo guardada correctamente');
 
-      // Esperar breve para que Firebase procese y Home se actualice
+      // Antes de navegar, aseguramos que no quede audio
+      this.stopSpeech();
+
       setTimeout(() => {
         this.router.navigateByUrl('/home');
       }, 800);
@@ -193,21 +213,45 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  async speakCard() {
-    const text = `¡Qué bien lo hicieron! Ahora toma una foto de ${this.petName || 'tu perrito'}.`;
+  /** 🗣 Texto del botón de audio */
+  private buildCardText(): string {
+    return `¡Qué bien lo hicieron! Ahora toma una foto de ${this.petName || 'tu perrito'}.`;
+  }
 
+  /** 🔊 Botón de audio (toggle) */
+  async speakCard() {
+    const text = this.buildCardText();
+    await this.toggleSpeech(text);
+  }
+
+  /** 🎛️ Lógica toggle (play / stop) */
+  private async toggleSpeech(text: string) {
+    if (!text.trim()) return;
+
+    if (this.isSpeaking) {
+      this.stopSpeech();
+      return;
+    }
+
+    await this.speak(text);
+  }
+
+  /** 🔊 Hablar (web + nativo) */
+  private async speak(text: string) {
     if (!text.trim()) return;
 
     const isNative = this.isNative;
+    this.isSpeaking = true;
 
     if (!isNative) {
-      // ===== Web (localhost / navegador) → Web Speech API =====
+      // Web → Web Speech API
       const hasWebSpeech =
         'speechSynthesis' in window &&
         typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
 
       if (!hasWebSpeech) {
         console.warn('SpeechSynthesis no está disponible en este navegador.');
+        this.isSpeaking = false;
         return;
       }
 
@@ -216,15 +260,31 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
         synth.cancel();
 
         const utter = new SpeechSynthesisUtterance(text);
+        this.currentUtterance = utter;
         utter.lang = 'es-ES';
         utter.rate = 0.95;
+
+        utter.onend = () => {
+          if (this.currentUtterance === utter) {
+            this.isSpeaking = false;
+            this.currentUtterance = null;
+          }
+        };
+
+        utter.onerror = () => {
+          if (this.currentUtterance === utter) {
+            this.isSpeaking = false;
+            this.currentUtterance = null;
+          }
+        };
 
         synth.speak(utter);
       } catch (e) {
         console.warn('No se pudo reproducir la locución:', e);
+        this.isSpeaking = false;
       }
     } else {
-      // ===== APK (Android / iOS) → Plugin nativo de TTS =====
+      // APK (Android / iOS) → Plugin nativo de TTS
       try {
         await TextToSpeech.stop();
 
@@ -238,7 +298,25 @@ export class Paseos3Page implements OnInit, AfterViewInit, OnDestroy {
         });
       } catch (err) {
         console.error('Error al usar TextToSpeech:', err);
+      } finally {
+        this.isSpeaking = false;
       }
     }
+  }
+
+  /** 🧹 Detener lectura */
+  private stopSpeech() {
+    const isNative = this.isNative;
+
+    if (!isNative) {
+      if ('speechSynthesis' in window) {
+        (window as any).speechSynthesis.cancel();
+      }
+    } else {
+      TextToSpeech.stop().catch(() => {});
+    }
+
+    this.isSpeaking = false;
+    this.currentUtterance = null;
   }
 }

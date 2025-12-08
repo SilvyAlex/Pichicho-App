@@ -40,8 +40,12 @@ export class HomePage implements OnInit, OnDestroy {
     limpieza: { done: 0 },
     vacunas: { done: 0 },
     score: 0,
-    bonus: 0 // 🌟 nuevo campo para mostrar bonus
+    bonus: 0
   };
+
+  /** 👇 NUEVO: estado del audio */
+  isSpeaking = false;
+  private currentUtterance: SpeechSynthesisUtterance | null = null;
 
   constructor(
     private router: Router,
@@ -79,6 +83,11 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
+  /** 👇 NUEVO: cuando sales de la vista, corta el audio */
+  ionViewWillLeave() {
+    this.stopSpeech();
+  }
+
   ngOnDestroy() {
     this.stopSpeech();
   }
@@ -110,9 +119,6 @@ export class HomePage implements OnInit, OnDestroy {
     const { hasVaccine } = await this.firebase.getVaccineStatus(this.profileId);
     this.progreso.vacunas.done = hasVaccine ? 1 : 0;
 
-    // -----------------------------------------------
-    // 📊 Cálculo principal (3 actividades diarias)
-    // -----------------------------------------------
     const totalActividades = 3;
     const promedio =
       (this.progreso.comida.done / this.progreso.comida.total +
@@ -122,19 +128,13 @@ export class HomePage implements OnInit, OnDestroy {
 
     let baseScore = promedio * 100;
 
-    // -----------------------------------------------
-    // 🌟 BONUS semanal (limpieza + vacunas)
-    // -----------------------------------------------
     const bonusCount =
       (this.progreso.limpieza.done ? 1 : 0) +
       (this.progreso.vacunas.done ? 1 : 0);
 
-    const bonus = Math.min(bonusCount * 5, 10); // máx +10%
+    const bonus = Math.min(bonusCount * 5, 10);
     this.progreso.bonus = bonus;
 
-    // -----------------------------------------------
-    // 🧮 Puntaje final con bonus (máx 100%)
-    // -----------------------------------------------
     const total = Math.min(baseScore + bonus, 100);
     this.progreso.score = Math.round(total);
   }
@@ -144,21 +144,37 @@ export class HomePage implements OnInit, OnDestroy {
     const comida = this.progreso.comida.done;
     const paseos = this.progreso.paseos.done;
     const entreno = this.progreso.entreno.done;
-    const estadoTexto = 'Good'; // si luego lo cambias a Bad según score, se lee automático
+    const estadoTexto = 'Good';
     const score = this.progreso.score;
 
     return `Hola ${this.childName}. ¿Cómo está ${this.dogName} hoy?.
 Comida ${comida}. Paseos ${paseos}. Entrenamiento ${entreno}. ${estadoTexto} ${score} por ciento.`;
   }
 
-  /** 👉 Botón de audio superior */
+  /** 👉 Botón de audio superior — ahora toggle */
   async onMainAudio() {
     const text = this.buildMainAudioText();
+    await this.toggleSpeech(text);
+  }
+
+  /** 👇 NUEVO: lógica toggle (play / stop) */
+  private async toggleSpeech(text: string) {
+    if (!text) return;
+
+    // Si ya está hablando, al volver a tocar se detiene
+    if (this.isSpeaking) {
+      this.stopSpeech();
+      return;
+    }
+
+    // Si no está hablando, empieza
     await this.speak(text);
   }
 
   /** 👉 Cuando tocan las pills: dice la palabra y navega */
   async onPillClick(path: string, word: string) {
+    // opcional: corta cualquier audio anterior antes de hablar
+    this.stopSpeech();
     await this.speak(word);
     this.router.navigateByUrl(path);
   }
@@ -168,6 +184,7 @@ Comida ${comida}. Paseos ${paseos}. Entrenamiento ${entreno}. ${estadoTexto} ${s
     if (!text) return;
 
     const isNative = Capacitor.isNativePlatform();
+    this.isSpeaking = true; // 👈 marcamos que está hablando
 
     if (!isNative) {
       const hasWebSpeech =
@@ -176,14 +193,31 @@ Comida ${comida}. Paseos ${paseos}. Entrenamiento ${entreno}. ${estadoTexto} ${s
 
       if (!hasWebSpeech) {
         console.warn('SpeechSynthesis no está disponible en este navegador.');
+        this.isSpeaking = false;
         return;
       }
 
       (window as any).speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(text);
+      this.currentUtterance = utterance;
       utterance.lang = 'es-ES';
       utterance.rate = 0.95;
+
+      // 👇 Cuando termina o hay error, marcamos que ya no está hablando
+      utterance.onend = () => {
+        if (this.currentUtterance === utterance) {
+          this.isSpeaking = false;
+          this.currentUtterance = null;
+        }
+      };
+
+      utterance.onerror = () => {
+        if (this.currentUtterance === utterance) {
+          this.isSpeaking = false;
+          this.currentUtterance = null;
+        }
+      };
 
       (window as any).speechSynthesis.speak(utterance);
     } else {
@@ -199,11 +233,14 @@ Comida ${comida}. Paseos ${paseos}. Entrenamiento ${entreno}. ${estadoTexto} ${s
         });
       } catch (err) {
         console.error('Error al usar TextToSpeech:', err);
+      } finally {
+        // En nativo no tenemos evento onend, así que liberamos aquí
+        this.isSpeaking = false;
       }
     }
   }
 
-  /** 🧹 Detener lectura al salir */
+  /** 🧹 Detener lectura en cualquier plataforma */
   private stopSpeech() {
     const isNative = Capacitor.isNativePlatform();
 
@@ -214,5 +251,8 @@ Comida ${comida}. Paseos ${paseos}. Entrenamiento ${entreno}. ${estadoTexto} ${s
     } else {
       TextToSpeech.stop().catch(() => {});
     }
+
+    this.isSpeaking = false;
+    this.currentUtterance = null;
   }
 }
