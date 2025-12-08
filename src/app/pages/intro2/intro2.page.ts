@@ -44,20 +44,22 @@ export class Intro2Page implements OnInit {
 
   ngOnInit() {}
 
-  /** Botón de audio:
+  /**
+   * Botón de audio:
    * - Primer toque: da permiso y reproduce el slide actual.
-   * - Siguiente toque: detiene el audio.
+   * - Siguientes toques: alterna entre reproducir y detener.
    */
   async onAudioButtonClick() {
-    // Primer toque → habilita audio y sincroniza índice real del swiper
+    // El niño ya dio permiso para usar audio
     if (!this.audioEnabled) {
       this.audioEnabled = true;
+    }
 
-      const swiperInstance = this.swiper?.nativeElement?.swiper;
-      if (swiperInstance && typeof swiperInstance.activeIndex === 'number') {
-        const idx = swiperInstance.activeIndex;
-        this.active = Math.max(0, Math.min(idx, this.total - 1));
-      }
+    // Siempre sincronizar el índice activo con el swiper antes de hablar
+    const swiperInstance = this.swiper?.nativeElement?.swiper;
+    if (swiperInstance && typeof swiperInstance.activeIndex === 'number') {
+      const idx = swiperInstance.activeIndex;
+      this.active = Math.max(0, Math.min(idx, this.total - 1));
     }
 
     // Si está hablando → detener
@@ -90,10 +92,18 @@ export class Intro2Page implements OnInit {
     }
   }
 
-  /** Se dispara cuando cambias de slide (por swipe o por código) */
-  onSlideChangeEvent() {
+  /**
+   * Se dispara cuando cambias de slide (por swipe, dots o por código).
+   * Se enlaza en el HTML con (slidechange)="onSlideChangeEvent($event)".
+   */
+  onSlideChangeEvent(event?: any) {
     const swiperInstance = this.swiper?.nativeElement?.swiper;
-    const idx = swiperInstance?.activeIndex ?? 0;
+
+    // Swiper web component puede exponer el índice en el propio swiper o en event.detail[0]
+    const idx =
+      swiperInstance?.activeIndex ??
+      event?.detail?.[0]?.activeIndex ??
+      0;
 
     this.ngZone.run(() => {
       this.active = Math.max(0, Math.min(idx, this.total - 1));
@@ -138,7 +148,10 @@ export class Intro2Page implements OnInit {
     });
   }
 
-  /** Reproduce título + descripción + labels de las cards del slide actual (web + APK) */
+  /**
+   * Reproduce título + descripción + labels de las cards del slide actual
+   * Funciona tanto en web como en APK.
+   */
   async speakCurrentSlide() {
     if (!this.audioEnabled) return;
 
@@ -233,5 +246,10 @@ export class Intro2Page implements OnInit {
         this.isSpeaking = false;
       }
     }
+  }
+
+  /** Por si salen de la pantalla mientras suena el audio */
+  ionViewWillLeave() {
+    this.stopCurrentSpeech();
   }
 }

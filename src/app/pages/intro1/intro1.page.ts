@@ -50,22 +50,22 @@ export class Intro1Page implements OnInit {
   /**
    * Botón de audio:
    * - Primer toque: da permiso y reproduce el slide actual.
-   * - Siguiente toque: detiene el audio.
+   * - Siguientes toques: alterna entre reproducir y detener.
    */
   async onAudioButtonClick() {
     // El niño ya dio permiso para usar audio
     if (!this.audioEnabled) {
       this.audioEnabled = true;
-
-      // Aseguramos que el índice active coincide con el slide real
-      const swiperInstance = this.swiper?.nativeElement?.swiper;
-      if (swiperInstance) {
-        const idx = swiperInstance.activeIndex ?? this.active;
-        this.active = Math.max(0, Math.min(idx, this.total - 1));
-      }
     }
 
-    // Si está hablando → detener (pausa/stop)
+    // Siempre sincronizar el índice activo con el swiper antes de hablar
+    const swiperInstance = this.swiper?.nativeElement?.swiper;
+    if (swiperInstance) {
+      const idx = swiperInstance.activeIndex ?? this.active;
+      this.active = Math.max(0, Math.min(idx, this.total - 1));
+    }
+
+    // Si está hablando → detener
     if (this.isSpeaking) {
       await this.stopCurrentSpeech();
       return;
@@ -95,18 +95,25 @@ export class Intro1Page implements OnInit {
     }
   }
 
-  /** Evento al cambiar de slide (por swipe o por código) */
-  onSlideChangeEvent() {
+  /**
+   * Evento al cambiar de slide (por swipe, por dots o por código).
+   * Se enlaza en el HTML con (slidechange)="onSlideChangeEvent($event)".
+   */
+  onSlideChangeEvent(event?: any) {
     const swiperInstance = this.swiper?.nativeElement?.swiper;
-    const idx = swiperInstance?.activeIndex ?? 0;
+
+    // Swiper web component puede exponer el índice en el propio swiper o en el event.detail[0]
+    const idx =
+      swiperInstance?.activeIndex ??
+      event?.detail?.[0]?.activeIndex ??
+      0;
 
     this.ngZone.run(() => {
       this.active = Math.max(0, Math.min(idx, this.total - 1));
 
       // Al cambiar de slide SIEMPRE se detiene el audio anterior
       this.stopCurrentSpeech();
-      // Ojo: ya NO autoreproducimos el siguiente slide.
-      // Los niños deciden cuándo escuchar tocando el botón.
+      // No autoreproducimos el nuevo slide.
     });
   }
 
@@ -221,5 +228,10 @@ export class Intro1Page implements OnInit {
         this.isSpeaking = false;
       }
     }
+  }
+
+  /** Por si salen de la pantalla mientras suena el audio */
+  ionViewWillLeave() {
+    this.stopCurrentSpeech();
   }
 }
