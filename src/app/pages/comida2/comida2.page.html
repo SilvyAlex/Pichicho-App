@@ -22,13 +22,13 @@
 
     <!-- Marco punteado + preview -->
     <div class="photo-frame">
-      <!-- Vista cámara (solo se usará realmente en web) -->
+      <!-- Vista cámara (PREVIEW en vivo) -->
       <video #video class="preview" autoplay playsinline muted *ngIf="!photoDataUrl"></video>
 
       <!-- Foto capturada -->
       <img *ngIf="photoDataUrl" class="preview" [src]="photoDataUrl" alt="Foto de {{petName}}"/>
 
-      <!-- Canvas oculto (para captura en web) -->
+      <!-- Canvas oculto (para captura) -->
       <canvas #canvas hidden></canvas>
     </div>
 

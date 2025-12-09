@@ -60,7 +60,7 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
 
   readonly isNative = Capacitor.isNativePlatform();
 
-  /** 🔊 NUEVO: estado del audio */
+  /** 🔊 estado del audio */
   isSpeaking = false;
   private currentUtterance: SpeechSynthesisUtterance | null = null;
 
@@ -81,8 +81,9 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  // ⭐️ ARRANCAR SIEMPRE LA CÁMARA (intenta usar getUserMedia en web y Android)
   async ngAfterViewInit() {
-    if (!this.isNative) await this.startCamera();
+    await this.startCamera();
   }
 
   /** 🚪 Cortar audio al salir */
@@ -96,11 +97,23 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /* ================================
-     CÁMARA WEB
+     CÁMARA PREVIEW (getUserMedia)
   ===================================*/
   async startCamera() {
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
+      // Si ya hay stream activo, no hagas nada
+      if (this.isStreaming && this.stream) return;
+
+      // @ts-ignore - algunos tipos de TS no reconocen mediaDevices en todas las plataformas
+      const mediaDevices = navigator.mediaDevices;
+      if (!mediaDevices || !mediaDevices.getUserMedia) {
+        console.warn('getUserMedia no disponible, se usará cámara nativa si es posible');
+        this.isStreaming = false;
+        this.stream = null;
+        return;
+      }
+
+      this.stream = await mediaDevices.getUserMedia({
         video: { facingMode: { ideal: 'environment' } },
         audio: false
       });
@@ -112,7 +125,9 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
       await video.play();
       this.isStreaming = true;
     } catch (err) {
-      console.warn('No se pudo iniciar cámara web:', err);
+      console.warn('No se pudo iniciar cámara con getUserMedia:', err);
+      this.isStreaming = false;
+      this.stream = null;
     }
   }
 
@@ -130,16 +145,25 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
   async onShutter() {
     this.stopSpeech(); // cortar audio si estaba sonando
 
+    // Si ya hay foto -> reset y volver al preview
     if (this.photoDataUrl) {
       this.photoDataUrl = null;
-      if (!this.isNative) await this.startCamera();
+      await this.startCamera();
       return;
     }
 
+    // ⭐️ 1) Si tenemos preview activo, tomar foto desde el <video>
+    if (this.isStreaming && this.stream) {
+      this.takePhotoWeb();
+      return;
+    }
+
+    // ⭐️ 2) Si no hay preview (getUserMedia falló), fallback a cámara nativa
     if (this.isNative) {
       await this.takePhotoNative();
     } else {
-      this.takePhotoWeb();
+      // Web sin cámara -> solo intenta de nuevo
+      await this.startCamera();
     }
   }
 
@@ -162,6 +186,7 @@ export class Comida2Page implements OnInit, AfterViewInit, OnDestroy {
     this.stopCamera();
   }
 
+  // ⭐️ Fallback nativo (solo si getUserMedia no funcionó)
   async takePhotoNative() {
     try {
       await Camera.requestPermissions({ permissions: ['camera'] });

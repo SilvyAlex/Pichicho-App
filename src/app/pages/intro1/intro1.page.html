@@ -4,11 +4,9 @@
     <!-- Botón de audio redondo -->
     <div class="audio-wrap">
       <ion-button class="audio-btn" aria-label="Audio" (click)="onAudioButtonClick()">
-        <!-- Icono cambia según si está sonando o no -->
         <ion-icon [name]="isSpeaking ? 'volume-high' : 'volume-high-outline'"></ion-icon>
       </ion-button>
     </div>
-
 
     <!-- Swiper -->
     <swiper-container
@@ -17,8 +15,9 @@
       slides-per-view="1"
       speed="350"
       allow-touch-move="true"
-      (slideChange)="onSlideChangeEvent($event)"
+      (slidechange)="onSlideChangeEvent($event)"
     >
+      <!-- SLIDE 1 -->
       <swiper-slide class="slide">
         <div class="center-wrap">
           <img src="assets/images/Artboard 1.png" alt="Pichicho" class="dog-hero" />
@@ -29,6 +28,7 @@
         </div>
       </swiper-slide>
 
+      <!-- SLIDE 2 -->
       <swiper-slide class="slide">
         <div class="center-wrap">
           <img src="assets/images/Artboard 2.png" alt="Pichicho" class="dog-hero" />
@@ -39,6 +39,7 @@
         </div>
       </swiper-slide>
 
+      <!-- SLIDE 3 -->
       <swiper-slide class="slide">
         <div class="center-wrap">
           <img src="assets/images/Artboard 3.png" alt="Pichicho" class="dog-hero" />
@@ -53,6 +54,8 @@
     <!-- Footer -->
     <div class="footer-wrap">
       <div class="footer-inner">
+
+        <!-- Puntos -->
         <div class="dots" aria-label="Paginación">
           <button
             class="dot"
@@ -63,9 +66,11 @@
           </button>
         </div>
 
+        <!-- Botón Continuar / Empezar -->
         <ion-button class="cta" shape="round" (click)="continue()">
           {{ active < total - 1 ? 'Continuar' : 'Empezar' }}
         </ion-button>
+
       </div>
     </div>
 

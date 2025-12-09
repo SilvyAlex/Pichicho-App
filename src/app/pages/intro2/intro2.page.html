@@ -1,5 +1,6 @@
 <ion-content fullscreen="true" class="onboard-content">
   <div class="viewport">
+    
     <!-- Botón de audio redondo -->
     <div class="audio-wrap">
       <ion-button class="audio-btn" aria-label="Audio" (click)="onAudioButtonClick()">
@@ -16,7 +17,7 @@
       allow-touch-move="true"
       (slidechange)="onSlideChangeEvent($event)"
     >
-      <!-- SLIDE 1: Comida / Entrenamiento / Paseos -->
+      <!-- SLIDE 1 -->
       <swiper-slide class="slide">
         <div class="center-wrap">
           <div class="text-block">
@@ -47,7 +48,7 @@
         </div>
       </swiper-slide>
 
-      <!-- SLIDE 2: Historias interactivas / Baños -->
+      <!-- SLIDE 2 -->
       <swiper-slide class="slide">
         <div class="center-wrap">
           <div class="text-block">
@@ -74,7 +75,7 @@
         </div>
       </swiper-slide>
 
-      <!-- SLIDE 3: Inicio / Puntos / Perfil -->
+      <!-- SLIDE 3 -->
       <swiper-slide class="slide">
         <div class="center-wrap">
           <div class="text-block">
@@ -109,6 +110,8 @@
     <!-- Footer: dots + botón -->
     <div class="footer-wrap">
       <div class="footer-inner">
+
+        <!-- Dots -->
         <div class="dots" aria-label="Paginación">
           <button
             class="dot"
@@ -119,10 +122,13 @@
           </button>
         </div>
 
+        <!-- Botón Continuar / Empezar -->
         <ion-button class="cta" shape="round" (click)="continue()">
           {{ active < total - 1 ? 'Continuar' : 'Empezar' }}
         </ion-button>
+
       </div>
     </div>
+
   </div>
 </ion-content>

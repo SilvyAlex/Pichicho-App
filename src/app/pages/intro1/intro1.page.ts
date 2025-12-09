@@ -5,6 +5,7 @@ import {
   ElementRef,
   CUSTOM_ELEMENTS_SCHEMA,
   NgZone,
+  OnDestroy,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -28,7 +29,7 @@ addIcons({
   imports: [IonContent, IonButton, IonIcon, CommonModule, FormsModule],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class Intro1Page implements OnInit {
+export class Intro1Page implements OnInit, OnDestroy {
   @ViewChild('swiper', { read: ElementRef, static: true })
   swiper?: ElementRef<any>;
 
@@ -36,29 +37,31 @@ export class Intro1Page implements OnInit {
   active = 0;
   dots = [0, 1, 2];
 
-  /**
-   * audioEnabled: indica si el usuario ya dio "permiso" tocando el botón al menos una vez.
-   * isSpeaking: indica si actualmente se está reproduciendo audio.
-   */
+  // audioEnabled: el niño ya tocó el botón y dio permiso
   audioEnabled = false;
+  // isSpeaking: indica si el TTS está sonando
   isSpeaking = false;
 
   constructor(private router: Router, private ngZone: NgZone) {}
 
   ngOnInit() {}
 
+  ngOnDestroy() {
+    // Seguridad extra: por si esta vista se destruye sin ionViewWillLeave
+    this.stopCurrentSpeech();
+  }
+
   /**
    * Botón de audio:
-   * - Primer toque: da permiso y reproduce el slide actual.
-   * - Siguientes toques: alterna entre reproducir y detener.
+   * - Primer toque: da permiso y lee el slide actual.
+   * - Siguientes toques: toggle play / stop del slide actual.
    */
   async onAudioButtonClick() {
-    // El niño ya dio permiso para usar audio
     if (!this.audioEnabled) {
       this.audioEnabled = true;
     }
 
-    // Siempre sincronizar el índice activo con el swiper antes de hablar
+    // Sincronizar índice activo con el swiper antes de hablar
     const swiperInstance = this.swiper?.nativeElement?.swiper;
     if (swiperInstance) {
       const idx = swiperInstance.activeIndex ?? this.active;
@@ -72,7 +75,7 @@ export class Intro1Page implements OnInit {
     }
 
     // Si NO está hablando → reproducir el slide actual
-    await this.stopCurrentSpeech(); // por si quedó algo colgado
+    await this.stopCurrentSpeech();
     await this.speakCurrentSlide();
   }
 
@@ -96,13 +99,12 @@ export class Intro1Page implements OnInit {
   }
 
   /**
-   * Evento al cambiar de slide (por swipe, por dots o por código).
-   * Se enlaza en el HTML con (slidechange)="onSlideChangeEvent($event)".
+   * Evento al cambiar de slide (por swipe, dots, o slideNext/slideTo).
+   * Importante: en el HTML es (slidechange)="onSlideChangeEvent($event)".
    */
   onSlideChangeEvent(event?: any) {
     const swiperInstance = this.swiper?.nativeElement?.swiper;
 
-    // Swiper web component puede exponer el índice en el propio swiper o en el event.detail[0]
     const idx =
       swiperInstance?.activeIndex ??
       event?.detail?.[0]?.activeIndex ??
@@ -111,18 +113,17 @@ export class Intro1Page implements OnInit {
     this.ngZone.run(() => {
       this.active = Math.max(0, Math.min(idx, this.total - 1));
 
-      // Al cambiar de slide SIEMPRE se detiene el audio anterior
+      // Siempre que cambie de slide, apagamos el audio anterior
       this.stopCurrentSpeech();
-      // No autoreproducimos el nuevo slide.
+      // NO autoreproducimos el nuevo slide: el niño debe volver a tocar el botón.
     });
   }
 
-  /** Botón Continuar */
+  /** Botón Continuar / Empezar */
   continue() {
     const swiperInstance = this.swiper?.nativeElement?.swiper;
     if (!swiperInstance) return;
 
-    // Siempre paramos audio al cambiar de slide o salir
     this.stopCurrentSpeech();
 
     if (this.active < this.total - 1) {
@@ -132,10 +133,9 @@ export class Intro1Page implements OnInit {
 
       this.ngZone.run(() => {
         this.active = Math.max(0, Math.min(idx, this.total - 1));
-        // Ya no llamamos speakCurrentSlide aquí.
       });
     } else {
-      // Navegamos a registro y nos aseguramos de que no quede audio
+      // Último slide → ir al registro
       this.router.navigate(['/registro']);
     }
   }
@@ -145,18 +145,16 @@ export class Intro1Page implements OnInit {
     const swiperInstance = this.swiper?.nativeElement?.swiper;
     if (!swiperInstance) return;
 
-    // Detenemos el audio antes de cambiar
     this.stopCurrentSpeech();
 
     swiperInstance.slideTo(i);
 
     this.ngZone.run(() => {
       this.active = i;
-      // No autoreproducimos audio
     });
   }
 
-  /** Leer el slide actual (solo se llama cuando el usuario quiere escuchar) */
+  /** Leer el slide actual (solo cuando el usuario lo pide) */
   async speakCurrentSlide() {
     if (!this.audioEnabled) return;
 
@@ -168,7 +166,6 @@ export class Intro1Page implements OnInit {
 
     const titleEl =
       slide.querySelector('[data-read="title"]') || slide.querySelector('h2');
-
     const descEl =
       slide.querySelector('[data-read="desc"]') || slide.querySelector('p');
 
@@ -181,7 +178,7 @@ export class Intro1Page implements OnInit {
     const isNative = Capacitor.isNativePlatform();
 
     if (!isNative) {
-      // Entorno web → Web Speech API
+      // Web → Web Speech API
       const hasWebSpeech =
         'speechSynthesis' in window &&
         typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
@@ -196,7 +193,6 @@ export class Intro1Page implements OnInit {
       utterance.lang = 'es-ES';
       utterance.rate = 0.95;
 
-      // Marcamos que está hablando
       this.isSpeaking = true;
 
       utterance.onend = () => {
@@ -208,7 +204,7 @@ export class Intro1Page implements OnInit {
 
       synth.speak(utterance);
     } else {
-      // APK (Android / iOS) → plugin nativo de TTS
+      // Nativo (APK) → plugin de TTS
       try {
         this.isSpeaking = true;
 
@@ -221,7 +217,6 @@ export class Intro1Page implements OnInit {
           category: 'ambient',
         });
 
-        // Cuando termina de hablar
         this.isSpeaking = false;
       } catch (err) {
         console.error('Error al usar TextToSpeech:', err);
@@ -230,7 +225,7 @@ export class Intro1Page implements OnInit {
     }
   }
 
-  /** Por si salen de la pantalla mientras suena el audio */
+  /** Por si salen de la pantalla mientras suena el audio (Ionic lifecycle) */
   ionViewWillLeave() {
     this.stopCurrentSpeech();
   }

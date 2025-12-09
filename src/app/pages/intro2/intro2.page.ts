@@ -5,6 +5,7 @@ import {
   ElementRef,
   CUSTOM_ELEMENTS_SCHEMA,
   NgZone,
+  OnDestroy,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -28,7 +29,7 @@ addIcons({
   imports: [IonContent, IonButton, IonIcon, CommonModule, FormsModule],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class Intro2Page implements OnInit {
+export class Intro2Page implements OnInit, OnDestroy {
   @ViewChild('swiper', { read: ElementRef, static: true })
   swiper?: ElementRef<any>;
 
@@ -36,7 +37,7 @@ export class Intro2Page implements OnInit {
   active = 0; // arranca en el primer slide
   dots = [0, 1, 2];
 
-  // Igual que en intro1
+  // Audio
   audioEnabled = false; // el usuario ya tocó el botón al menos una vez
   isSpeaking = false;   // está hablando ahora mismo
 
@@ -44,18 +45,22 @@ export class Intro2Page implements OnInit {
 
   ngOnInit() {}
 
+  ngOnDestroy() {
+    // Seguridad extra si la vista se destruye
+    this.stopCurrentSpeech();
+  }
+
   /**
    * Botón de audio:
    * - Primer toque: da permiso y reproduce el slide actual.
    * - Siguientes toques: alterna entre reproducir y detener.
    */
   async onAudioButtonClick() {
-    // El niño ya dio permiso para usar audio
     if (!this.audioEnabled) {
       this.audioEnabled = true;
     }
 
-    // Siempre sincronizar el índice activo con el swiper antes de hablar
+    // Sincronizar índice activo con swiper antes de hablar
     const swiperInstance = this.swiper?.nativeElement?.swiper;
     if (swiperInstance && typeof swiperInstance.activeIndex === 'number') {
       const idx = swiperInstance.activeIndex;
@@ -69,7 +74,7 @@ export class Intro2Page implements OnInit {
     }
 
     // Si no está hablando → reproducir el slide actual
-    await this.stopCurrentSpeech(); // por si quedó algo colgado
+    await this.stopCurrentSpeech();
     await this.speakCurrentSlide();
   }
 
@@ -94,12 +99,11 @@ export class Intro2Page implements OnInit {
 
   /**
    * Se dispara cuando cambias de slide (por swipe, dots o por código).
-   * Se enlaza en el HTML con (slidechange)="onSlideChangeEvent($event)".
+   * HTML: (slidechange)="onSlideChangeEvent($event)"
    */
   onSlideChangeEvent(event?: any) {
     const swiperInstance = this.swiper?.nativeElement?.swiper;
 
-    // Swiper web component puede exponer el índice en el propio swiper o en event.detail[0]
     const idx =
       swiperInstance?.activeIndex ??
       event?.detail?.[0]?.activeIndex ??
@@ -107,19 +111,16 @@ export class Intro2Page implements OnInit {
 
     this.ngZone.run(() => {
       this.active = Math.max(0, Math.min(idx, this.total - 1));
-
-      // Siempre detenemos audio al cambiar de slide
+      // Siempre detener audio al cambiar de slide
       this.stopCurrentSpeech();
-      // NO autoreproducimos el nuevo slide, el niño decide.
     });
   }
 
-  /** Avanza al siguiente slide o navega */
+  /** Botón Continuar / Empezar */
   continue() {
     const swiperInstance = this.swiper?.nativeElement?.swiper;
     if (!swiperInstance) return;
 
-    // Antes de cambiar de slide o salir, detenemos audio
     this.stopCurrentSpeech();
 
     if (this.active < this.total - 1) {
@@ -130,7 +131,8 @@ export class Intro2Page implements OnInit {
         this.active = Math.max(0, Math.min(idx, this.total - 1));
       });
     } else {
-      this.router.navigate(['/home']); // o la ruta que toque
+      // Cambia '/home' por la ruta donde quieras ir después de esta intro
+      this.router.navigate(['/home']);
     }
   }
 
@@ -139,7 +141,6 @@ export class Intro2Page implements OnInit {
     const swiperInstance = this.swiper?.nativeElement?.swiper;
     if (!swiperInstance) return;
 
-    // Detenemos audio antes de cambiar
     this.stopCurrentSpeech();
 
     swiperInstance.slideTo(i);
@@ -157,7 +158,7 @@ export class Intro2Page implements OnInit {
 
     const swiperInstance = this.swiper?.nativeElement?.swiper;
 
-    // Tomar el índice REAL del swiper para evitar desfaces al hacer swipe
+    // Tomar índice REAL del swiper para evitar desfaces
     let idx = this.active;
     if (swiperInstance && typeof swiperInstance.activeIndex === 'number') {
       idx = swiperInstance.activeIndex;
@@ -178,7 +179,7 @@ export class Intro2Page implements OnInit {
     const title = (titleEl?.textContent || '').trim();
     const desc = (descEl?.textContent || '').trim();
 
-    // Leer también los labels de las cards (Comida, Entrenamiento, Paseos, etc.)
+    // Labels de las cards (Comida, Entrenamiento, Paseos, etc.)
     const labelEls = slide.querySelectorAll('.label');
     const labels: string[] = [];
     labelEls.forEach((el) => {
@@ -195,7 +196,7 @@ export class Intro2Page implements OnInit {
     const isNative = Capacitor.isNativePlatform();
 
     if (!isNative) {
-      // ===== Entorno web (localhost / navegador) → Web Speech API =====
+      // Web → Web Speech API
       const hasWebSpeech =
         'speechSynthesis' in window &&
         typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
@@ -227,7 +228,7 @@ export class Intro2Page implements OnInit {
         this.isSpeaking = false;
       }
     } else {
-      // ===== APK (Android / iOS) → Plugin nativo de TTS =====
+      // APK (Android / iOS) → plugin nativo
       try {
         this.isSpeaking = true;
 
